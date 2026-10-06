@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      books: {
+        Row: {
+          author: string | null
+          created_at: string
+          domain: string
+          file_path: string | null
+          id: string
+          price_usd: number | null
+          title: string
+        }
+        Insert: {
+          author?: string | null
+          created_at?: string
+          domain: string
+          file_path?: string | null
+          id?: string
+          price_usd?: number | null
+          title: string
+        }
+        Update: {
+          author?: string | null
+          created_at?: string
+          domain?: string
+          file_path?: string | null
+          id?: string
+          price_usd?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           attachment_link: string | null
@@ -59,6 +89,33 @@ export type Database = {
           price_usd?: number | null
           status?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
         }
         Relationships: []
       }
