@@ -110,6 +110,7 @@ function Page() {
                     <Button asChild size="sm" className="bg-success text-primary-foreground hover:bg-success/90">
                       <a href={waLink(o.phone, `Bonjour ${o.full_name}, BERSA concernant : ${o.item}`)} target="_blank" rel="noreferrer"><MessageCircle className="mr-1 h-4 w-4" />WhatsApp</a>
                     </Button>
+                    <Button asChild size="sm" variant="outline"><Link to="/facture/$id" params={{ id: o.id }}>Facture</Link></Button>
                     <Button asChild size="sm" variant="outline"><a href={`tel:${o.phone}`}><Phone className="h-4 w-4" /></a></Button>
                   </div>
                 </div>
