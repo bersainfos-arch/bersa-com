@@ -55,7 +55,7 @@ function Assistant() {
       <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
         {msgs.map((m, i) => (
           <div key={i} className={`whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${m.role === "user" ? "ml-8 bg-primary text-primary-foreground" : "mr-8 bg-muted"}`}>
-            {m.content}
+            {m.content.replace(/\*\*/g, "")}
           </div>
         ))}
         {busy && <div className="mr-8 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">…</div>}
