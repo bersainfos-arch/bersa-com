@@ -103,15 +103,15 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
     if (error) toast.error(error.message);
     else onDone();
   }
-  const [first, ...rest] = String(m.full_name ?? m.name ?? "").split(" ");
+  const [first, ...rest] = String(m["full_name"] ?? m["name"] ?? "").split(" ");
   return (
     <form onSubmit={submit} className="space-y-3">
       <p className="text-center text-sm text-muted-foreground">Complétez votre profil pour continuer.</p>
       <div className="grid grid-cols-2 gap-2">
-        <Input name="first_name" placeholder="Prénom" required defaultValue={m.first_name ?? first} />
-        <Input name="last_name" placeholder="Nom" required defaultValue={m.last_name ?? rest.join(" ")} />
+        <Input name="first_name" placeholder="Prénom" required defaultValue={m["first_name"] ?? first} />
+        <Input name="last_name" placeholder="Nom" required defaultValue={m["last_name"] ?? rest.join(" ")} />
       </div>
-      <Input name="phone" type="tel" placeholder="Téléphone / WhatsApp" required defaultValue={m.phone ?? ""} />
+      <Input name="phone" type="tel" placeholder="Téléphone / WhatsApp" required defaultValue={m["phone"] ?? ""} />
       <Button type="submit" className="w-full" disabled={busy}>Continuer</Button>
     </form>
   );
@@ -127,9 +127,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
       const { data } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
       if (data) return setHasProfile(true);
       const m = user.user_metadata ?? {};
-      if (m.first_name && m.last_name && m.phone) {
+      if (m["first_name"] && m["last_name"] && m["phone"]) {
         const { error } = await supabase.from("profiles").insert({
-          id: user.id, first_name: m.first_name, last_name: m.last_name, phone: m.phone, email: user.email ?? null,
+          id: user.id, first_name: m["first_name"], last_name: m["last_name"], phone: m["phone"], email: user.email ?? null,
         });
         return setHasProfile(!error);
       }
