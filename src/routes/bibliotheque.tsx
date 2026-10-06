@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { BookOpen, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -8,7 +9,16 @@ import { OrderDialog } from "@/components/OrderDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
-import { books, domains } from "@/lib/catalog";
+import { domains } from "@/lib/catalog";
+
+type Book = { id: string; title: string; author: string | null; domain: string; price_usd: number | null; file_path: string | null };
+
+async function openBook(path: string) {
+  const w = window.open("", "_blank");
+  const { data, error } = await supabase.storage.from("books").createSignedUrl(path, 3600);
+  if (error || !data) { w?.close(); toast.error("Fichier indisponible"); return; }
+  if (w) w.location.href = data.signedUrl; else window.location.href = data.signedUrl;
+}
 import { askAssistant } from "@/lib/assistant.functions";
 
 export const Route = createFileRoute("/bibliotheque")({
@@ -71,6 +81,10 @@ function Assistant() {
 function Page() {
   const { t, lang } = useI18n();
   const [filter, setFilter] = useState<string | null>(null);
+  const [books, setBooks] = useState<Book[]>([]);
+  useEffect(() => {
+    supabase.from("books").select("id,title,author,domain,price_usd,file_path").order("title").then(({ data }) => setBooks((data as Book[]) ?? []));
+  }, []);
   const list = filter ? books.filter((b) => b.domain === filter) : books;
   return (
     <AppShell>
@@ -85,18 +99,22 @@ function Page() {
               </Button>
             ))}
           </div>
+          {list.length === 0 && <p className="mt-6 text-muted-foreground">Aucun ouvrage dans ce rayon pour le moment.</p>}
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {list.map((b) => (
-              <div key={b.title} className="flex gap-3 rounded-xl border bg-card p-4">
+              <div key={b.id} className="flex gap-3 rounded-xl border bg-card p-4">
                 <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded bg-royal-gradient text-gold"><BookOpen className="h-5 w-5" /></div>
                 <div className="flex-1">
                   <div className="font-semibold">{b.title}</div>
+                  {b.author && <div className="text-sm">{b.author}</div>}
                   <div className="text-xs text-muted-foreground">{b.domain}</div>
                   <div className="mt-2 flex items-center justify-between">
-                    <span className="font-bold text-primary">{b.price ?? t("free")}</span>
-                    {b.price && (
-                      <OrderDialog kind="livre" item={b.title} price={parseFloat(b.price)} trigger={<Button size="sm" variant="outline">{t("order")}</Button>} />
-                    )}
+                    <span className="font-bold text-primary">{b.price_usd ? `${b.price_usd} $` : t("free")}</span>
+                    {b.price_usd ? (
+                      <OrderDialog kind="livre" item={b.title} price={b.price_usd} trigger={<Button size="sm" variant="outline">{t("order")}</Button>} />
+                    ) : b.file_path ? (
+                      <Button size="sm" onClick={() => openBook(b.file_path!)}>Ouvrir</Button>
+                    ) : null}
                   </div>
                 </div>
               </div>
