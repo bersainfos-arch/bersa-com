@@ -57,14 +57,3 @@ export const domains = [
   { fr: "Sciences", en: "Sciences" },
 ];
 
-export const books = [
-  { title: "Introduction au droit OHADA", domain: "Droit", price: "10 $" },
-  { title: "Droit des contrats", domain: "Droit", price: null },
-  { title: "Principes de microéconomie", domain: "Économie", price: "8 $" },
-  { title: "Finance d'entreprise", domain: "Économie", price: "12 $" },
-  { title: "IA : fondamentaux et usages", domain: "Intelligence artificielle", price: "15 $" },
-  { title: "Apprentissage automatique pratique", domain: "Intelligence artificielle", price: null },
-  { title: "Résistance des matériaux", domain: "Ingénierie", price: "10 $" },
-  { title: "Santé publique en Afrique", domain: "Santé", price: null },
-  { title: "Méthodologie scientifique", domain: "Sciences", price: "5 $" },
-];
