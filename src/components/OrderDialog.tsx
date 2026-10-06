@@ -45,6 +45,7 @@ export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
     if (error) return toast.error(error.message);
     toast.success(t("sent"));
     setOpen(false);
+    return undefined;
   }
 
   return (

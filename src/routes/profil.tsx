@@ -41,6 +41,7 @@ function AuthForm() {
     setBusy(false);
     if (error) return toast.error(error.message);
     if (mode === "up") toast.success("Vérifiez votre e-mail pour confirmer votre compte.");
+    return undefined;
   }
   async function google() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/profil" });

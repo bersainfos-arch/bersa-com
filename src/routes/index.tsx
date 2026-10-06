@@ -65,7 +65,7 @@ function Index() {
         <div className="mt-2 h-1 w-12 rounded bg-gold" />
         <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
           {domains.map((d, i) => {
-            const I = icons[i];
+            const I = icons[i] ?? Scale;
             return (
               <Link key={d.fr} to="/bibliotheque" className="group rounded-xl border bg-card p-5 transition hover:border-gold hover:shadow-soft">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground group-hover:bg-gold group-hover:text-gold-foreground">

@@ -47,6 +47,7 @@ function Page() {
     const { error } = await supabase.from("orders").update({ status }).eq("id", id);
     if (error) return toast.error(error.message);
     setOrders((o) => o.map((x) => (x.id === id ? { ...x, status } : x)));
+    return undefined;
   }
 
   const list = filter === "all" ? orders : orders.filter((o) => o.kind === filter);
@@ -62,7 +63,7 @@ function Page() {
         ) : (
           <>
             <div className="flex flex-wrap gap-2">
-              {[["all", "Tout"], ["redaction", "Rédaction"], ["formation", "Formations"], ["livre", "Livres"]].map(([v, l]) => (
+              {([["all", "Tout"], ["redaction", "Rédaction"], ["formation", "Formations"], ["livre", "Livres"]] as const).map(([v, l]) => (
                 <Button key={v} size="sm" variant={filter === v ? "default" : "outline"} onClick={() => setFilter(v)}>{l}</Button>
               ))}
               <span className="ml-auto self-center text-sm text-muted-foreground">{list.length} demande(s)</span>
