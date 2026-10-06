@@ -55,6 +55,9 @@ export type Database = {
           item: string
           kind: string
           modality: string | null
+          paid: boolean
+          payment_method: string | null
+          payment_ref: string | null
           phone: string
           price_usd: number | null
           status: string
@@ -70,6 +73,9 @@ export type Database = {
           item: string
           kind?: string
           modality?: string | null
+          paid?: boolean
+          payment_method?: string | null
+          payment_ref?: string | null
           phone: string
           price_usd?: number | null
           status?: string
@@ -85,6 +91,9 @@ export type Database = {
           item?: string
           kind?: string
           modality?: string | null
+          paid?: boolean
+          payment_method?: string | null
+          payment_ref?: string | null
           phone?: string
           price_usd?: number | null
           status?: string
