@@ -17,3 +17,4 @@
 - Création du compte côté serveur, avec l'e-mail déjà confirmé ; ajout de la ligne du profil et du rôle admin.
 - Nouvelle page publique `/reset-password`, hors de l'écran de connexion obligatoire : elle détecte la session de récupération et appelle `updateUser({ password })`.
 - Envoi du lien avec `resetPasswordForEmail` (redirection vers `/reset-password`) ; le formulaire « Mot de passe oublié » utilise le même appel.
+- Nouvelle page `/facture/$id` : elle charge la commande (accès limité au client propriétaire ou à l'admin, comme aujourd'hui), avec une mise en page adaptée à l'impression (`window.print()` et des styles `print:` qui masquent les menus).
