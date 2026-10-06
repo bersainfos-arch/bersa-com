@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
 import { Route as ProfilRouteImport } from './routes/profil'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const BibliothequeRoute = BibliothequeRouteImport.update({
   id: '/bibliotheque',
   path: '/bibliotheque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FormationsRoute = FormationsRouteImport.update({
@@ -50,6 +56,7 @@ const RedactionRoute = RedactionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bibliotheque': typeof BibliothequeRoute
+  '/contact': typeof ContactRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bibliotheque': typeof BibliothequeRoute
+  '/contact': typeof ContactRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bibliotheque': typeof BibliothequeRoute
+  '/contact': typeof ContactRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/bibliotheque'
+    | '/contact'
     | '/formations'
     | '/gestion'
     | '/profil'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/bibliotheque'
+    | '/contact'
     | '/formations'
     | '/gestion'
     | '/profil'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/bibliotheque'
+    | '/contact'
     | '/formations'
     | '/gestion'
     | '/profil'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BibliothequeRoute: typeof BibliothequeRoute
+  ContactRoute: typeof ContactRoute
   FormationsRoute: typeof FormationsRoute
   GestionRoute: typeof GestionRoute
   ProfilRoute: typeof ProfilRoute
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/bibliotheque'
       fullPath: '/bibliotheque'
       preLoaderRoute: typeof BibliothequeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/formations': {
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BibliothequeRoute: BibliothequeRoute,
+  ContactRoute: ContactRoute,
   FormationsRoute: FormationsRoute,
   GestionRoute: GestionRoute,
   ProfilRoute: ProfilRoute,

@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { useI18n, type Key } from "@/lib/i18n";
+import { AuthGate } from "@/components/AuthGate";
+import { MessageCircle } from "lucide-react";
 
 const tabs: { to: string; key: Key; icon: typeof Home }[] = [
   { to: "/", key: "home", icon: Home },
@@ -16,6 +18,7 @@ const tabs: { to: string; key: Key; icon: typeof Home }[] = [
 export function AppShell({ children }: { children: ReactNode }) {
   const { t, lang, setLang } = useI18n();
   return (
+    <AuthGate>
     <div className="min-h-screen pb-24 md:pb-0">
       <header className="sticky top-0 z-30 bg-royal text-royal-foreground shadow-soft">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
@@ -36,9 +39,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
+          <Link to="/contact" className="ml-auto flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-gold-foreground">
+            <MessageCircle className="h-3.5 w-3.5" /> Contact
+          </Link>
           <button
             onClick={() => setLang(lang === "fr" ? "en" : "fr")}
-            className="ml-auto rounded-full border border-gold px-3 py-1 text-xs font-semibold text-gold"
+            className="rounded-full border border-gold px-3 py-1 text-xs font-semibold text-gold"
             aria-label="Langue / Language"
           >
             {lang === "fr" ? "EN" : "FR"}
@@ -61,6 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
     </div>
+    </AuthGate>
   );
 }
 
