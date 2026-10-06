@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
+import { Route as FormationsRouteImport } from './routes/formations'
+import { Route as GestionRouteImport } from './routes/gestion'
+import { Route as ProfilRouteImport } from './routes/profil'
+import { Route as RedactionRouteImport } from './routes/redaction'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BibliothequeRoute = BibliothequeRouteImport.update({
+  id: '/bibliotheque',
+  path: '/bibliotheque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormationsRoute = FormationsRouteImport.update({
+  id: '/formations',
+  path: '/formations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GestionRoute = GestionRouteImport.update({
+  id: '/gestion',
+  path: '/gestion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfilRoute = ProfilRouteImport.update({
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedactionRoute = RedactionRouteImport.update({
+  id: '/redaction',
+  path: '/redaction',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bibliotheque': typeof BibliothequeRoute
+  '/formations': typeof FormationsRoute
+  '/gestion': typeof GestionRoute
+  '/profil': typeof ProfilRoute
+  '/redaction': typeof RedactionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bibliotheque': typeof BibliothequeRoute
+  '/formations': typeof FormationsRoute
+  '/gestion': typeof GestionRoute
+  '/profil': typeof ProfilRoute
+  '/redaction': typeof RedactionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bibliotheque': typeof BibliothequeRoute
+  '/formations': typeof FormationsRoute
+  '/gestion': typeof GestionRoute
+  '/profil': typeof ProfilRoute
+  '/redaction': typeof RedactionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/bibliotheque'
+    | '/formations'
+    | '/gestion'
+    | '/profil'
+    | '/redaction'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/bibliotheque'
+    | '/formations'
+    | '/gestion'
+    | '/profil'
+    | '/redaction'
+  id:
+    | '__root__'
+    | '/'
+    | '/bibliotheque'
+    | '/formations'
+    | '/gestion'
+    | '/profil'
+    | '/redaction'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BibliothequeRoute: typeof BibliothequeRoute
+  FormationsRoute: typeof FormationsRoute
+  GestionRoute: typeof GestionRoute
+  ProfilRoute: typeof ProfilRoute
+  RedactionRoute: typeof RedactionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +117,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bibliotheque': {
+      id: '/bibliotheque'
+      path: '/bibliotheque'
+      fullPath: '/bibliotheque'
+      preLoaderRoute: typeof BibliothequeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/formations': {
+      id: '/formations'
+      path: '/formations'
+      fullPath: '/formations'
+      preLoaderRoute: typeof FormationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestion': {
+      id: '/gestion'
+      path: '/gestion'
+      fullPath: '/gestion'
+      preLoaderRoute: typeof GestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profil': {
+      id: '/profil'
+      path: '/profil'
+      fullPath: '/profil'
+      preLoaderRoute: typeof ProfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redaction': {
+      id: '/redaction'
+      path: '/redaction'
+      fullPath: '/redaction'
+      preLoaderRoute: typeof RedactionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BibliothequeRoute: BibliothequeRoute,
+  FormationsRoute: FormationsRoute,
+  GestionRoute: GestionRoute,
+  ProfilRoute: ProfilRoute,
+  RedactionRoute: RedactionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
