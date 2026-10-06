@@ -26,7 +26,7 @@ export function BookManager() {
     if (file && file.size > 0) {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "pdf";
       file_path = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("books").upload(file_path, file, { contentType: file.type || undefined });
+      const { error } = await supabase.storage.from("books").upload(file_path, file, { contentType: file.type || "application/pdf" });
       if (error) { setBusy(false); toast.error(error.message); return; }
     }
     const price = String(f.get("price") || "").trim();
