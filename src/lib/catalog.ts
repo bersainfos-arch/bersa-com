@@ -1,4 +1,5 @@
 export const WHATSAPP = "243818147637";
+export const MOBILE_MONEY = { mpesa: "+243 818 147 637", airtel: "+243 971 395 319" };
 export const waLink = (phone: string, text = "") =>
   `https://wa.me/${phone.replace(/[^\d]/g, "")}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 

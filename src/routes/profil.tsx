@@ -22,7 +22,7 @@ export const Route = createFileRoute("/profil")({
   component: Page,
 });
 
-type Order = { id: string; item: string; kind: string; modality: string | null; status: string; created_at: string };
+type Order = { id: string; item: string; kind: string; modality: string | null; status: string; created_at: string; price_usd: number | null; paid: boolean };
 
 function AuthForm() {
   const { t } = useI18n();
@@ -69,7 +69,7 @@ function Page() {
   const [orders, setOrders] = useState<Order[]>([]);
   useEffect(() => {
     if (!user) return;
-    supabase.from("orders").select("id,item,kind,modality,status,created_at").eq("user_id", user.id).order("created_at", { ascending: false })
+    supabase.from("orders").select("id,item,kind,modality,status,created_at,price_usd,paid").eq("user_id", user.id).order("created_at", { ascending: false })
       .then(({ data }) => setOrders(data ?? []));
   }, [user]);
   return (
@@ -92,7 +92,10 @@ function Page() {
                   <div className="font-semibold">{o.item}</div>
                   <div className="text-xs text-muted-foreground">{o.kind}{o.modality ? ` · ${o.modality}` : ""} · {new Date(o.created_at).toLocaleDateString()}</div>
                 </div>
-                <StatusBadge status={o.status} />
+                <div className="flex flex-col items-end gap-1">
+                  <StatusBadge status={o.status} />
+                  {o.price_usd ? <span className="text-xs text-muted-foreground">{o.paid ? "Payé ✓" : "Paiement en vérification"}</span> : null}
+                </div>
               </div>
             ))}
           </div>

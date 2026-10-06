@@ -27,6 +27,7 @@ export const Route = createFileRoute("/gestion")({
 type Order = {
   id: string; item: string; kind: string; modality: string | null; status: string; created_at: string;
   full_name: string; phone: string; email: string | null; details: string | null; attachment_link: string | null; price_usd: number | null;
+  payment_method: string | null; payment_ref: string | null; paid: boolean;
 };
 
 function Page() {
@@ -49,6 +50,12 @@ function Page() {
     if (error) return toast.error(error.message);
     setOrders((o) => o.map((x) => (x.id === id ? { ...x, status } : x)));
     return undefined;
+  }
+
+  async function togglePaid(id: string, paid: boolean) {
+    const { error } = await supabase.from("orders").update({ paid }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setOrders((o) => o.map((x) => (x.id === id ? { ...x, paid } : x)));
   }
 
   const list = filter === "all" ? orders : orders.filter((o) => o.kind === filter);
@@ -84,6 +91,14 @@ function Page() {
                     <StatusBadge status={o.status} />
                   </div>
                   <div className="mt-2 text-sm"><b>{o.full_name}</b> · {o.phone}{o.email ? ` · ${o.email}` : ""}</div>
+                  {o.price_usd ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                      <span>{o.payment_method ?? "—"} · Réf. <b>{o.payment_ref ?? "—"}</b></span>
+                      <Button size="sm" variant={o.paid ? "default" : "outline"} onClick={() => togglePaid(o.id, !o.paid)}>
+                        {o.paid ? "Paiement confirmé ✓" : "Confirmer le paiement"}
+                      </Button>
+                    </div>
+                  ) : null}
                   {o.details && <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{o.details}</p>}
                   {o.attachment_link && /^https?:\/\//.test(o.attachment_link) && (
                     <a href={o.attachment_link} target="_blank" rel="noreferrer" className="text-sm text-primary underline">Fichiers joints</a>

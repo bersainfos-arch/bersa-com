@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
+import { MOBILE_MONEY } from "@/lib/catalog";
 
 type Props = {
   trigger: ReactNode;
@@ -29,6 +30,9 @@ export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
     const full_name = String(f.get("full_name") || "").trim();
     const phone = String(f.get("phone") || "").trim();
     if (!full_name || !phone) return toast.error("Nom et téléphone requis");
+    const payment_method = String(f.get("payment_method") || "") || null;
+    const payment_ref = String(f.get("payment_ref") || "").trim().slice(0, 80) || null;
+    if (price && !payment_ref) return toast.error("Indiquez la référence de votre paiement Mobile Money");
     setBusy(true);
     const { error } = await supabase.from("orders").insert({
       kind,
@@ -40,6 +44,8 @@ export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
       email: String(f.get("email") || "").slice(0, 200) || null,
       details: String(f.get("details") || "").slice(0, 3000) || null,
       attachment_link: String(f.get("attachment_link") || "").slice(0, 500) || null,
+      payment_method: price ? payment_method : null,
+      payment_ref: price ? payment_ref : null,
     });
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -74,6 +80,15 @@ export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
                 <Input name="attachment_link" placeholder={t("attachment")} maxLength={500} />
               </>
             )}
+            {price ? (
+              <div className="space-y-2 rounded-xl border border-gold bg-accent p-3 text-sm">
+                <div className="font-semibold">Paiement Mobile Money : {price} $</div>
+                <p className="text-muted-foreground">Envoyez le montant à l'un de ces numéros, puis indiquez la référence de la transaction reçue par SMS.</p>
+                <label className="flex items-center gap-2"><input type="radio" name="payment_method" value="M-Pesa" defaultChecked /> M-Pesa : <b>{MOBILE_MONEY.mpesa}</b></label>
+                <label className="flex items-center gap-2"><input type="radio" name="payment_method" value="Airtel Money" /> Airtel Money : <b>{MOBILE_MONEY.airtel}</b></label>
+                <Input name="payment_ref" placeholder="Référence de la transaction" required maxLength={80} />
+              </div>
+            ) : null}
             <Button type="submit" className="w-full" disabled={busy}>
               {t("send")}
             </Button>
