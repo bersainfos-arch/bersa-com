@@ -16,6 +16,8 @@ import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as RedactionRouteImport } from './routes/redaction'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as FactureIdRouteImport } from './routes/facture.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +54,16 @@ const RedactionRoute = RedactionRouteImport.update({
   path: '/redaction',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FactureIdRoute = FactureIdRouteImport.update({
+  id: '/facture/$id',
+  path: '/facture/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +73,8 @@ export interface FileRoutesByFullPath {
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/facture/$id': typeof FactureIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +84,8 @@ export interface FileRoutesByTo {
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/facture/$id': typeof FactureIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +96,8 @@ export interface FileRoutesById {
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/facture/$id': typeof FactureIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +109,8 @@ export interface FileRouteTypes {
     | '/gestion'
     | '/profil'
     | '/redaction'
+    | '/reset-password'
+    | '/facture/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +120,8 @@ export interface FileRouteTypes {
     | '/gestion'
     | '/profil'
     | '/redaction'
+    | '/reset-password'
+    | '/facture/$id'
   id:
     | '__root__'
     | '/'
@@ -109,6 +131,8 @@ export interface FileRouteTypes {
     | '/gestion'
     | '/profil'
     | '/redaction'
+    | '/reset-password'
+    | '/facture/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +143,8 @@ export interface RootRouteChildren {
   GestionRoute: typeof GestionRoute
   ProfilRoute: typeof ProfilRoute
   RedactionRoute: typeof RedactionRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  FactureIdRoute: typeof FactureIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +198,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RedactionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/facture/$id': {
+      id: '/facture/$id'
+      path: '/facture/$id'
+      fullPath: '/facture/$id'
+      preLoaderRoute: typeof FactureIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +223,8 @@ const rootRouteChildren: RootRouteChildren = {
   GestionRoute: GestionRoute,
   ProfilRoute: ProfilRoute,
   RedactionRoute: RedactionRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  FactureIdRoute: FactureIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

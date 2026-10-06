@@ -55,6 +55,13 @@ function SignForm() {
     if (error) toast.error(error.message);
     else toast.success("Compte créé ! Confirmez votre e-mail pour vous connecter.");
   }
+  async function forgot() {
+    const email = window.prompt("Votre adresse e-mail :")?.trim();
+    if (!email) return;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset-password" });
+    if (error) toast.error(error.message);
+    else toast.success("Un lien vous a été envoyé par e-mail.");
+  }
   async function google() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (r.error) toast.error("Connexion Google impossible.");
@@ -78,6 +85,9 @@ function SignForm() {
         </Button>
       </form>
       <Button variant="outline" className="w-full" onClick={google}>{t("google")}</Button>
+      {mode === "in" && (
+        <button className="w-full text-sm text-muted-foreground underline" onClick={forgot}>Mot de passe oublié ?</button>
+      )}
       <button className="w-full text-sm text-primary underline" onClick={() => setMode(mode === "in" ? "up" : "in")}>
         {mode === "in" ? "Pas encore de compte ? S'inscrire" : "Déjà inscrit ? Se connecter"}
       </button>

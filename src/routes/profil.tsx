@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/AppShell";
@@ -94,6 +94,7 @@ function Page() {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <StatusBadge status={o.status} />
+                  <Link to="/facture/$id" params={{ id: o.id }} className="text-xs text-primary underline">Facture</Link>
                   {o.price_usd ? <span className="text-xs text-muted-foreground">{o.paid ? "Payé ✓" : "Paiement en vérification"}</span> : null}
                 </div>
               </div>
