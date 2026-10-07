@@ -81,3 +81,8 @@
 
 @utility bg-royal-gradient { background-image: var(--gradient-royal); }
 @utility shadow-soft { box-shadow: var(--shadow-soft); }
+
+@keyframes intro-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}

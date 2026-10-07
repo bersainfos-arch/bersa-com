@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
+import intro from "@/assets/bersa-intro.png.asset.json";
 
 function Frame({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -95,6 +96,50 @@ function SignForm() {
   );
 }
 
+function IntroSplash({ onDone }: { onDone: () => void }) {
+  const { lang } = useI18n();
+  const [phase, setPhase] = useState<"logo" | "image">("logo");
+  useEffect(() => {
+    const t = setTimeout(() => setPhase("image"), 1400);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (phase !== "image") return;
+    const t = setTimeout(onDone, 5000);
+    return () => clearTimeout(t);
+  }, [phase, onDone]);
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-royal-gradient px-4">
+      {phase === "logo" ? (
+        <div className="flex animate-in flex-col items-center text-center fade-in duration-700">
+          <img src={logo.url} alt="Logo BERSA" className="h-28 w-28 rounded-3xl shadow-soft" />
+          <h1 className="mt-5 text-4xl font-bold text-royal-foreground">BERSA</h1>
+          <p className="mt-1 font-display text-lg italic text-gold">« Notre devoir est d'acquérir le savoir »</p>
+        </div>
+      ) : (
+        <div className="w-full max-w-4xl animate-in fade-in zoom-in-95 duration-700">
+          <img
+            src={intro.url}
+            alt="BERSA — Une plateforme, plusieurs opportunités, un même objectif : votre avenir"
+            className="w-full rounded-2xl shadow-soft"
+            width={1664}
+            height={928}
+          />
+          <div className="mx-auto mt-4 h-1 w-2/3 overflow-hidden rounded-full bg-royal-foreground/20">
+            <div className="h-full rounded-full bg-gold" style={{ animation: "intro-progress 5s linear forwards" }} />
+          </div>
+        </div>
+      )}
+      <button
+        onClick={onDone}
+        className="absolute bottom-6 right-6 rounded-full border border-royal-foreground/30 px-4 py-1.5 text-sm text-royal-foreground/80 transition hover:bg-royal-foreground/10"
+      >
+        {lang === "fr" ? "Passer" : "Skip"}
+      </button>
+    </div>
+  );
+}
+
 function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const m = user.user_metadata ?? {};
@@ -130,6 +175,7 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
     if (!user) return setHasProfile(null);
@@ -150,7 +196,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (loading || (user && hasProfile === null)) {
     return <div className="flex min-h-screen items-center justify-center bg-royal-gradient"><img src={logo.url} alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" /></div>;
   }
-  if (!user) return <Frame><SignForm /></Frame>;
+  if (!user) {
+    if (!introDone) return <IntroSplash onDone={() => setIntroDone(true)} />;
+    return <Frame><SignForm /></Frame>;
+  }
   if (!hasProfile) return <Frame><CompleteProfile user={user} onDone={() => setHasProfile(true)} /></Frame>;
   return <>{children}</>;
 }
