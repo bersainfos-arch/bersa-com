@@ -13,6 +13,8 @@ export const Route = createFileRoute("/facture/$id")({
       { title: "Facture — BERSA" },
       { name: "description", content: "Facture imprimable de votre commande BERSA." },
       { property: "og:title", content: "Facture — BERSA" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Facture de commande BERSA." },
       { name: "robots", content: "noindex" },
     ],

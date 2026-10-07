@@ -100,12 +100,12 @@ function IntroSplash({ onDone }: { onDone: () => void }) {
   const { lang } = useI18n();
   const [phase, setPhase] = useState<"logo" | "image">("logo");
   useEffect(() => {
-    const t = setTimeout(() => setPhase("image"), 1400);
+    const t = setTimeout(() => setPhase("image"), 500);
     return () => clearTimeout(t);
   }, []);
   useEffect(() => {
     if (phase !== "image") return;
-    const t = setTimeout(onDone, 5000);
+    const t = setTimeout(onDone, 1500);
     return () => clearTimeout(t);
   }, [phase, onDone]);
   return (
@@ -126,7 +126,7 @@ function IntroSplash({ onDone }: { onDone: () => void }) {
             height={928}
           />
           <div className="mx-auto mt-4 h-1 w-2/3 overflow-hidden rounded-full bg-royal-foreground/20">
-            <div className="h-full rounded-full bg-gold" style={{ animation: "intro-progress 5s linear forwards" }} />
+            <div className="h-full rounded-full bg-gold" style={{ animation: "intro-progress 1.5s linear forwards" }} />
           </div>
         </div>
       )}

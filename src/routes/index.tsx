@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { domains, WHATSAPP, waLink } from "@/lib/catalog";
 import hero from "@/assets/hero.jpg";
 import logo from "@/assets/bersa-logo.png.asset.json";
+import { HomeNews } from "@/components/HomeNews";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -14,6 +15,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Rédaction académique et juridique, formations et bibliothèque intelligente. Notre devoir est d'acquérir le savoir." },
       { property: "og:title", content: "BERSA — Berceau du Savoir" },
       { property: "og:description", content: "Rédaction, formations et bibliothèque au service de votre avenir." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -59,6 +62,8 @@ function Index() {
           </div>
         ))}
       </section>
+
+      <HomeNews />
 
       <section className="mx-auto max-w-6xl px-4 py-14">
         <h2 className="text-3xl font-bold md:text-4xl">{t("domains")}</h2>
