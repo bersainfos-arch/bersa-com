@@ -2,13 +2,13 @@
 
 Implement exactly the screenshot and nothing else
 
-This project was built with [Lovable](https://lovable.dev).
+This project was built with
 
-**Live app**: https://bersacd.lovable.app
+**Live app**: https://bersacd.app
 
 ## Build with Lovable
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/620e5648-2e92-4ba1-9ad1-1f00766258ba).
+Continue developing this project in the(https://lovable.dev/projects/620e5648-2e92-4ba1-9ad1-1f00766258ba).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
 - **Stay in sync**: every change made in Lovable is committed straight to this repository.
