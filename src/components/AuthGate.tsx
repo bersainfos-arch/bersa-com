@@ -175,6 +175,7 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [introDone, setIntroDone] = useState(false);
 
   useEffect(() => {
     if (!user) return setHasProfile(null);
