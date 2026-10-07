@@ -1,4 +1,6 @@
 # BERSA roadmap
+- [ ] Réduire l’introduction totale à deux secondes
+- [ ] Ajouter le diaporama des annonces sur l’accueil avec la photo fournie
 - [x] Livres : ajout par le propriétaire depuis Gestion (titre, auteur, prix, fichier)
 - [x] Paiement Mobile Money manuel (M-Pesa / Airtel, référence vérifiée en Gestion)
 - [ ] Paiement Mobile Money automatique — en attente du nom du service et des clés marchand
