@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
+import intro from "@/assets/bersa-intro.png.asset.json";
 
 function Frame({ children }: { children: ReactNode }) {
   const { t } = useI18n();
