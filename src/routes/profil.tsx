@@ -16,6 +16,8 @@ export const Route = createFileRoute("/profil")({
       { title: "Mon profil — BERSA" },
       { name: "description", content: "Connectez-vous pour suivre vos commandes et formations BERSA." },
       { property: "og:title", content: "Mon profil — BERSA" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Suivi de vos commandes et inscriptions." },
     ],
   }),

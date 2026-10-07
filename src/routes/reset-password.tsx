@@ -12,6 +12,8 @@ export const Route = createFileRoute("/reset-password")({
       { title: "Définir mon mot de passe — BERSA" },
       { name: "description", content: "Choisissez un nouveau mot de passe pour votre compte BERSA." },
       { property: "og:title", content: "Définir mon mot de passe — BERSA" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Réinitialisation du mot de passe BERSA." },
       { name: "robots", content: "noindex" },
     ],

@@ -12,6 +12,8 @@ export const Route = createFileRoute("/contact")({
       { title: "Contact — BERSA" },
       { name: "description", content: "Écrivez à BERSA : votre message arrive directement sur notre WhatsApp." },
       { property: "og:title", content: "Contact — BERSA" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Contactez BERSA sur WhatsApp au +243 818 147 637." },
     ],
   }),

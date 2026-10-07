@@ -13,6 +13,8 @@ export const Route = createFileRoute("/formations")({
       { title: "BERSA Academy — Formations à 20 $" },
       { name: "description", content: "Formations pratiques à 20 $, en ligne ou en présentiel. Inscription immédiate." },
       { property: "og:title", content: "BERSA Academy — Formations" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Méthodologie, rédaction, IA, entrepreneuriat : formations à 20 $." },
     ],
   }),

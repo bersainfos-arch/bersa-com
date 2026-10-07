@@ -13,6 +13,8 @@ export const Route = createFileRoute("/redaction")({
       { title: "Rédaction & Services — BERSA" },
       { name: "description", content: "Mémoires, thèses, articles, actes juridiques, statuts OHADA, business plans : commandez votre document." },
       { property: "og:title", content: "Rédaction & Services — BERSA" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Catalogue de rédaction universitaire, administrative, juridique et entrepreneuriale." },
     ],
   }),

@@ -17,6 +17,8 @@ export const Route = createFileRoute("/gestion")({
       { title: "Espace gestionnaire — BERSA" },
       { name: "description", content: "Console de traitement des commandes et inscriptions BERSA." },
       { property: "og:title", content: "Espace gestionnaire — BERSA" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Traitement des demandes reçues." },
       { name: "robots", content: "noindex" },
     ],
