@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import consulting from "@/assets/bersa-consulting.jpg.asset.json";
-import intro from "@/assets/bersa-intro.png.asset.json";
 
 const categories = [
   { id: "all", fr: "Tout", en: "All" },
@@ -15,7 +14,6 @@ const categories = [
 ];
 const slides = [
   { image: consulting.url, category: "announcements", title: "BERSA Consulting", fr: "Transformez vos idées en résultats", en: "Turn your ideas into results", alt: "Affiche BERSA Consulting — Dieudonné DJOMA, formateur en rédaction" },
-  { image: intro.url, category: "other", title: "Berceau du Savoir", fr: "Une plateforme, plusieurs opportunités", en: "One platform, many opportunities", alt: "Image de présentation BERSA — Berceau du Savoir" },
 ];
 
 export function HomeNews() {
