@@ -196,7 +196,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (loading || (user && hasProfile === null)) {
     return <div className="flex min-h-screen items-center justify-center bg-royal-gradient"><img src={logo.url} alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" /></div>;
   }
-  if (!user) return <Frame><SignForm /></Frame>;
+  if (!user) {
+    if (!introDone) return <IntroSplash onDone={() => setIntroDone(true)} />;
+    return <Frame><SignForm /></Frame>;
+  }
   if (!hasProfile) return <Frame><CompleteProfile user={user} onDone={() => setHasProfile(true)} /></Frame>;
   return <>{children}</>;
 }
