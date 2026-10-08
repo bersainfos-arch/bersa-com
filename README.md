@@ -6,7 +6,7 @@ This project was built with
 
 **Live app**: https://bersacd.app
 
-## Build with Lovable
+## Build with 
 
 Continue developing this project in the(https://lovable.dev/projects/620e5648-2e92-4ba1-9ad1-1f00766258ba).
 
