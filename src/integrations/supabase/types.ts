@@ -44,6 +44,42 @@ export type Database = {
         }
         Relationships: []
       }
+      documents: {
+        Row: {
+          content: string
+          created_at: string
+          doc_type: string
+          id: string
+          order_id: string | null
+          sent: boolean
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          doc_type?: string
+          id?: string
+          order_id?: string | null
+          sent?: boolean
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          doc_type?: string
+          id?: string
+          order_id?: string | null
+          sent?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           attachment_link: string | null
@@ -109,6 +145,7 @@ export type Database = {
           id: string
           last_name: string
           phone: string
+          post_nom: string | null
         }
         Insert: {
           created_at?: string
@@ -117,6 +154,7 @@ export type Database = {
           id: string
           last_name: string
           phone: string
+          post_nom?: string | null
         }
         Update: {
           created_at?: string
@@ -125,6 +163,7 @@ export type Database = {
           id?: string
           last_name?: string
           phone?: string
+          post_nom?: string | null
         }
         Relationships: []
       }
