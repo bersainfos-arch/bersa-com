@@ -8,3 +8,7 @@
 - [x] Page Contact avec formulaire vers WhatsApp
 - [x] Envoi de fichiers des livres (ouverture directe)
 - [x] Inscription/connexion obligatoire avec nom, prénom, téléphone, e-mail
+- [x] Assistant IA complet (13 outils, discussion, historique, dictée, lecture audio)
+- [ ] Éditeur A4 + Mes documents
+- [ ] Rédaction spécialisée (modèles IA)
+- [ ] Formations, bibliothèque (12 domaines, recommandations IA), tableau de bord admin

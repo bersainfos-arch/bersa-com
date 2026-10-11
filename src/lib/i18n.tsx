@@ -4,6 +4,7 @@ export type Lang = "fr" | "en";
 
 const dict = {
   home: { fr: "Accueil", en: "Home" },
+  ai: { fr: "Assistant", en: "Assistant" },
   writing: { fr: "Rédaction", en: "Writing" },
   academy: { fr: "Formations", en: "Academy" },
   library: { fr: "Bibliothèque", en: "Library" },
