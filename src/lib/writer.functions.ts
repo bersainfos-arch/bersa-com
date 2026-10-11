@@ -28,7 +28,7 @@ export const runWriter = createServerFn({ method: "POST" })
     const messages = (input?.messages ?? [])
       .slice(-12)
       .map((m) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content).slice(0, 15000) })) as Msg[];
-    if (!messages.length || !messages[messages.length - 1].content.trim()) throw new Error("Texte vide");
+    if (!messages.length || !messages[messages.length - 1]?.content.trim()) throw new Error("Texte vide");
     return { action, messages };
   })
   .handler(async ({ data }) => {

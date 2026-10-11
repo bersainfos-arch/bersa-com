@@ -93,21 +93,21 @@ function Page() {
     if (lastUser < 0 || busy) return;
     const hist = msgs.slice(0, lastUser + 1);
     save(hist);
-    void send(hist, hist[lastUser].action ?? "chat");
+    void send(hist, hist[lastUser]?.action ?? "chat");
   }
 
-  function speak(t: string) {
-    if (!("speechSynthesis" in window)) return toast.error("Lecture audio non disponible sur cet appareil.");
+  function speak(t: string): void {
+    if (!("speechSynthesis" in window)) { toast.error("Lecture audio non disponible sur cet appareil."); return; }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(t);
     u.lang = "fr-FR";
     speechSynthesis.speak(u);
   }
 
-  function dictate() {
+  function dictate(): void {
     const W = window as unknown as { SpeechRecognition?: new () => any; webkitSpeechRecognition?: new () => any };
     const SR = W.SpeechRecognition ?? W.webkitSpeechRecognition;
-    if (!SR) return toast.error("Dictée vocale non disponible sur ce navigateur (essayez Chrome).");
+    if (!SR) { toast.error("Dictée vocale non disponible sur ce navigateur (essayez Chrome)."); return; }
     const rec = new SR();
     rec.lang = "fr-FR";
     rec.interimResults = false;
