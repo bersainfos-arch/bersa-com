@@ -22,6 +22,7 @@ import { Route as OpportunitesRouteImport } from './routes/opportunites'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as RedactionRouteImport } from './routes/redaction'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as EditeurIdRouteImport } from './routes/editeur.$id'
 import { Route as FactureIdRouteImport } from './routes/facture.$id'
 
@@ -90,6 +91,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EditeurIdRoute = EditeurIdRouteImport.update({
   id: '/editeur/$id',
   path: '/editeur/$id',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
 }
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
 }
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
 }
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/redaction'
     | '/reset-password'
+    | '/api/transcribe'
     | '/editeur/$id'
     | '/facture/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/redaction'
     | '/reset-password'
+    | '/api/transcribe'
     | '/editeur/$id'
     | '/facture/$id'
   id:
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/profil'
     | '/redaction'
     | '/reset-password'
+    | '/api/transcribe'
     | '/editeur/$id'
     | '/facture/$id'
   fileRoutesById: FileRoutesById
@@ -221,6 +233,7 @@ export interface RootRouteChildren {
   ProfilRoute: typeof ProfilRoute
   RedactionRoute: typeof RedactionRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
   EditeurIdRoute: typeof EditeurIdRoute
   FactureIdRoute: typeof FactureIdRoute
 }
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/editeur/$id': {
       id: '/editeur/$id'
       path: '/editeur/$id'
@@ -349,6 +369,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfilRoute: ProfilRoute,
   RedactionRoute: RedactionRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
   EditeurIdRoute: EditeurIdRoute,
   FactureIdRoute: FactureIdRoute,
 }

@@ -57,6 +57,13 @@
       "when": 1791820260156,
       "tag": "0007_0007_opportunities",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791826295776,
+      "tag": "0008_user_book_publications_and_verified_downloads",
+      "breakpoints": true
     }
   ]
 }
