@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AbonnementsRouteImport } from './routes/abonnements'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const AbonnementsRoute = AbonnementsRouteImport.update({
   id: '/abonnements',
   path: '/abonnements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssistantRoute = AssistantRouteImport.update({
@@ -98,6 +104,7 @@ const FactureIdRoute = FactureIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/abonnements': typeof AbonnementsRoute
+  '/app': typeof AppRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/abonnements': typeof AbonnementsRoute
+  '/app': typeof AppRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/abonnements': typeof AbonnementsRoute
+  '/app': typeof AppRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/abonnements'
+    | '/app'
     | '/assistant'
     | '/bibliotheque'
     | '/contact'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/abonnements'
+    | '/app'
     | '/assistant'
     | '/bibliotheque'
     | '/contact'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/abonnements'
+    | '/app'
     | '/assistant'
     | '/bibliotheque'
     | '/contact'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AbonnementsRoute: typeof AbonnementsRoute
+  AppRoute: typeof AppRoute
   AssistantRoute: typeof AssistantRoute
   BibliothequeRoute: typeof BibliothequeRoute
   ContactRoute: typeof ContactRoute
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/abonnements'
       fullPath: '/abonnements'
       preLoaderRoute: typeof AbonnementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/assistant': {
@@ -318,6 +338,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AbonnementsRoute: AbonnementsRoute,
+  AppRoute: AppRoute,
   AssistantRoute: AssistantRoute,
   BibliothequeRoute: BibliothequeRoute,
   ContactRoute: ContactRoute,
