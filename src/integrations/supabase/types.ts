@@ -167,6 +167,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_docs: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          favorite: boolean
+          id: string
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+          word_count: number
+        }
+        Insert: {
+          category?: string
+          content?: string
+          created_at?: string
+          favorite?: boolean
+          id?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          word_count?: number
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          favorite?: boolean
+          id?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          word_count?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
