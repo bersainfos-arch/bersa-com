@@ -114,7 +114,7 @@ function IntroSplash({ onDone }: { onDone: () => void }) {
         <div className="flex animate-in flex-col items-center text-center fade-in duration-700">
           <img src={logo.url} alt="Logo BERSA" className="h-28 w-28 rounded-3xl shadow-soft" />
           <h1 className="mt-5 text-4xl font-bold text-royal-foreground">BERSA</h1>
-          <p className="mt-1 font-display text-lg italic text-gold">« Notre devoir est d'acquérir le savoir »</p>
+          <p className="mt-1 font-display text-lg italic text-gold">« Le berceau du savoir, au service de votre plume »</p>
         </div>
       ) : (
         <div className="w-full max-w-4xl animate-in fade-in zoom-in-95 duration-700">

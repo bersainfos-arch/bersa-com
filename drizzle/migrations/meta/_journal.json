@@ -36,6 +36,13 @@
       "when": 1791314564158,
       "tag": "0004_orders_mobile_money",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791812188093,
+      "tag": "0005_user_docs",
+      "breakpoints": true
     }
   ]
 }

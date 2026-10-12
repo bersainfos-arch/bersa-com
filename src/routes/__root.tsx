@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "BERSA — Berceau du Savoir" },
-      { name: "description", content: "Notre devoir est d'acquérir le savoir." },
+      { name: "description", content: "Le berceau du savoir, au service de votre plume." },
       { name: "theme-color", content: "#0b1f6b" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

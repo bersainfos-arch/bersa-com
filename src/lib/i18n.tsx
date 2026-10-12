@@ -5,12 +5,13 @@ export type Lang = "fr" | "en";
 const dict = {
   home: { fr: "Accueil", en: "Home" },
   ai: { fr: "Assistant", en: "Assistant" },
+  docs: { fr: "Documents", en: "Documents" },
   writing: { fr: "Rédaction", en: "Writing" },
   academy: { fr: "Formations", en: "Academy" },
   library: { fr: "Bibliothèque", en: "Library" },
   admin: { fr: "Gestion", en: "Manager" },
   profile: { fr: "Profil", en: "Profile" },
-  slogan: { fr: "Notre devoir est d'acquérir le savoir", en: "Our duty is to acquire knowledge" },
+  slogan: { fr: "Le berceau du savoir, au service de votre plume", en: "The cradle of knowledge, serving your pen" },
   heroText: {
     fr: "Rédaction académique, juridique et administrative, formations pratiques et bibliothèque intelligente — au service des étudiants, chercheurs et entrepreneurs.",
     en: "Academic, legal and administrative writing, practical training and a smart library — serving students, researchers and entrepreneurs.",
