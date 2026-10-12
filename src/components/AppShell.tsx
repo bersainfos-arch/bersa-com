@@ -14,7 +14,7 @@ const tabs: { to: string; key: Key; icon: typeof Home }[] = [
   { to: "/formations", key: "academy", icon: GraduationCap },
   { to: "/bibliotheque", key: "library", icon: BookOpen },
   { to: "/gestion", key: "admin", icon: ShieldCheck },
-  { to: "/abonnements", key: "plans" as Key, icon: Crown },
+  { to: "/abonnements", key: "plans", icon: Crown },
   { to: "/profil", key: "profile", icon: User },
 ];
 
