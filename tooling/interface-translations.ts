@@ -16,6 +16,12 @@ export function interfaceTranslations(): Plugin {
       let changed = false;
       const translated = (node: types.Expression) => types.callExpression(types.identifier("bersaTranslateUi"), [node]);
       traverse(ast, {
+        FunctionDeclaration: { exit(path) {
+          if (!path.node.id || !/^[A-Z]/.test(path.node.id.name)) return;
+          let containsJsx = false;
+          path.traverse({ JSXElement() { containsJsx = true; } });
+          if (containsJsx) { path.node.body.body.unshift(types.expressionStatement(types.callExpression(types.identifier("bersaUseUiLanguage"), []))); changed = true; }
+        } },
         JSXText(path) {
           const value = path.node.value.replace(/\s+/g, " ");
           if (!/[A-Za-zÀ-ÿ]/.test(value)) return;
@@ -53,8 +59,9 @@ export function interfaceTranslations(): Plugin {
         },
       });
       if (!changed) return;
-      ast.program.body.unshift(types.importDeclaration([types.importSpecifier(types.identifier("bersaTranslateUi"), types.identifier("translateUi"))], types.stringLiteral("@/lib/translate-ui")));
-      return generate(ast, { retainLines: true, sourceMaps: true, sourceFileName: id }, source);
+      ast.program.body.unshift(types.importDeclaration([types.importSpecifier(types.identifier("bersaTranslateUi"), types.identifier("translateUi")), types.importSpecifier(types.identifier("bersaUseUiLanguage"), types.identifier("useUiLanguage"))], types.stringLiteral("@/lib/translate-ui")));
+      const output = generate(ast, { retainLines: true, sourceMaps: true, sourceFileName: id }, source);
+      return { code: output.code, map: output.map };
     },
   };
 }

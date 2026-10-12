@@ -1,6 +1,10 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { isLang, languageStorageKey, preferredLanguage, type Lang } from "./languages";
+import { activateUiLanguage, translateUi } from "./translate-ui";
 
-export type Lang = "fr" | "en";
+export type { Lang } from "./languages";
 
 const dict = {
   home: { fr: "Accueil", en: "Home" },
@@ -55,15 +59,47 @@ const Ctx = createContext<{ lang: Lang; setLang: (l: Lang) => void; t: (k: Key) 
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("fr");
+  const userId = useRef<string | undefined>(undefined);
+  const revision = useRef(0);
+  const loaders = import.meta.glob<{ default: Record<string, string> }>("./locales/*.json");
+  const apply = async (language: Lang) => {
+    const ticket = ++revision.current;
+    const loader = loaders[`./locales/${language}.json`];
+    if (!loader) return;
+    try {
+      const module = await loader();
+      if (ticket !== revision.current) return;
+      activateUiLanguage(language, module.default);
+      document.documentElement.lang = language;
+      document.documentElement.dir = language === "ar" || language === "ur" ? "rtl" : "ltr";
+      setLangState(language);
+    } catch { toast.error("Impossible de charger cette langue. Réessayez."); }
+  };
   useEffect(() => {
-    const s = localStorage.getItem("bersa-lang");
-    if (s === "en" || s === "fr") setLangState(s);
+    let active = true;
+    const restore = (user: { id: string; user_metadata: Record<string, unknown> } | null) => {
+      if (!active) return;
+      userId.current = user?.id;
+      const local = localStorage.getItem(languageStorageKey(user?.id));
+      void apply(preferredLanguage(user?.user_metadata.preferred_language, local));
+    };
+    void apply(preferredLanguage(undefined, localStorage.getItem(languageStorageKey())));
+    void supabase.auth.getSession().then(({ data }) => restore(data.session?.user ?? null));
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Avoid invoking auth requests inside the synchronous auth callback.
+      queueMicrotask(() => restore(session?.user ?? null));
+    });
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
   const setLang = (l: Lang) => {
-    setLangState(l);
-    localStorage.setItem("bersa-lang", l);
+    if (!isLang(l)) return;
+    localStorage.setItem(languageStorageKey(userId.current), l);
+    void apply(l);
+    if (userId.current) void supabase.auth.updateUser({ data: { preferred_language: l } }).then(({ error }) => {
+      if (error) toast.error(translateUi("Langue conservée sur cet appareil ; synchronisation du compte impossible.") as string);
+    });
   };
-  return <Ctx.Provider value={{ lang, setLang, t: (k) => dict[k][lang] }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ lang, setLang, t: (k) => translateUi(dict[k].fr) as string }}>{children}</Ctx.Provider>;
 }
 
 export const useI18n = () => useContext(Ctx);
