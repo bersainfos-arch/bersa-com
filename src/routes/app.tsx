@@ -1,14 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   Repeat, ListTree, Expand, AlignLeft, SpellCheck, Star, BookMarked, Languages, Lightbulb,
-  Send, Loader2, Copy, FilePlus2, FileText, Clock, Star as StarIcon,
+  Send, Loader2, Copy, FilePlus2, FileText, Clock, Star as StarIcon, Share2, Search, Bold, Italic,
+  Underline, List, ListOrdered, AlignCenter, AlignRight, AlignJustify, Undo2, Redo2, Table, Link2,
+  Eraser, MessageSquare, User, Settings, CreditCard, BookOpen, GraduationCap, Briefcase, PenLine, Bot,
 } from "lucide-react";
-import { AppShell, PageHeader } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { runWriter } from "@/lib/writer.functions";
 import { QuotaMeter, useDailyQuota } from "@/components/QuotaMeter";
@@ -113,17 +115,65 @@ function RecentDocs() {
   );
 }
 
+const QUICK = [
+  { to: "/assistant", label: "Assistant IA", icon: Bot },
+  { to: "/documents", label: "Mes documents", icon: FileText },
+  { to: "/redaction", label: "Rédaction", icon: PenLine },
+  { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },
+  { to: "/formations", label: "Formations", icon: GraduationCap },
+  { to: "/opportunites", label: "Opportunités", icon: Briefcase },
+] as const;
+
+const ACCOUNT = [
+  { to: "/profil", label: "Profil", icon: User },
+  { to: "/profil", label: "Paramètres", icon: Settings },
+  { to: "/abonnements", label: "Abonnements", icon: CreditCard },
+] as const;
+
+function greeting() {
+  const hr = new Date().getHours();
+  return hr < 12 ? "Bonjour" : hr < 18 ? "Bon après-midi" : "Bonsoir";
+}
+
+type Conv = { content: string; action?: string };
+
 function Page() {
   const nav = useNavigate();
   const ask = useServerFn(runWriter);
   const { quota, setQuota } = useDailyQuota();
   const [action, setAction] = useState<string>("rephrase");
-  const [text, setText] = useState("");
+  const [tab, setTab] = useState<"accueil" | "insertion" | "ia">("ia");
   const [reply, setReply] = useState("");
   const [busy, setBusy] = useState(false);
+  const [hello, setHello] = useState("Bienvenue");
+  const [name, setName] = useState("");
+  const [q, setQ] = useState("");
+  const [allDocs, setAllDocs] = useState<{ id: string; title: string }[]>([]);
+  const [convs, setConvs] = useState<Conv[]>([]);
+  const sheet = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setHello(greeting());
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (u.user) {
+        const { data: p } = await supabase.from("profiles").select("first_name").eq("id", u.user.id).maybeSingle();
+        setName(p?.first_name ?? "");
+      }
+      const { data } = await supabase.from("user_docs").select("id, title").order("updated_at", { ascending: false }).limit(200);
+      setAllDocs(data ?? []);
+    })();
+    try {
+      const m = JSON.parse(localStorage.getItem("bersa-assistant-history") ?? "[]") as (Conv & { role: string })[];
+      setConvs(m.filter((x) => x.role === "user").slice(-5).reverse());
+    } catch { /* ignore */ }
+  }, []);
+
+  const cmd = (c: string, v?: string) => { sheet.current?.focus(); document.execCommand(c, false, v); };
 
   async function run() {
-    if (!text.trim()) { toast.error("Saisissez un texte."); return; }
+    const text = sheet.current?.innerText.trim() ?? "";
+    if (!text) { toast.error("Saisissez un texte."); return; }
     setBusy(true);
     try {
       const r = await ask({ data: { action, messages: [{ role: "user", content: text }] } });
@@ -143,74 +193,170 @@ function Page() {
     nav({ to: "/editeur/$id", params: { id: data.id } });
   }
 
+  async function share() {
+    const url = window.location.origin;
+    const data = { title: "BERSA — Berceau du Savoir", text: "Le berceau du savoir, au service de votre plume", url };
+    try {
+      if (navigator.share) await navigator.share(data);
+      else { await navigator.clipboard.writeText(url); toast.success("Lien de l'application copié"); }
+    } catch { /* annulé */ }
+  }
+
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  const term = q.trim().toLowerCase();
+  const results = term ? [
+    ...allDocs.filter((d) => d.title.toLowerCase().includes(term)).slice(0, 5).map((d) => ({ k: "doc" + d.id, label: d.title, kind: "Document", go: () => nav({ to: "/editeur/$id", params: { id: d.id } }) })),
+    ...[...QUICK, ...ACCOUNT].filter((x) => x.label.toLowerCase().includes(term)).map((x) => ({ k: "nav" + x.label, label: x.label, kind: "Fonctionnalité", go: () => nav({ to: x.to }) })),
+    ...TEMPLATES.filter((t) => t.title.toLowerCase().includes(term)).slice(0, 5).map((t) => ({ k: "tpl" + t.title, label: t.title, kind: "Modèle", go: () => createDoc(t.title, t.category, h(t.title, t.sections)) })),
+    ...convs.filter((c) => c.content.toLowerCase().includes(term)).map((c, i) => ({ k: "cv" + i, label: c.content.slice(0, 70), kind: "Conversation", go: () => nav({ to: "/assistant" }) })),
+  ] : [];
+
+  const Rb = ({ icon: I, label, onClick }: { icon: typeof Bold; label: string; onClick: () => void }) => (
+    <button type="button" title={label} aria-label={label} onMouseDown={(e) => e.preventDefault()} onClick={onClick}
+      className="flex flex-col items-center gap-0.5 rounded px-2 py-1 text-[11px] hover:bg-muted">
+      <I className="h-4 w-4" /><span className="hidden sm:block">{label}</span>
+    </button>
+  );
 
   return (
     <AppShell>
-      <PageHeader title="Tableau de bord" subtitle="Transformez vos idées en résultats" />
-      <div className="mx-auto max-w-5xl space-y-10 px-4 py-8">
-        <section className="rounded-2xl border bg-card p-5 shadow-soft">
-          <div className="mb-3"><QuotaMeter quota={quota} /></div>
-          <div className="mb-3 flex flex-wrap gap-2">
-            {ACTIONS.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => setAction(a.id)}
-                className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${action === a.id ? "border-gold bg-gold text-gold-foreground font-semibold" : "hover:bg-muted"}`}
-              >
+      <div className="mx-auto max-w-6xl space-y-8 px-4 py-6">
+        {/* En-tête */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl font-bold sm:text-4xl">{hello}{name ? `, ${name}` : ""} 👋</h1>
+            <p className="text-muted-foreground">Transformez vos idées en résultats</p>
+          </div>
+          <Button onClick={share} variant="outline" className="border-gold"><Share2 className="mr-2 h-4 w-4 text-gold" /> Partager l'application</Button>
+        </div>
+
+        {/* Recherche globale */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher documents, modèles, conversations, fonctionnalités…" className="h-12 pl-10" />
+          {term && (
+            <div className="absolute z-20 mt-1 max-h-80 w-full overflow-auto rounded-xl border bg-popover p-1 shadow-lg">
+              {results.length === 0 ? <p className="p-3 text-sm text-muted-foreground">Aucun résultat.</p> : results.map((r) => (
+                <button key={r.k} onClick={() => { setQ(""); r.go(); }} className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm hover:bg-muted">
+                  <span className="truncate">{r.label}</span><span className="shrink-0 text-xs text-gold">{r.kind}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Barre IA style Word */}
+        <section className="overflow-hidden rounded-2xl border bg-card shadow-soft">
+          <div className="flex items-center gap-1 bg-primary px-3 pt-2 text-primary-foreground">
+            {([["accueil", "Accueil"], ["insertion", "Insertion"], ["ia", "IA BERSA"]] as const).map(([id, l]) => (
+              <button key={id} onClick={() => setTab(id)} className={`rounded-t-md px-4 py-1.5 text-sm ${tab === id ? "bg-card text-foreground font-semibold" : "opacity-80 hover:opacity-100"}`}>{l}</button>
+            ))}
+            <div className="ml-auto pb-1"><Button size="sm" variant="secondary" onClick={run} disabled={busy}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />} Lancer</Button></div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1 border-b bg-muted/30 px-2 py-1.5">
+            {tab === "accueil" && <>
+              <Rb icon={Undo2} label="Annuler" onClick={() => cmd("undo")} />
+              <Rb icon={Redo2} label="Rétablir" onClick={() => cmd("redo")} />
+              <Rb icon={Bold} label="Gras" onClick={() => cmd("bold")} />
+              <Rb icon={Italic} label="Italique" onClick={() => cmd("italic")} />
+              <Rb icon={Underline} label="Souligné" onClick={() => cmd("underline")} />
+              <Rb icon={List} label="Puces" onClick={() => cmd("insertUnorderedList")} />
+              <Rb icon={ListOrdered} label="Numéros" onClick={() => cmd("insertOrderedList")} />
+              <Rb icon={AlignLeft} label="Gauche" onClick={() => cmd("justifyLeft")} />
+              <Rb icon={AlignCenter} label="Centrer" onClick={() => cmd("justifyCenter")} />
+              <Rb icon={AlignRight} label="Droite" onClick={() => cmd("justifyRight")} />
+              <Rb icon={AlignJustify} label="Justifier" onClick={() => cmd("justifyFull")} />
+              <Rb icon={Eraser} label="Effacer format" onClick={() => cmd("removeFormat")} />
+            </>}
+            {tab === "insertion" && <>
+              <Rb icon={Table} label="Tableau" onClick={() => cmd("insertHTML", '<table border="1" style="border-collapse:collapse;width:100%"><tr><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td>&nbsp;</td></tr></table><p></p>')} />
+              <Rb icon={Link2} label="Lien" onClick={() => { const u = prompt("Adresse du lien"); if (u) cmd("createLink", u); }} />
+              <Rb icon={FilePlus2} label="Nouveau document" onClick={() => createDoc("Nouveau document", "general", sheet.current?.innerHTML || "<p></p>")} />
+            </>}
+            {tab === "ia" && ACTIONS.map((a) => (
+              <button key={a.id} onClick={() => setAction(a.id)}
+                className={`flex flex-col items-center gap-0.5 rounded px-2 py-1 text-[11px] ${action === a.id ? "bg-gold text-gold-foreground font-semibold" : "hover:bg-muted"}`}>
                 <a.icon className="h-4 w-4" /> {a.label}
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
-            <Textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Collez ou écrivez votre texte, puis choisissez une action…"
-              className="min-h-28"
+          <div className="space-y-3 bg-muted/40 p-4">
+            <QuotaMeter quota={quota} />
+            <div ref={sheet} contentEditable suppressContentEditableWarning
               onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run(); }}
-            />
-            <Button onClick={run} disabled={busy} className="self-end" aria-label="Envoyer">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
-          </div>
-          {reply && (
-            <div className="mt-4 rounded-xl bg-muted/50 p-4">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">{reply}</p>
-              <div className="mt-3 flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(reply); toast.success("Copié"); }}>
-                  <Copy className="mr-1 h-4 w-4" /> Copier
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => createDoc("Texte assisté", "general", reply.split(/\n{2,}/).map((p) => `<p>${esc(p)}</p>`).join(""))}>
-                  <FilePlus2 className="mr-1 h-4 w-4" /> Ouvrir dans un document
-                </Button>
+              data-placeholder="Écrivez ou collez votre texte, choisissez une action IA puis « Lancer » (Ctrl+Entrée)…"
+              className="mx-auto min-h-48 w-full max-w-[794px] rounded bg-white p-8 text-black shadow-md outline-none empty:before:text-neutral-400 empty:before:content-[attr(data-placeholder)]"
+              style={{ fontFamily: "'Times New Roman', serif", fontSize: "13pt", lineHeight: 1.6 }} />
+            {reply && (
+              <div className="mx-auto max-w-[794px] rounded-xl border bg-card p-4">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">{reply}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(reply); toast.success("Copié"); }}><Copy className="mr-1 h-4 w-4" /> Copier</Button>
+                  <Button size="sm" variant="outline" onClick={() => { if (sheet.current) sheet.current.innerText = reply; }}><Repeat className="mr-1 h-4 w-4" /> Remplacer le texte</Button>
+                  <Button size="sm" variant="outline" onClick={() => createDoc("Texte assisté", "general", reply.split(/\n{2,}/).map((p) => `<p>${esc(p)}</p>`).join(""))}><FilePlus2 className="mr-1 h-4 w-4" /> Ouvrir dans un document</Button>
+                </div>
               </div>
-            </div>
-          )}
-        </section>
-
-        <section>
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 font-display text-3xl font-bold"><Clock className="h-6 w-6 text-gold" /> Documents récents</h2>
-            <Button variant="outline" size="sm" onClick={() => nav({ to: "/documents" })}>Tous mes documents</Button>
+            )}
           </div>
-          <RecentDocs />
+        </section>
+
+        {/* Accès rapides + compte */}
+        <section className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <h2 className="mb-3 font-display text-2xl font-bold">Accès rapides</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {QUICK.map((x) => (
+                <button key={x.label} onClick={() => nav({ to: x.to })} className="flex items-center gap-3 rounded-xl border bg-card p-4 text-left shadow-soft transition hover:border-gold">
+                  <x.icon className="h-5 w-5 text-gold" /><span className="font-semibold">{x.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h2 className="mb-3 font-display text-2xl font-bold">Mon compte</h2>
+            <div className="space-y-2">
+              {ACCOUNT.map((x) => (
+                <button key={x.label} onClick={() => nav({ to: x.to })} className="flex w-full items-center gap-3 rounded-xl border bg-card p-3 text-left transition hover:border-gold">
+                  <x.icon className="h-5 w-5 text-gold" />{x.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Historique */}
+        <section className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 font-display text-2xl font-bold"><Clock className="h-5 w-5 text-gold" /> Documents récents</h2>
+              <Button variant="outline" size="sm" onClick={() => nav({ to: "/documents" })}>Tous mes documents</Button>
+            </div>
+            <RecentDocs />
+          </div>
+          <div>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 font-display text-2xl font-bold"><MessageSquare className="h-5 w-5 text-gold" /> Conversations</h2>
+            </div>
+            {convs.length === 0 ? (
+              <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">Aucune conversation récente.</p>
+            ) : (
+              <div className="space-y-2">
+                {convs.map((c, i) => (
+                  <button key={i} onClick={() => nav({ to: "/assistant" })} className="block w-full truncate rounded-xl border bg-card p-3 text-left text-sm hover:border-gold">{c.content}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         <section>
-          <h2 className="mb-4 font-display text-3xl font-bold">18 modèles</h2>
+          <h2 className="mb-4 font-display text-2xl font-bold">18 modèles</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {TEMPLATES.map((t) => (
-              <button
-                key={t.title}
-                onClick={() => createDoc(t.title, t.category, h(t.title, t.sections))}
-                className="flex items-start gap-3 rounded-xl border bg-card p-4 text-left shadow-soft transition hover:border-gold"
-              >
+              <button key={t.title} onClick={() => createDoc(t.title, t.category, h(t.title, t.sections))}
+                className="flex items-start gap-3 rounded-xl border bg-card p-4 text-left shadow-soft transition hover:border-gold">
                 <FileText className="mt-0.5 h-6 w-6 shrink-0 text-gold" />
-                <span>
-                  <span className="block font-semibold">{t.title}</span>
-                  <span className="text-sm text-muted-foreground">{t.desc}</span>
-                </span>
+                <span><span className="block font-semibold">{t.title}</span><span className="text-sm text-muted-foreground">{t.desc}</span></span>
               </button>
             ))}
           </div>
