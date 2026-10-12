@@ -64,6 +64,13 @@
       "when": 1791826295776,
       "tag": "0008_user_book_publications_and_verified_downloads",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791833341108,
+      "tag": "0009_community_courses_profiles_knowledge",
+      "breakpoints": true
     }
   ]
 }
