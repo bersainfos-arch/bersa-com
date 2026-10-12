@@ -3,10 +3,8 @@ import { Scale, TrendingUp, Cpu, Wrench, HeartPulse, FlaskConical } from "lucide
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
-import { domains, WHATSAPP, waLink } from "@/lib/catalog";
-import hero from "@/assets/hero.jpg";
+import { domains } from "@/lib/catalog";
 import logo from "@/assets/bersa-logo.png.asset.json";
-import { HomeNews } from "@/components/HomeNews";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -35,7 +33,6 @@ function Index() {
   return (
     <AppShell>
       <section className="relative overflow-hidden bg-royal text-royal-foreground">
-        <img src={hero} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
         <div className="absolute inset-0 bg-royal-gradient opacity-70" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 md:py-24">
           <img src={logo.url} alt="Logo BERSA" className="h-20 w-20 rounded-2xl shadow-soft" />
@@ -43,12 +40,13 @@ function Index() {
           <h1 className="mt-2 text-5xl font-bold md:text-7xl">BERSA</h1>
           <p className="mt-3 font-display text-2xl italic text-gold md:text-3xl">« {t("slogan")} »</p>
           <p className="mt-4 max-w-xl opacity-90">{t("heroText")}</p>
+          <p className="mt-2 font-semibold text-gold">Transformez vos idées en résultats</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90">
               <Link to="/redaction">{t("ctaOrder")}</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-gold bg-transparent text-royal-foreground hover:bg-royal-foreground/10">
-              <a href={waLink(WHATSAPP)} target="_blank" rel="noreferrer">WhatsApp</a>
+              <Link to="/abonnements">Abonnements</Link>
             </Button>
           </div>
         </div>
@@ -63,7 +61,6 @@ function Index() {
         ))}
       </section>
 
-      <HomeNews />
 
       <section className="mx-auto max-w-6xl px-4 py-14">
         <h2 className="text-3xl font-bold md:text-4xl">{t("domains")}</h2>
@@ -85,7 +82,6 @@ function Index() {
 
       <footer className="bg-royal px-4 py-8 text-center text-sm text-royal-foreground">
         <p className="font-display text-lg italic">Ensemble pour une société plus instruite, plus compétente et plus innovante.</p>
-        <p className="mt-2 opacity-70">WhatsApp : +243 818 147 637</p>
       </footer>
     </AppShell>
   );

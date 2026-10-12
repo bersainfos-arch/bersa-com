@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot } from "lucide-react";
+import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot, Crown } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { useI18n, type Key } from "@/lib/i18n";
 import { AuthGate } from "@/components/AuthGate";
@@ -14,6 +14,7 @@ const tabs: { to: string; key: Key; icon: typeof Home }[] = [
   { to: "/formations", key: "academy", icon: GraduationCap },
   { to: "/bibliotheque", key: "library", icon: BookOpen },
   { to: "/gestion", key: "admin", icon: ShieldCheck },
+  { to: "/abonnements", key: "plans" as Key, icon: Crown },
   { to: "/profil", key: "profile", icon: User },
 ];
 
