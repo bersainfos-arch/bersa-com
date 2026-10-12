@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SLIDE_INTERVAL, SLIDE_LIMIT } from "@/lib/community";
-export type Slide = { id: string; title: string; subtitle?: string; image?: string; created_at: string };
+export type Slide = { id: string; title: string; subtitle?: string | undefined; image?: string | undefined; created_at: string };
 export function PublicationSlideshow({ items, label }: { items: Slide[]; label: string }) {
  const slides = [...items].sort((a,b) => b.created_at.localeCompare(a.created_at)).slice(0, SLIDE_LIMIT);
  const [index,setIndex] = useState(0); const [paused,setPaused] = useState(false);

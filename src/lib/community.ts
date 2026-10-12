@@ -15,7 +15,7 @@ export async function extractKnowledge(file: File) {
   const pdfjs = await import("pdfjs-dist"); const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url"); pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise; const pages: string[] = [];
   for (let i = 1; i <= pdf.numPages; i++) { const page = await pdf.getPage(i); const text = await page.getTextContent(); pages.push(text.items.map(item => "str" in item ? item.str : "").join(" ")); }
-  await pdf.destroy(); const text = pages.join("\n"); if (!text.trim()) throw new Error("PDF sans texte : fournissez une version lisible ou une transcription."); return text.slice(0, 500000);
+  await pdf.cleanup(); const text = pages.join("\n"); if (!text.trim()) throw new Error("PDF sans texte : fournissez une version lisible ou une transcription."); return text.slice(0, 500000);
  }
  const { readAttachment } = await import("@/lib/attachments"); const result = await readAttachment(file); if (result.type !== "text") throw new Error("Ajoutez un PDF textuel, un fichier Word .docx ou un texte."); return result.content;
 }
