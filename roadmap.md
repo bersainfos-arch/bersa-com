@@ -1,4 +1,5 @@
 # BERSA roadmap (reconstruction)
+- [ ] Nouvelle demande : finaliser paiement des livres et vérifier acheteur bloqué avant confirmation, autorisé après
 - [ ] Nouvelle demande : activer et vérifier SMS inscription/connexion ; ajouter date de naissance privée à l’inscription
 - [ ] Nouvelle demande : services IA au-dessus du papier, audio envoyé automatiquement, performances mesurées
 - [ ] Formations d’auteurs : publication, inscription, accès et téléchargement après validation
