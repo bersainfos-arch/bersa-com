@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { STATUSES, StatusBadge } from "@/components/StatusBadge";
 import { waLink } from "@/lib/catalog";
 import { BookManager } from "@/components/BookManager";
+import { SubscriptionManager } from "@/components/SubscriptionManager";
 
 export const Route = createFileRoute("/gestion")({
   head: () => ({
@@ -79,6 +80,7 @@ function Page() {
               <span className="ml-auto self-center text-sm text-muted-foreground">{list.length} demande(s)</span>
             </div>
             <BookManager />
+            <SubscriptionManager />
             <h2 className="mt-10 text-2xl font-bold">Demandes reçues</h2>
             <div className="mt-4 space-y-3">
               {list.map((o) => (
