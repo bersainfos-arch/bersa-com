@@ -11,6 +11,7 @@ import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { runWriter } from "@/lib/writer.functions";
+import { PlanQuickList } from "@/components/PlanQuickList";
 
 export const Route = createFileRoute("/assistant")({
   head: () => ({
@@ -159,8 +160,9 @@ function Page() {
               <p className="font-semibold">Quota bientôt épuisé</p>
               <p className="mt-1 text-muted-foreground">
                 Il vous reste {warn.remaining} conversation{warn.remaining > 1 ? "s" : ""} sur {warn.limit} aujourd'hui.
-                Le quota se renouvelle demain ; pour un volume plus important, découvrez les formules payantes.
+                Le quota se renouvelle demain ; pour un volume plus important, choisissez une formule supérieure.
               </p>
+              <PlanQuickList />
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" asChild>
                   <Link to="/abonnements">Voir les abonnements</Link>
@@ -181,9 +183,9 @@ function Page() {
                 <p className="font-semibold">Limite quotidienne atteinte</p>
                 <p className="mt-1 text-muted-foreground">
                   Vous avez utilisé {quota.used} conversation{quota.used > 1 ? "s" : ""} sur {quota.limit} aujourd'hui.
-                  Votre quota se renouvelle demain. Pour continuer sans attendre, passez à une formule supérieure :
-                  Standard, Premium, Pro ou Ultra Pro.
+                  Votre quota se renouvelle demain. Pour continuer sans attendre, choisissez une formule supérieure :
                 </p>
+                <PlanQuickList />
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button size="sm" asChild className="bg-gold text-gold-foreground hover:bg-gold/90">
                     <Link to="/abonnements">Voir les abonnements</Link>
