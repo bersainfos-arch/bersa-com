@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Wand2, SpellCheck, Repeat, Expand, AlignLeft, Star, ArrowRight, ListTree, Lightbulb,
   Languages, FileUser, BookMarked, GraduationCap, MessagesSquare, Copy, Volume2, Mic,
-  RotateCcw, Trash2, Loader2, Send,
+  RotateCcw, Trash2, Loader2, Send, CircleAlert, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/AppShell";
@@ -53,6 +53,7 @@ function Page() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [quota, setQuota] = useState<{ used: number; limit: number } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,7 +74,13 @@ function Page() {
       const r = await ask({ data: { action: act, messages: ctx.map(({ role, content }) => ({ role, content })) } });
       save([...history, { role: "assistant", content: r.reply }]);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur");
+      const msg = e instanceof Error ? e.message : "Erreur";
+      const m = msg.match(/QUOTA_EXHAUSTED.*\((\d+)\/(\d+)\)/);
+      if (m) {
+        setQuota({ used: Number(m[1]), limit: Number(m[2]) });
+      } else {
+        toast.error(msg);
+      }
       save(history);
     } finally {
       setBusy(false);
@@ -137,6 +144,30 @@ function Page() {
             </button>
           ))}
         </div>
+
+        {quota && (
+          <div className="mt-6 rounded-2xl border border-gold/60 bg-gold/10 p-4">
+            <div className="flex items-start gap-3">
+              <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+              <div className="flex-1 text-sm">
+                <p className="font-semibold">Limite quotidienne atteinte</p>
+                <p className="mt-1 text-muted-foreground">
+                  Vous avez utilisé {quota.used} conversation{quota.used > 1 ? "s" : ""} sur {quota.limit} aujourd'hui.
+                  Votre quota se renouvelle demain. Pour continuer sans attendre, passez à une formule supérieure :
+                  Standard, Premium, Pro ou Ultra Pro.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" asChild className="bg-gold text-gold-foreground hover:bg-gold/90">
+                    <Link to="/abonnements">Voir les abonnements</Link>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setQuota(null)}>
+                    <X className="mr-1 h-4 w-4" /> Plus tard
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 space-y-4">
           {msgs.length === 0 && (
