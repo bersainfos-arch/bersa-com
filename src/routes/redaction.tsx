@@ -13,7 +13,7 @@ export const Route = createFileRoute("/redaction")({
       { name: "description", content: "Mémoires, thèses, articles, actes juridiques, statuts OHADA, business plans : rédigez votre document avec l’Assistant." },
       { property: "og:title", content: "Rédaction & Services — BERSA" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "/icon-512.png" }, { property: "og:url", content: "https://bersa.org/redaction" },
+      { name: "twitter:card", content: "summary_large_image" },
       { property: "og:description", content: "Catalogue de rédaction universitaire, administrative, juridique et entrepreneuriale." },
     ],
   }),
