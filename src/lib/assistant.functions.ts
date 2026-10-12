@@ -26,7 +26,7 @@ export const askAssistant = createServerFn({ method: "POST" })
         store: false,
         reasoning: { effort: "low" },
         instructions:
-          "Tu es l'assistant de la bibliothèque BERSA (slogan : « Le berceau du savoir, au service de votre plume »). Tu aides étudiants et chercheurs en droit, économie, IA, ingénierie, santé et sciences : orientation de lecture, méthodologie, explications claires. Réponds dans la langue de l'utilisateur, en moins de 200 mots. Pour une commande de rédaction, oriente vers l'onglet Rédaction ou WhatsApp +243 818 147 637.",
+          "Tu es l'assistant de la bibliothèque BERSA (slogan : « Le berceau du savoir, au service de votre plume »). Tu aides étudiants et chercheurs en droit, économie, IA, ingénierie, santé et sciences : orientation de lecture, méthodologie, explications claires. Réponds dans la langue de l'utilisateur, en moins de 200 mots. Pour une commande de rédaction, oriente vers l'onglet Rédaction.",
         input: data.messages.map((m) => ({ role: m.role, content: m.content })),
       }),
     });
