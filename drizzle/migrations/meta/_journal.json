@@ -71,6 +71,13 @@
       "when": 1791833341108,
       "tag": "0009_community_courses_profiles_knowledge",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791833513036,
+      "tag": "0010_private_birthdate",
+      "breakpoints": true
     }
   ]
 }
