@@ -30,6 +30,7 @@ function Page() {
   return (
     <AppShell>
       <PageHeader title="Contact" subtitle="Votre message arrive directement sur notre WhatsApp." />
+      <div className="mx-auto max-w-xl px-4 pt-6"><Button asChild variant="outline"><a href="mailto:bersainfos@gmail.com">Support : bersainfos@gmail.com</a></Button></div>
       <form onSubmit={submit} className="mx-auto max-w-xl space-y-3 px-4 py-10">
         <Input name="name" placeholder="Nom complet" required maxLength={120} />
         <Input name="phone" type="tel" placeholder="Téléphone" required maxLength={40} />

@@ -1,13 +1,16 @@
 # BERSA roadmap (reconstruction)
-- [ ] Nouvelle demande : finaliser paiement des livres et vérifier acheteur bloqué avant confirmation, autorisé après
-- [ ] Nouvelle demande : activer et vérifier SMS inscription/connexion ; ajouter date de naissance privée à l’inscription
-- [ ] Nouvelle demande : services IA au-dessus du papier, audio envoyé automatiquement, performances mesurées
-- [ ] Formations d’auteurs : publication, inscription, accès et téléchargement après validation
-- [ ] Diaporamas des 20 dernières formations, livres et opportunités, intervalle de 4 secondes
-- [ ] Profils modifiables, profils d’auteurs et contact consenti
-- [ ] Réglages : partage, installation, support et traductions supplémentaires
-- [ ] Gestion : statistiques utilisateurs/revenus, messages et base documentaire de l’Assistant
-- [ ] Abonnements compacts et devises de paiement validées sans taux inventé
+- [x] Paiement manuel livres : demande non payée, confirmation admin, contrôle d’accès et tests de signature 60 secondes
+- [ ] Vérification acheteur réelle avant/après : consentement de connexion refusé ; ne pas relancer sans accord
+- [x] Date de naissance privée à l’inscription
+- [ ] SMS inscription/connexion : fournisseur et configuration d’envoi manquants
+- [x] Services IA au-dessus du papier, audio envoyé automatiquement, correction réelle mesurée à 2,41 secondes (pas de garantie universelle)
+- [x] Formations d’auteurs : publication, inscription, accès et téléchargement après validation (catalogue vide)
+- [x] Diaporamas des 20 dernières publications avec média fourni, intervalle de 4 secondes
+- [x] Profils modifiables, profils d’auteurs et contact consenti
+- [x] Réglages : partage, installation lorsque disponible, support
+- [ ] Traductions supplémentaires : couverture actuelle FR/EN uniquement, 23 langues restantes non livrées
+- [x] Gestion : statistiques utilisateurs/revenus, messages et base documentaire de l’Assistant
+- [x] Abonnements compacts et devises de paiement sans taux inventé
 - [x] Assistant unifié : marque et menus, papier modifiable, actions IA, audio/fichiers, mise en forme et petits écrans
 - [ ] Inscription téléphone : champ et vérification SMS intégrés ; envoi des codes bloqué par configuration SMS manquante. E-mail conservé.
 - [x] Publication de livres par utilisateurs, résumé validé, contrôle Gestion et téléchargement protégé par achat identifié
@@ -25,10 +28,10 @@
 - [x] Accueil / et /app réduit à l’éditeur IA Word, commande en bas et ouverture textuelle 2 s + 2 s
 - [x] Éditeur Word riche partagé (Tiptap, mise en forme, notes textuelles, table des matières, export)
 - [ ] Conversations de l'assistant enregistrées et reprises
-- [ ] Prix des formules modifiables par l'administrateur
+- [x] Prix des formules modifiables par l'administrateur
 - [ ] Mes documents (partage public révocable, commentaires), profil enrichi, badges
 - [ ] Formations (modules, inscription, progression)
 - [ ] Bibliothèque 12 domaines
 - [ ] Paramètres (25 langues, mode sombre, confidentialité, règlement)
-- [ ] Admin statistiques réelles
+- [x] Admin statistiques réelles
 - [ ] Paiement automatique — en attente des clés d'un service de paiement

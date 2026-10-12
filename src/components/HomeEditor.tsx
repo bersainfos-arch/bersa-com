@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Node } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -15,7 +14,6 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { EditorRibbon, type PageSettings } from "@/components/EditorRibbon";
 import { supabase } from "@/integrations/supabase/client";
-import { runWriter } from "@/lib/writer.functions";
 import { useDailyQuota } from "@/components/QuotaMeter";
 import { PlanQuickList } from "@/components/PlanQuickList";
 import { assistantActions, writingTarget } from "@/lib/assistant-actions";
@@ -26,7 +24,7 @@ const PageBreak = Node.create({ name: "pageBreak", group: "block", atom: true, p
 const paragraphs = (text: string) => text.split(/\n/).map(line => ({ type: "paragraph", ...(line ? { content: [{ type: "text", text: line }] } : {}) }));
 
 export function HomeEditor() {
- const nav = useNavigate(); const ask = useServerFn(runWriter);
+ const nav = useNavigate();
  const { quota, setQuota } = useDailyQuota();
  const [action, setAction] = useState("generate"); const [tab, setTab] = useState("Assistant");
  const [busy, setBusy] = useState(false); const [error, setError] = useState("");
@@ -45,11 +43,14 @@ export function HomeEditor() {
   if (!text) { toast.error("Écrivez votre demande sur le papier."); return; }
   if (files.some(file => file.type === "other")) { toast.info("Les pièces jointes non analysables ne sont pas transmises à l’Assistant."); }
   setBusy(true); setError(""); editor.setEditable(false);
-  try {
-   const result = await ask({ data: { action: chosen, messages: [{ role: "user", content: text }], attachments: files.filter(f => f.type !== "other") } });
-   if (from !== to && selected.trim()) editor.chain().setTextSelection({ from, to }).insertContent(paragraphs(result.reply)).run();
-   else editor.commands.setContent(paragraphs(result.reply));
-   setQuota({ used: result.used, limit: result.limit });
+   try {
+    const {data}=await supabase.auth.getSession();if(!data.session)throw new Error("Connectez-vous pour rédiger.");
+    const response=await fetch("/api/writer",{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${data.session.access_token}`},body:JSON.stringify({action:chosen,text,attachments:files.filter(f=>f.type!=="other")})});
+    if(!response.ok)throw new Error(await response.text());if(!response.body)throw new Error("Réponse vide.");
+    const original=editor.getJSON();let reply="",failure="",lastPaint=0;const replaceSelection=from!==to&&selected.trim();
+    const paint=()=>{if(!reply)return;editor.commands.setContent(original);if(replaceSelection)editor.chain().setTextSelection({from,to}).insertContent(paragraphs(reply)).run();else editor.commands.setContent(paragraphs(reply));};
+    const parser=createParser({onEvent(event){try{const item=JSON.parse(event.data);if(item.type==="quota")setQuota({used:item.used,limit:item.limit});if(item.type==="delta"){reply+=item.text;if(performance.now()-lastPaint>100){paint();lastPaint=performance.now();}}if(item.type==="error")failure=item.message;}catch{}}});
+    const reader=response.body.getReader(),decoder=new TextDecoder();while(true){const chunk=await reader.read();if(chunk.done)break;parser.feed(decoder.decode(chunk.value,{stream:true}));}paint();if(failure)throw new Error(failure);if(!reply.trim())throw new Error("L’Assistant n’a pas produit de texte.");
   } catch (e) { const message = e instanceof Error ? e.message : "Assistant indisponible."; setError(message); const match = message.match(/QUOTA_EXHAUSTED.*\((\d+)\/(\d+)\)/); if (match) setQuota({ used: Number(match[1]), limit: Number(match[2]) }); }
   finally { setBusy(false); editor.setEditable(!settings.reading); }
  }

@@ -15,6 +15,8 @@ import { BookPublication } from "@/components/BookPublication";
 import { downloadBook, purchasable, type Book } from "@/lib/books";
 import { useAuth } from "@/hooks/use-auth";
 import { askAssistant } from "@/lib/assistant.functions";
+import { AuthorProfiles } from "@/components/AuthorProfiles";
+import { PublicationSlideshow } from "@/components/PublicationSlideshow";
 
 export const Route = createFileRoute("/bibliotheque")({
   head: () => ({
@@ -90,10 +92,10 @@ function Page() {
     void Promise.all([
       supabase.from("books").select("*").eq("status", "published").order("title"),
       supabase.from("books").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("orders").select("book_id,paid").eq("user_id", user.id).not("book_id", "is", null),
+       supabase.from("orders").select("book_id,paid,price_usd").eq("user_id", user.id).not("book_id", "is", null),
     ]).then(async ([library, publications, orders]) => {
       setBooks(library.data ?? []); setOwned(publications.data ?? []);
-      setPaid((orders.data ?? []).filter(o => o.paid && o.book_id).map(o => o.book_id ?? ""));
+       setPaid((orders.data ?? []).filter(o => o.paid && (library.data ?? []).some(b => b.id === o.book_id && b.price_usd === o.price_usd)).map(o => o.book_id ?? ""));
       setPending((orders.data ?? []).filter(o => !o.paid && o.book_id).map(o => o.book_id ?? ""));
       const urls: Record<string, string> = {};
       await Promise.all((library.data ?? []).filter(b => b.cover_path).map(async b => { if (!b.cover_path) return; const { data } = await supabase.storage.from("books").createSignedUrl(b.cover_path, 600); if (data) urls[b.id] = data.signedUrl; })); setCovers(urls);
@@ -104,6 +106,8 @@ function Page() {
   return (
     <AppShell>
       <PageHeader title="Bibliothèque BERSA" subtitle={lang === "fr" ? "Des rayons par pôles disciplinaires et un assistant pour vous guider." : "Shelves by field and an assistant to guide you."} />
+      <PublicationSlideshow label="Derniers ouvrages" items={books.map(b=>({id:b.id,title:b.title,subtitle:b.author??"",image:covers[b.id],created_at:b.created_at}))}/>
+      <div className="mx-auto max-w-6xl px-4"><AuthorProfiles/></div>
       <div className="mx-auto max-w-6xl px-4 pt-6"><BookPublication onSaved={() => setReload(n => n + 1)} />{owned.length > 0 && <section className="mt-5"><h2 className="text-2xl">Mes publications</h2><div className="divide-y">{owned.map(b => <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"><span>{b.title} · {b.status === "pending" ? "En attente de vérification" : b.status === "published" ? "Publié" : "Refusé"}</span>{b.file_path && <Button size="sm" variant="outline" onClick={() => void download(b.id)}>Mon fichier</Button>}</div>)}</div></section>}</div>
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1fr_380px]">
         <div>
@@ -127,7 +131,7 @@ function Page() {
                   {b.summary && <details className="mt-2 text-xs"><summary className="cursor-pointer">Résumé et détails</summary><p className="mt-1 whitespace-pre-wrap">{b.summary}</p><p>{b.publication_place} · {b.publisher} · {b.page_count ? `${b.page_count} pages` : ""}</p></details>}
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <span className="font-bold text-primary">{b.price_usd ? `${b.price_usd} ${b.currency}` : t("free")}</span>
-                    {paid.includes(b.id) || b.user_id === user?.id || !b.price_usd ? <Button size="sm" onClick={() => void download(b.id)}>Télécharger</Button> : pending.includes(b.id) ? <span className="text-xs text-muted-foreground">Paiement en vérification</span> : purchasable(b) ? <OrderDialog kind="livre" item={b.title} bookId={b.id} price={b.price_usd} trigger={<Button size="sm" variant="outline">Acheter</Button>} /> : <span className="text-xs text-muted-foreground">Vente non disponible</span>}
+                     {paid.includes(b.id) || b.user_id === user?.id || !b.price_usd ? <Button size="sm" onClick={() => void download(b.id)}>Télécharger</Button> : pending.includes(b.id) ? <span className="text-xs text-muted-foreground">Paiement en vérification</span> : purchasable(b) ? <OrderDialog kind="livre" item={b.title} bookId={b.id} price={b.price_usd} onSaved={() => setReload(n => n + 1)} trigger={<Button size="sm" variant="outline">Acheter</Button>} /> : <span className="text-xs text-muted-foreground">Vente non disponible</span>}
                   </div>
                 </div>
               </div>

@@ -18,3 +18,7 @@
 - Read attached Word/text files in the browser and send PDF/image parts through the authenticated writer function; unsupported attachments are not analyzed.
 - Keep AI SDK providers in server-only modules and audio multipart uploads in an authenticated server route with bounded body size.
 - Keep book proposals pending, private delivery links separate from catalog metadata, and authorize short-lived downloads through can_access_book using identifier-linked verified orders.
+- Stream writing through an authenticated, bounded HTTP endpoint so text appears incrementally without crossing the server-function serialization boundary.
+- Retrieve only administrator-enabled knowledge as untrusted reference context; private uploads must never enter ordinary assistant answers.
+- Keep course resources private and authorize downloads against active, price-matching enrollment; manual payments require administrator confirmation.
+- Keep currency conversion dependent on configured exchange rates; never synthesize payment rates.
