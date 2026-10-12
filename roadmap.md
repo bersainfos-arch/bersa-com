@@ -1,4 +1,11 @@
 # BERSA roadmap (reconstruction)
+- [ ] Nouvelle demande : services IA au-dessus du papier, audio envoyé automatiquement, performances mesurées
+- [ ] Formations d’auteurs : publication, inscription, accès et téléchargement après validation
+- [ ] Diaporamas des 20 dernières formations, livres et opportunités, intervalle de 4 secondes
+- [ ] Profils modifiables, profils d’auteurs et contact consenti
+- [ ] Réglages : partage, installation, support et traductions supplémentaires
+- [ ] Gestion : statistiques utilisateurs/revenus, messages et base documentaire de l’Assistant
+- [ ] Abonnements compacts et devises de paiement validées sans taux inventé
 - [x] Assistant unifié : marque et menus, papier modifiable, actions IA, audio/fichiers, mise en forme et petits écrans
 - [ ] Inscription téléphone : champ et vérification SMS intégrés ; envoi des codes bloqué par configuration SMS manquante. E-mail conservé.
 - [x] Publication de livres par utilisateurs, résumé validé, contrôle Gestion et téléchargement protégé par achat identifié
