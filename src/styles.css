@@ -120,7 +120,7 @@
 .home-paper-content { min-height: 100%; }
 .home-paper-content > div { min-height: calc(100dvh - 294px); }
 .home-command-bar { position: sticky; bottom: 60px; z-index: 20; }
-.home-ai-sheet p.is-editor-empty:first-child::before { content: "Écrivez votre demande ou votre texte…"; color: var(--muted-foreground); float: left; height: 0; pointer-events: none; }
+.home-ai-sheet p:only-child:has(br.ProseMirror-trailingBreak)::before { content: "Écrivez votre demande ou votre texte…"; color: var(--muted-foreground); float: left; height: 0; pointer-events: none; }
 .editor-ruler { height: 24px; overflow: hidden; font-size: 11px; word-spacing: 12px; border-bottom: 1px solid var(--border); }
 .margin-Étroites .home-ai-sheet { padding: 20px; }
 .margin-Larges .home-ai-sheet { padding: 48px 80px; }
