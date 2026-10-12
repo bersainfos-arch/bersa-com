@@ -63,6 +63,56 @@ const TEMPLATES: { title: string; category: string; desc: string; sections: stri
   { title: "Requête juridique", category: "juridique", desc: "Requête adressée à une juridiction", sections: ["Juridiction", "Exposé des faits", "Moyens", "Par ces motifs"] },
 ];
 
+type RecentDoc = { id: string; title: string; category: string; word_count: number; favorite: boolean; updated_at: string };
+
+function RecentDocs() {
+  const nav = useNavigate();
+  const [docs, setDocs] = useState<RecentDoc[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let on = true;
+    (async () => {
+      const { data } = await supabase
+        .from("user_docs")
+        .select("id, title, category, word_count, favorite, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(6);
+      if (on) { setDocs((data as RecentDoc[] | null) ?? []); setLoading(false); }
+    })();
+    return () => { on = false; };
+  }, []);
+
+  if (loading) {
+    return <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+  }
+  if (docs.length === 0) {
+    return <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">Aucun document pour l'instant — choisissez un modèle ci-dessous pour commencer.</p>;
+  }
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {docs.map((d) => (
+        <button
+          key={d.id}
+          onClick={() => nav({ to: "/editeur/$id", params: { id: d.id } })}
+          className="flex items-start gap-3 rounded-xl border bg-card p-4 text-left shadow-soft transition hover:border-gold"
+        >
+          <FileText className="mt-0.5 h-6 w-6 shrink-0 text-gold" />
+          <span className="min-w-0">
+            <span className="flex items-center gap-1.5 font-semibold">
+              <span className="truncate">{d.title}</span>
+              {d.favorite && <StarIcon className="h-3.5 w-3.5 shrink-0 fill-gold text-gold" />}
+            </span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              {d.word_count} mot{d.word_count > 1 ? "s" : ""} · modifié le {new Date(d.updated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Page() {
   const nav = useNavigate();
   const ask = useServerFn(runWriter);
