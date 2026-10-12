@@ -52,8 +52,11 @@ export function interfaceTranslations(): Plugin {
           const expression = path.node.expression;
           if (types.isJSXEmptyExpression(expression)) return;
           // Known built-in labels, not names/titles supplied by users.
-          if (types.isIdentifier(expression) && ["label"].includes(expression.name) ||
+          if (types.isIdentifier(expression) && ["label", "name"].includes(expression.name) ||
               types.isMemberExpression(expression) && types.isIdentifier(expression.object) && ["d", "g", "s", "item"].includes(expression.object.name) && types.isIdentifier(expression.property) && ["fr", "en", "name", "nameEn", "title", "titleEn"].includes(expression.property.name)) {
+            path.node.expression = translated(expression); changed = true; path.skip();
+          }
+          if (types.isOptionalMemberExpression(expression) && types.isIdentifier(expression.object, { name: "s" }) && types.isIdentifier(expression.property, { name: "label" })) {
             path.node.expression = translated(expression); changed = true; path.skip();
           }
         },

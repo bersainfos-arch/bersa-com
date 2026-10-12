@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { INTRO_STEP_MS, openingPhase } from "@/lib/opening";
 import { authIdentifier } from "@/lib/auth-identifier";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 function Frame({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -22,6 +23,7 @@ function Frame({ children }: { children: ReactNode }) {
           <p className="font-display text-lg text-primary">Berceau du Savoir</p>
           <p className="font-display italic text-muted-foreground">« {t("slogan")} »</p>
         </div>
+        <LanguageSelector />
         {children}
       </div>
     </div>

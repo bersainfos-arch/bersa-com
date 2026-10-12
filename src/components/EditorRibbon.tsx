@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { safeLink } from "@/lib/assistant-actions";
 import { toast } from "sonner";
+import { translateUi } from "@/lib/translate-ui";
 
 export type PageSettings = { margin: string; orientation: string; format: string; zoom: string; ruler: boolean; reading: boolean };
 export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attach, save, correct }: {
@@ -13,8 +14,8 @@ export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attac
 }) {
  const [part, setPart] = useState("Accueil");
  const [find, setFind] = useState(""); const [replacement, setReplacement] = useState("");
- const tool = (Icon: typeof Bold, label: string, fn: () => void, active = false) => <Button key={label} type="button" variant={active ? "secondary" : "ghost"} size="icon" title={label} aria-label={label} onMouseDown={e => e.preventDefault()} onClick={fn}><Icon className="h-4 w-4" /></Button>;
- const pick = (label: string, value: string, values: string[], fn: (s: string) => void) => <label className="flex items-center gap-1 text-xs">{label}<select aria-label={label} className="h-8 max-w-40 rounded border bg-card px-1 text-xs" value={value} onChange={e => fn(e.target.value)}>{values.map(v => <option key={v}>{v}</option>)}</select></label>;
+  const tool = (Icon: typeof Bold, label: string, fn: () => void, active = false) => <Button key={label} type="button" variant={active ? "secondary" : "ghost"} size="icon" title={translateUi(label) as string} aria-label={translateUi(label) as string} onMouseDown={e => e.preventDefault()} onClick={fn}><Icon className="h-4 w-4" /></Button>;
+  const pick = (label: string, value: string, values: string[], fn: (s: string) => void) => <label className="flex items-center gap-1 text-xs">{label}<select aria-label={translateUi(label) as string} className="h-8 max-w-40 rounded border bg-card px-1 text-xs" value={value} onChange={e => fn(e.target.value)}>{values.map(v => <option key={v} value={v}>{translateUi(v)}</option>)}</select></label>;
  function exportHtml() { if (!editor) return; const blob = new Blob([`<!doctype html><meta charset="utf-8"><title>Document BERSA</title><body>${editor.getHTML()}</body>`], { type: "text/html" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "document-bersa.html"; a.click(); URL.revokeObjectURL(url); }
  function replace() {
   if (!editor || !find) return;
