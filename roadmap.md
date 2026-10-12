@@ -1,14 +1,17 @@
-# BERSA roadmap
-- [x] Réduire l’introduction totale à deux secondes
-- [x] Ajouter le diaporama des annonces sur l’accueil avec la photo fournie
-- [x] Livres : ajout par le propriétaire depuis Gestion (titre, auteur, prix, fichier)
-- [x] Paiement Mobile Money manuel (M-Pesa / Airtel, référence vérifiée en Gestion)
-- [ ] Paiement Mobile Money automatique — en attente du nom du service et des clés marchand
-- [x] Accès Gestion automatique pour dieudonnedjoma@gmail.com (après inscription + confirmation e-mail)
-- [x] Page Contact avec formulaire vers WhatsApp
-- [x] Envoi de fichiers des livres (ouverture directe)
-- [x] Inscription/connexion obligatoire avec nom, prénom, téléphone, e-mail
-- [x] Assistant IA complet (13 outils, discussion, historique, dictée, lecture audio)
-- [ ] Éditeur A4 + Mes documents
-- [ ] Rédaction spécialisée (modèles IA)
-- [ ] Formations, bibliothèque (12 domaines, recommandations IA), tableau de bord admin
+# BERSA roadmap (reconstruction)
+- [x] Base abonnements : 5 formules + grille de prix USD, demandes, quota IA côté serveur
+- [x] Page Abonnements (prix, durées, comparaison, quota restant, souscription avec vérification)
+- [x] Accueil sans photo, sans diaporama, sans téléphone ; signature ajoutée
+- [x] Inscription sans téléphone, confirmation et affichage du mot de passe
+- [ ] Écran de démarrage + /signup /login /app /admin, menu latéral
+- [ ] Tableau de bord /app avec barre IA centrale et 18 modèles
+- [ ] Éditeur Word riche (TipTap, notes, table des matières)
+- [ ] Assistant en streaming, conversations enregistrées, fenêtre quota
+- [ ] Activation des abonnements dans Gestion, prix modifiables
+- [ ] Mes documents (partage public révocable, commentaires), profil enrichi, badges
+- [ ] Formations (modules, inscription, progression)
+- [ ] Bibliothèque 12 domaines
+- [ ] Opportunités et candidatures
+- [ ] Paramètres (25 langues, mode sombre, confidentialité, règlement)
+- [ ] Admin statistiques réelles
+- [ ] Paiement automatique — en attente des clés d'un service de paiement

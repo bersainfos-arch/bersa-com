@@ -137,6 +137,7 @@ function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
     if (error) return toast.error(error.message);
     toast.success("Demande enregistrée. Votre abonnement sera activé après vérification du paiement.");
     onClose();
+    return undefined;
   }
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center" onClick={onClose}>
