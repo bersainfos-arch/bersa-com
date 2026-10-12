@@ -1,0 +1,28 @@
+ALTER TABLE public.books ADD COLUMN user_id uuid DEFAULT auth.uid(), ADD COLUMN subtitle text, ADD COLUMN publication_place text, ADD COLUMN publisher text, ADD COLUMN publication_date date, ADD COLUMN page_count integer, ADD COLUMN summary text NOT NULL DEFAULT '', ADD COLUMN currency text NOT NULL DEFAULT 'USD', ADD COLUMN status text NOT NULL DEFAULT 'published', ADD COLUMN cover_path text, ADD COLUMN summary_generated boolean NOT NULL DEFAULT false, ADD COLUMN summary_validated boolean NOT NULL DEFAULT false;
+ALTER TABLE public.orders ADD COLUMN book_id uuid REFERENCES public.books(id);
+CREATE TABLE public.book_links (book_id uuid PRIMARY KEY REFERENCES public.books(id) ON DELETE CASCADE, external_link text NOT NULL);
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.book_links TO authenticated;
+GRANT ALL ON public.book_links TO service_role;
+ALTER TABLE public.book_links ENABLE ROW LEVEL SECURITY;
+CREATE OR REPLACE FUNCTION public.can_access_book(_book uuid) RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$ SELECT auth.uid() IS NOT NULL AND EXISTS (SELECT 1 FROM public.books b WHERE b.id=_book AND (public.has_role(auth.uid(),'admin') OR b.user_id=auth.uid() OR (b.status='published' AND (COALESCE(b.price_usd,0)=0 OR EXISTS (SELECT 1 FROM public.orders o WHERE o.book_id=b.id AND o.user_id=auth.uid() AND o.paid=true AND o.price_usd=b.price_usd))))) $$;
+REVOKE ALL ON FUNCTION public.can_access_book(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.can_access_book(uuid) TO authenticated;
+CREATE POLICY "book links owner write" ON public.book_links FOR ALL TO authenticated USING (EXISTS(SELECT 1 FROM public.books b WHERE b.id=book_id AND (b.user_id=auth.uid() OR public.has_role(auth.uid(),'admin')))) WITH CHECK (EXISTS(SELECT 1 FROM public.books b WHERE b.id=book_id AND (b.user_id=auth.uid() OR public.has_role(auth.uid(),'admin'))));
+CREATE POLICY "book links authorized read" ON public.book_links FOR SELECT TO authenticated USING (public.can_access_book(book_id));
+DROP POLICY "books read" ON public.books;
+CREATE POLICY "books published or owner read" ON public.books FOR SELECT TO authenticated USING (status='published' OR user_id=auth.uid() OR public.has_role(auth.uid(),'admin'));
+CREATE POLICY "books owner submit" ON public.books FOR INSERT TO authenticated WITH CHECK (user_id=auth.uid() AND status='pending');
+CREATE POLICY "books owner pending edit" ON public.books FOR UPDATE TO authenticated USING (user_id=auth.uid() AND status='pending') WITH CHECK(user_id=auth.uid() AND status='pending');
+CREATE OR REPLACE FUNCTION public.validate_book_publication() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN
+IF length(NEW.summary)>5000 THEN RAISE EXCEPTION 'Le résumé ne doit pas dépasser 5 000 caractères'; END IF;
+IF NEW.status NOT IN ('pending','published','refused') OR COALESCE(NEW.price_usd,0)<0 OR (NEW.page_count IS NOT NULL AND NEW.page_count<1) OR NEW.currency !~ '^[A-Z]{3}$' THEN RAISE EXCEPTION 'Informations du livre invalides'; END IF;
+IF length(NEW.title)>200 OR length(COALESCE(NEW.author,''))>200 OR length(COALESCE(NEW.subtitle,''))>300 OR length(COALESCE(NEW.publisher,''))>200 THEN RAISE EXCEPTION 'Informations trop longues'; END IF;
+IF NEW.user_id IS NOT NULL AND NEW.status IN ('pending','published') AND (length(trim(NEW.summary))=0 OR (NEW.summary_generated AND NOT NEW.summary_validated)) THEN RAISE EXCEPTION 'Validez le résumé avant publication'; END IF;
+RETURN NEW; END $$;
+CREATE TRIGGER validate_book_publication BEFORE INSERT OR UPDATE ON public.books FOR EACH ROW EXECUTE FUNCTION public.validate_book_publication();
+CREATE OR REPLACE FUNCTION public.validate_book_order() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE b public.books; BEGIN IF NEW.book_id IS NOT NULL THEN SELECT * INTO b FROM public.books WHERE id=NEW.book_id; IF b.id IS NULL OR b.status!='published' OR b.currency!='USD' OR COALESCE(b.price_usd,0)<=0 OR b.file_path IS NULL THEN RAISE EXCEPTION 'Ce livre n’est pas disponible à la vente'; END IF; IF TG_OP='INSERT' AND (NEW.paid OR NEW.status!='en_attente' OR NEW.user_id!=auth.uid() OR NEW.price_usd IS DISTINCT FROM b.price_usd OR NEW.kind!='livre') THEN RAISE EXCEPTION 'Demande de paiement invalide'; END IF; IF TG_OP='UPDATE' AND (NEW.book_id IS DISTINCT FROM OLD.book_id OR NEW.price_usd IS DISTINCT FROM OLD.price_usd OR NEW.user_id IS DISTINCT FROM OLD.user_id) THEN RAISE EXCEPTION 'La commande ne peut pas être réaffectée'; END IF; END IF; RETURN NEW; END $$;
+CREATE TRIGGER validate_book_order BEFORE INSERT OR UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.validate_book_order();
+DROP POLICY "books files read" ON storage.objects;
+CREATE POLICY "books files entitled read" ON storage.objects FOR SELECT TO authenticated USING (bucket_id='books' AND (public.has_role(auth.uid(),'admin') OR (storage.foldername(name))[1]=auth.uid()::text OR EXISTS (SELECT 1 FROM public.books b WHERE b.file_path=name AND public.can_access_book(b.id)) OR EXISTS (SELECT 1 FROM public.books b WHERE b.cover_path=name AND b.status='published')));
+CREATE POLICY "books files owner insert" ON storage.objects FOR INSERT TO authenticated WITH CHECK(bucket_id='books' AND (storage.foldername(name))[1]=auth.uid()::text);
+CREATE POLICY "books files owner delete" ON storage.objects FOR DELETE TO authenticated USING (bucket_id='books' AND (storage.foldername(name))[1]=auth.uid()::text AND NOT EXISTS(SELECT 1 FROM public.books b WHERE b.file_path=name OR b.cover_path=name));

@@ -85,33 +85,92 @@ export type Database = {
           },
         ]
       }
+      book_links: {
+        Row: {
+          book_id: string
+          external_link: string
+        }
+        Insert: {
+          book_id: string
+          external_link: string
+        }
+        Update: {
+          book_id?: string
+          external_link?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_links_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: true
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author: string | null
+          cover_path: string | null
           created_at: string
+          currency: string
           domain: string
           file_path: string | null
           id: string
+          page_count: number | null
           price_usd: number | null
+          publication_date: string | null
+          publication_place: string | null
+          publisher: string | null
+          status: string
+          subtitle: string | null
+          summary: string
+          summary_generated: boolean
+          summary_validated: boolean
           title: string
+          user_id: string | null
         }
         Insert: {
           author?: string | null
+          cover_path?: string | null
           created_at?: string
+          currency?: string
           domain: string
           file_path?: string | null
           id?: string
+          page_count?: number | null
           price_usd?: number | null
+          publication_date?: string | null
+          publication_place?: string | null
+          publisher?: string | null
+          status?: string
+          subtitle?: string | null
+          summary?: string
+          summary_generated?: boolean
+          summary_validated?: boolean
           title: string
+          user_id?: string | null
         }
         Update: {
           author?: string | null
+          cover_path?: string | null
           created_at?: string
+          currency?: string
           domain?: string
           file_path?: string | null
           id?: string
+          page_count?: number | null
           price_usd?: number | null
+          publication_date?: string | null
+          publication_place?: string | null
+          publisher?: string | null
+          status?: string
+          subtitle?: string | null
+          summary?: string
+          summary_generated?: boolean
+          summary_validated?: boolean
           title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -214,6 +273,7 @@ export type Database = {
       orders: {
         Row: {
           attachment_link: string | null
+          book_id: string | null
           created_at: string
           details: string | null
           email: string | null
@@ -232,6 +292,7 @@ export type Database = {
         }
         Insert: {
           attachment_link?: string | null
+          book_id?: string | null
           created_at?: string
           details?: string | null
           email?: string | null
@@ -250,6 +311,7 @@ export type Database = {
         }
         Update: {
           attachment_link?: string | null
+          book_id?: string | null
           created_at?: string
           details?: string | null
           email?: string | null
@@ -266,7 +328,15 @@ export type Database = {
           status?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -468,6 +538,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_book: { Args: { _book: string }; Returns: boolean }
       consume_ai_quota: { Args: never; Returns: Json }
       current_daily_limit: { Args: { _user: string }; Returns: number }
       has_role: {
