@@ -159,3 +159,28 @@ function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
     </div>
   );
 }
+
+type Req = { id: string; plan_code: string; duration_months: number; amount: number; currency: string; status: string; payment_provider: string | null; payment_reference: string | null; created_at: string; expires_at: string | null };
+const STATUS: Record<string, string> = { pending: "En attente de vérification", active: "Actif", rejected: "Refusé", expired: "Expiré" };
+
+function MyRequests() {
+  const [rows, setRows] = useState<Req[]>([]);
+  useEffect(() => {
+    supabase.from("subscriptions").select("*").order("created_at", { ascending: false }).limit(20).then(({ data }) => setRows((data as Req[]) ?? []));
+  }, []);
+  if (!rows.length) return null;
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <h3 className="mb-3 text-xl font-bold">Mes demandes d'abonnement</h3>
+      <ul className="divide-y text-sm">
+        {rows.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+            <span className="capitalize">{r.plan_code} — {r.duration_months} mois · {Number(r.amount)} $ {r.currency}</span>
+            <span className="text-muted-foreground">{r.payment_provider === "airtel" ? "Airtel Money" : "M-Pesa"} · réf. {r.payment_reference}</span>
+            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.status === "active" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{STATUS[r.status] ?? r.status}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
