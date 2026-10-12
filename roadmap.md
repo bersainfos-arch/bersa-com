@@ -8,7 +8,7 @@
 - [x] Diaporamas des 20 dernières publications avec média fourni, intervalle de 4 secondes
 - [x] Profils modifiables, profils d’auteurs et contact consenti
 - [x] Réglages : partage, installation lorsque disponible, support
-- [ ] Traductions supplémentaires : couverture actuelle FR/EN uniquement, 23 langues restantes non livrées
+- [ ] Traduire les interfaces en 25 langues et mémoriser la préférence par compte et sur cet appareil
 - [x] Gestion : statistiques utilisateurs/revenus, messages et base documentaire de l’Assistant
 - [x] Abonnements compacts et devises de paiement sans taux inventé
 - [x] Assistant unifié : marque et menus, papier modifiable, actions IA, audio/fichiers, mise en forme et petits écrans
