@@ -81,6 +81,7 @@ export function PageHeader({ title, subtitle }: { title: string; subtitle?: stri
     <div className="bg-royal-gradient px-4 py-10 text-royal-foreground">
       <div className="mx-auto max-w-6xl">
         <h1 className="text-4xl font-bold md:text-5xl">{title}</h1>
+        {title.includes("BERSA") && <p className="mt-1 font-display text-lg text-gold">Berceau du Savoir</p>}
         {subtitle && <p className="mt-2 max-w-2xl opacity-80">{subtitle}</p>}
         <div className="mt-4 h-1 w-16 rounded bg-gold" />
       </div>

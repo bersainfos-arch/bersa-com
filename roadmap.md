@@ -1,7 +1,8 @@
 # BERSA roadmap (reconstruction)
-- [ ] Assistant unifié : marque et menus, papier modifiable, actions IA, audio/fichiers, mise en forme et petits écrans
-- [ ] Inscription et connexion par e-mail ou téléphone avec vérification
-- [ ] Publication de livres par utilisateurs, résumé validé et téléchargement sécurisé après paiement vérifié
+- [x] Assistant unifié : marque et menus, papier modifiable, actions IA, audio/fichiers, mise en forme et petits écrans
+- [ ] Inscription téléphone : champ et vérification SMS intégrés ; envoi des codes bloqué par configuration SMS manquante. E-mail conservé.
+- [x] Publication de livres par utilisateurs, résumé validé, contrôle Gestion et téléchargement protégé par achat identifié
+- [ ] Vérification acheteur avant/après paiement : bloquée par absence de session acheteur autorisée ; aucun paiement réel confirmé.
 - [x] Base abonnements : 5 formules + grille de prix USD, demandes, quota IA côté serveur
 - [x] Page Abonnements (prix, durées, comparaison, quota restant, souscription avec vérification)
 - [x] Accueil sans photo, sans diaporama, sans téléphone ; signature ajoutée
@@ -13,7 +14,7 @@
 - [x] Assistant en streaming, fenêtre quota
 - [ ] Écran de démarrage + /signup /login /app /admin, menu latéral
 - [x] Accueil / et /app réduit à l’éditeur IA Word, commande en bas et ouverture textuelle 2 s + 2 s
-- [ ] Éditeur Word riche (TipTap, notes, table des matières)
+- [x] Éditeur Word riche partagé (Tiptap, mise en forme, notes textuelles, table des matières, export)
 - [ ] Conversations de l'assistant enregistrées et reprises
 - [ ] Prix des formules modifiables par l'administrateur
 - [ ] Mes documents (partage public révocable, commentaires), profil enrichi, badges
