@@ -145,6 +145,30 @@ function Page() {
           ))}
         </div>
 
+        {quota && (
+          <div className="mt-6 rounded-2xl border border-gold/60 bg-gold/10 p-4">
+            <div className="flex items-start gap-3">
+              <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-gold" />
+              <div className="flex-1 text-sm">
+                <p className="font-semibold">Limite quotidienne atteinte</p>
+                <p className="mt-1 text-muted-foreground">
+                  Vous avez utilisé {quota.used} conversation{quota.used > 1 ? "s" : ""} sur {quota.limit} aujourd'hui.
+                  Votre quota se renouvelle demain. Pour continuer sans attendre, passez à une formule supérieure :
+                  Standard, Premium, Pro ou Ultra Pro.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" asChild className="bg-gold text-gold-foreground hover:bg-gold/90">
+                    <Link to="/abonnements">Voir les abonnements</Link>
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setQuota(null)}>
+                    <X className="mr-1 h-4 w-4" /> Plus tard
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 space-y-4">
           {msgs.length === 0 && (
             <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
