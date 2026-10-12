@@ -18,9 +18,10 @@ type Props = {
   price?: number | null;
   modality?: string;
   bookId?: string;
+  onSaved?: () => void;
 };
 
-export function OrderDialog({ trigger, item, kind, price, modality, bookId }: Props) {
+export function OrderDialog({ trigger, item, kind, price, modality, bookId, onSaved }: Props) {
   const { t } = useI18n();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -29,6 +30,7 @@ export function OrderDialog({ trigger, item, kind, price, modality, bookId }: Pr
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!user) return;
     const f = new FormData(e.currentTarget);
     const full_name = String(f.get("full_name") || "").trim();
     const phone = String(f.get("phone") || "").trim();
@@ -40,6 +42,9 @@ export function OrderDialog({ trigger, item, kind, price, modality, bookId }: Pr
     setBusy(true);
     const { error } = await supabase.from("orders").insert({
       kind,
+      user_id: user.id,
+      paid: false,
+      status: "en_attente",
       book_id: bookId ?? null,
       item,
       modality: modality ?? null,
@@ -57,6 +62,7 @@ export function OrderDialog({ trigger, item, kind, price, modality, bookId }: Pr
     if (error) return toast.error(error.message);
     toast.success(kind === "livre" ? "Demande enregistrée — paiement en attente de vérification. Le téléchargement sera disponible après confirmation." : t("sent"));
     setOpen(false);
+    onSaved?.();
     return undefined;
   }
 
