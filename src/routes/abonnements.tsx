@@ -31,6 +31,7 @@ function Page() {
   const [choice, setChoice] = useState<Plan | null>(null);
   const [compare, setCompare] = useState(false);
   const [quota, setQuota] = useState<{ used: number; limit: number } | null>(null);
+  const [reqKey, setReqKey] = useState(0);
 
   useEffect(() => {
     supabase.from("subscription_plans").select("*").eq("is_active", true).order("duration_months").then(({ data }) => setPlans((data as Plan[]) ?? []));
@@ -111,7 +112,9 @@ function Page() {
           </div>
         )}
 
-        {choice && <Checkout plan={choice} onClose={() => setChoice(null)} />}
+        {user && <MyRequests key={reqKey} />}
+
+        {choice && <Checkout plan={choice} onClose={() => { setChoice(null); setReqKey((k) => k + 1); }} />}
       </div>
     </AppShell>
   );
@@ -144,7 +147,8 @@ function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
       <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="w-full max-w-md space-y-3 rounded-2xl bg-card p-6">
         <h3 className="text-2xl font-bold">{plan.plan_name} — {plan.duration_months} mois</h3>
         <p className="text-3xl font-bold text-primary">{Number(plan.price)} $ USD</p>
-        <p className="rounded-md bg-muted p-3 text-sm">Le paiement automatique n'est pas encore disponible. Payez par Mobile Money (M-Pesa ou Airtel Money) puis indiquez la référence de la transaction. L'abonnement est activé uniquement après vérification par l'équipe BERSA.</p>
+        <p className="rounded-md bg-muted p-3 text-sm">Le paiement automatique n'est pas encore disponible. Envoyez le montant par Mobile Money puis indiquez la référence de la transaction. L'abonnement est activé uniquement après vérification par l'équipe BERSA.</p>
+        <ul className="rounded-md border p-3 text-sm"><li>M-Pesa : <strong>0818147637</strong></li><li>Airtel Money : <strong>0971395319</strong></li></ul>
         <select name="method" className="w-full rounded-md border bg-background p-2" required>
           <option value="mpesa">M-Pesa</option>
           <option value="airtel">Airtel Money</option>
@@ -152,6 +156,31 @@ function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
         <Input name="ref" placeholder="Référence de la transaction" required maxLength={80} />
         <div className="flex gap-2"><Button type="button" variant="outline" className="flex-1" onClick={onClose}>Annuler</Button><Button className="flex-1" disabled={busy}>Envoyer</Button></div>
       </form>
+    </div>
+  );
+}
+
+type Req = { id: string; plan_code: string; duration_months: number; amount: number; currency: string; status: string; payment_provider: string | null; payment_reference: string | null; created_at: string; expires_at: string | null };
+const STATUS: Record<string, string> = { pending: "En attente de vérification", active: "Actif", rejected: "Refusé", expired: "Expiré" };
+
+function MyRequests() {
+  const [rows, setRows] = useState<Req[]>([]);
+  useEffect(() => {
+    supabase.from("subscriptions").select("*").order("created_at", { ascending: false }).limit(20).then(({ data }) => setRows((data as Req[]) ?? []));
+  }, []);
+  if (!rows.length) return null;
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <h3 className="mb-3 text-xl font-bold">Mes demandes d'abonnement</h3>
+      <ul className="divide-y text-sm">
+        {rows.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+            <span className="capitalize">{r.plan_code} — {r.duration_months} mois · {Number(r.amount)} $ {r.currency}</span>
+            <span className="text-muted-foreground">{r.payment_provider === "airtel" ? "Airtel Money" : "M-Pesa"} · réf. {r.payment_reference}</span>
+            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${r.status === "active" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{STATUS[r.status] ?? r.status}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
