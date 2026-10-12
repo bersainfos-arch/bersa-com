@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot, Crown, Briefcase } from "lucide-react";
+import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot, Crown, Briefcase, LayoutDashboard } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { useI18n, type Key } from "@/lib/i18n";
 import { AuthGate } from "@/components/AuthGate";
@@ -8,6 +8,7 @@ import { MessageCircle } from "lucide-react";
 
 const tabs: { to: string; key: Key; icon: typeof Home }[] = [
   { to: "/", key: "home", icon: Home },
+  { to: "/app", key: "dashboard", icon: LayoutDashboard },
   { to: "/assistant", key: "ai", icon: Bot },
   { to: "/documents", key: "docs", icon: FileText },
   { to: "/redaction", key: "writing", icon: PenLine },

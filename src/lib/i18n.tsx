@@ -13,6 +13,7 @@ const dict = {
   profile: { fr: "Profil", en: "Profile" },
   plans: { fr: "Abonnements", en: "Plans" },
   jobs: { fr: "Opportunités", en: "Opportunities" },
+  dashboard: { fr: "Tableau de bord", en: "Dashboard" },
   slogan: { fr: "Le berceau du savoir, au service de votre plume", en: "The cradle of knowledge, serving your pen" },
   heroText: {
     fr: "Rédaction académique, juridique et administrative, formations pratiques et bibliothèque intelligente — au service des étudiants, chercheurs et entrepreneurs.",
