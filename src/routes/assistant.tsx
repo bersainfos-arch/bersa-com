@@ -152,6 +152,27 @@ function Page() {
           ))}
         </div>
 
+        {warn && !quota && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-500/50 bg-amber-500/10 p-4">
+            <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div className="flex-1 text-sm">
+              <p className="font-semibold">Quota bientôt épuisé</p>
+              <p className="mt-1 text-muted-foreground">
+                Il vous reste {warn.remaining} conversation{warn.remaining > 1 ? "s" : ""} sur {warn.limit} aujourd'hui.
+                Le quota se renouvelle demain ; pour un volume plus important, découvrez les formules payantes.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/abonnements">Voir les abonnements</Link>
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setWarn(null)}>
+                  <X className="mr-1 h-4 w-4" /> Fermer
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {quota && (
           <div className="mt-6 rounded-2xl border border-gold/60 bg-gold/10 p-4">
             <div className="flex items-start gap-3">
