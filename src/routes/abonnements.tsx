@@ -54,8 +54,7 @@ function Page() {
 
   return (
     <AppShell>
-      <PageHeader title="Abonnements" subtitle="Tous les prix sont en dollars américains (USD)." />
-      <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
+       <div className="mx-auto max-w-6xl space-y-4 px-3 py-4"><h1 className="text-3xl">Abonnements</h1><p className="text-xs text-muted-foreground">Prix de référence en USD · Activation après validation du paiement</p>
         {quota && (
           <div className="rounded-xl border bg-card p-4">
             <div className="flex justify-between text-sm"><span>Conversations aujourd'hui</span><span>{quota.used} / {quota.limit} — reste {Math.max(0, quota.limit - quota.used)}</span></div>
@@ -63,32 +62,32 @@ function Page() {
             <p className="mt-1 text-xs text-muted-foreground">Renouvellement chaque jour à minuit (UTC).</p>
           </div>
         )}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           {codes.map((code) => {
-            const p = pick(code)!;
+             const p = pick(code); if (!p) return null;
             const durations = plans.filter((x) => x.plan_code === code);
             const rec = code === "premium";
             return (
-              <div key={code} className={`flex flex-col rounded-2xl border bg-card p-5 ${rec ? "border-gold ring-2 ring-gold" : ""}`}>
+               <div key={code} className={`flex min-w-0 flex-col rounded-lg border bg-card p-3 ${rec ? "border-gold ring-1 ring-gold" : ""}`}>
                 {rec && <span className="mb-2 w-fit rounded-full bg-gold px-2 py-0.5 text-xs font-semibold text-gold-foreground">Recommandée</span>}
-                <h3 className="text-2xl font-bold">{p.plan_name}</h3>
-                <div className="mt-2 font-display text-4xl font-bold text-primary">{Number(p.price)} $</div>
+                 <h3 className="text-xl font-bold">{p.plan_name}</h3>
+                 <div className="mt-1 font-display text-3xl font-bold text-primary">{Number(p.price)} $</div>
                 <div className="text-xs text-muted-foreground">{code === "free" ? "Sans durée" : `${p.duration_months} mois · ${p.currency}`}</div>
                 {durations.length > 1 && (
                   <div className="mt-3 flex flex-wrap gap-1">
                     {durations.map((d) => (
-                      <button key={d.id} onClick={() => setDur({ ...dur, [code]: d.duration_months })}
-                        className={`rounded-md border px-2 py-1 text-xs ${d.duration_months === p.duration_months ? "bg-primary text-primary-foreground" : ""}`}>
+                       <Button size="sm" variant={d.duration_months === p.duration_months ? "default" : "outline"} key={d.id} onClick={() => setDur({ ...dur, [code]: d.duration_months })}
+                         className="h-6 px-1 text-[10px]">
                         {d.duration_months} m
-                      </button>
+                       </Button>
                     ))}
                   </div>
                 )}
-                <ul className="mt-4 flex-1 space-y-1 text-sm">
+                 <ul className="mt-2 flex-1 space-y-1 text-xs">
                   {p.features.map((f) => <li key={f}>✓ {f}</li>)}
                   <li className="text-muted-foreground">Quota : {p.daily_conversation_limit} conversations / jour</li>
                 </ul>
-                {code !== "free" && <Button className="mt-4" onClick={() => setChoice(p)}>Choisir cet abonnement</Button>}
+                 {code !== "free" && <Button size="sm" className="mt-3" onClick={() => setChoice(p)}>Choisir</Button>}
                 <Button variant="ghost" size="sm" className="mt-1" onClick={() => setCompare(true)}>Comparer les formules</Button>
               </div>
             );

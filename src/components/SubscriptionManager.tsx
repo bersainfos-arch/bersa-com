@@ -76,6 +76,7 @@ export function SubscriptionManager() {
   }, [user]);
 
   async function decide(row: Sub, next: "active" | "refused") {
+    if (next === "active" && !confirm("Confirmez-vous avoir vérifié la réception du montant et la référence du paiement ?")) return;
     setBusy(row.id);
     const now = new Date();
     const patch =
