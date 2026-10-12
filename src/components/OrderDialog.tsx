@@ -16,9 +16,10 @@ type Props = {
   kind: "redaction" | "formation" | "livre";
   price?: number | null;
   modality?: string;
+  bookId?: string;
 };
 
-export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
+export function OrderDialog({ trigger, item, kind, price, modality, bookId }: Props) {
   const { t } = useI18n();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -36,6 +37,7 @@ export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
     setBusy(true);
     const { error } = await supabase.from("orders").insert({
       kind,
+      book_id: bookId ?? null,
       item,
       modality: modality ?? null,
       price_usd: price ?? null,
@@ -49,7 +51,7 @@ export function OrderDialog({ trigger, item, kind, price, modality }: Props) {
     });
     setBusy(false);
     if (error) return toast.error(error.message);
-    toast.success(t("sent"));
+    toast.success(kind === "livre" ? "Demande enregistrée — paiement en attente de vérification. Le téléchargement sera disponible après confirmation." : t("sent"));
     setOpen(false);
     return undefined;
   }

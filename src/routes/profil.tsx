@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
+import { downloadBook } from "@/lib/books";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/profil")({
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/profil")({
   component: Page,
 });
 
-type Order = { id: string; item: string; kind: string; modality: string | null; status: string; created_at: string; price_usd: number | null; paid: boolean };
+type Order = { book_id: string | null; id: string; item: string; kind: string; modality: string | null; status: string; created_at: string; price_usd: number | null; paid: boolean };
 
 function AuthForm() {
   const { t } = useI18n();
@@ -71,7 +72,7 @@ function Page() {
   const [orders, setOrders] = useState<Order[]>([]);
   useEffect(() => {
     if (!user) return;
-    supabase.from("orders").select("id,item,kind,modality,status,created_at,price_usd,paid").eq("user_id", user.id).order("created_at", { ascending: false })
+    supabase.from("orders").select("id,item,kind,modality,status,created_at,price_usd,paid,book_id").eq("user_id", user.id).order("created_at", { ascending: false })
       .then(({ data }) => setOrders(data ?? []));
   }, [user]);
   return (
@@ -96,6 +97,7 @@ function Page() {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <StatusBadge status={o.status} />
+                  {o.book_id && o.paid && <Button size="sm" onClick={async () => { if (!o.book_id) return; try { await downloadBook(o.book_id); } catch (e) { toast.error(e instanceof Error ? e.message : "Fichier indisponible."); } }}>Télécharger</Button>}
                   <Link to="/facture/$id" params={{ id: o.id }} className="text-xs text-primary underline">Facture</Link>
                   {o.price_usd ? <span className="text-xs text-muted-foreground">{o.paid ? "Payé ✓" : "Paiement en vérification"}</span> : null}
                 </div>

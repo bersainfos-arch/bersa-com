@@ -11,14 +11,9 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
 import { domains } from "@/lib/catalog";
 
-type Book = { id: string; title: string; author: string | null; domain: string; price_usd: number | null; file_path: string | null };
-
-async function openBook(path: string) {
-  const w = window.open("", "_blank");
-  const { data, error } = await supabase.storage.from("books").createSignedUrl(path, 3600);
-  if (error || !data) { w?.close(); toast.error("Fichier indisponible"); return; }
-  if (w) w.location.href = data.signedUrl; else window.location.href = data.signedUrl;
-}
+import { BookPublication } from "@/components/BookPublication";
+import { downloadBook, purchasable, type Book } from "@/lib/books";
+import { useAuth } from "@/hooks/use-auth";
 import { askAssistant } from "@/lib/assistant.functions";
 
 export const Route = createFileRoute("/bibliotheque")({
@@ -82,15 +77,34 @@ function Assistant() {
 
 function Page() {
   const { t, lang } = useI18n();
+  const { user } = useAuth();
+  const [owned, setOwned] = useState<Book[]>([]);
+  const [paid, setPaid] = useState<string[]>([]);
+  const [pending, setPending] = useState<string[]>([]);
+  const [reload, setReload] = useState(0);
+  const [covers, setCovers] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<string | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
   useEffect(() => {
-    supabase.from("books").select("id,title,author,domain,price_usd,file_path").order("title").then(({ data }) => setBooks((data as Book[]) ?? []));
-  }, []);
+    if (!user) return;
+    void Promise.all([
+      supabase.from("books").select("*").eq("status", "published").order("title"),
+      supabase.from("books").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      supabase.from("orders").select("book_id,paid").eq("user_id", user.id).not("book_id", "is", null),
+    ]).then(async ([library, publications, orders]) => {
+      setBooks(library.data ?? []); setOwned(publications.data ?? []);
+      setPaid((orders.data ?? []).filter(o => o.paid && o.book_id).map(o => o.book_id ?? ""));
+      setPending((orders.data ?? []).filter(o => !o.paid && o.book_id).map(o => o.book_id ?? ""));
+      const urls: Record<string, string> = {};
+      await Promise.all((library.data ?? []).filter(b => b.cover_path).map(async b => { if (!b.cover_path) return; const { data } = await supabase.storage.from("books").createSignedUrl(b.cover_path, 600); if (data) urls[b.id] = data.signedUrl; })); setCovers(urls);
+    });
+  }, [user, reload]);
+  async function download(id: string) { try { await downloadBook(id); } catch (e) { toast.error(e instanceof Error ? e.message : "Téléchargement impossible."); } }
   const list = filter ? books.filter((b) => b.domain === filter) : books;
   return (
     <AppShell>
-      <PageHeader title="BERSA Library" subtitle={lang === "fr" ? "Des rayons par pôles disciplinaires et un assistant pour vous guider." : "Shelves by field and an assistant to guide you."} />
+      <PageHeader title="Bibliothèque BERSA" subtitle={lang === "fr" ? "Des rayons par pôles disciplinaires et un assistant pour vous guider." : "Shelves by field and an assistant to guide you."} />
+      <div className="mx-auto max-w-6xl px-4 pt-6"><BookPublication onSaved={() => setReload(n => n + 1)} />{owned.length > 0 && <section className="mt-5"><h2 className="text-2xl">Mes publications</h2><div className="divide-y">{owned.map(b => <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"><span>{b.title} · {b.status === "pending" ? "En attente de vérification" : b.status === "published" ? "Publié" : "Refusé"}</span>{b.file_path && <Button size="sm" variant="outline" onClick={() => void download(b.id)}>Mon fichier</Button>}</div>)}</div></section>}</div>
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1fr_380px]">
         <div>
           <div className="flex flex-wrap gap-2">
@@ -105,18 +119,15 @@ function Page() {
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {list.map((b) => (
               <div key={b.id} className="flex gap-3 rounded-xl border bg-card p-4">
-                <div className="flex h-16 w-12 shrink-0 items-center justify-center rounded bg-royal-gradient text-gold"><BookOpen className="h-5 w-5" /></div>
-                <div className="flex-1">
-                  <div className="font-semibold">{b.title}</div>
+                <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded bg-royal-gradient text-gold">{covers[b.id] ? <img src={covers[b.id]} alt={`Couverture de ${b.title}`} className="h-full w-full object-contain" /> : <BookOpen className="h-5 w-5" />}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold">{b.title}</div>{b.subtitle && <p className="text-sm">{b.subtitle}</p>}
                   {b.author && <div className="text-sm">{b.author}</div>}
                   <div className="text-xs text-muted-foreground">{b.domain}</div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="font-bold text-primary">{b.price_usd ? `${b.price_usd} $` : t("free")}</span>
-                    {b.price_usd ? (
-                      <OrderDialog kind="livre" item={b.title} price={b.price_usd} trigger={<Button size="sm" variant="outline">{t("order")}</Button>} />
-                    ) : b.file_path ? (
-                      <Button size="sm" onClick={() => openBook(b.file_path!)}>Ouvrir</Button>
-                    ) : null}
+                  {b.summary && <details className="mt-2 text-xs"><summary className="cursor-pointer">Résumé et détails</summary><p className="mt-1 whitespace-pre-wrap">{b.summary}</p><p>{b.publication_place} · {b.publisher} · {b.page_count ? `${b.page_count} pages` : ""}</p></details>}
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold text-primary">{b.price_usd ? `${b.price_usd} ${b.currency}` : t("free")}</span>
+                    {paid.includes(b.id) || b.user_id === user?.id || !b.price_usd ? <Button size="sm" onClick={() => void download(b.id)}>Télécharger</Button> : pending.includes(b.id) ? <span className="text-xs text-muted-foreground">Paiement en vérification</span> : purchasable(b) ? <OrderDialog kind="livre" item={b.title} bookId={b.id} price={b.price_usd} trigger={<Button size="sm" variant="outline">Acheter</Button>} /> : <span className="text-xs text-muted-foreground">Vente non disponible</span>}
                   </div>
                 </div>
               </div>
