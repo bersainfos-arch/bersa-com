@@ -115,7 +115,7 @@
 }
 
 
-.home-paper-desk { height: clamp(220px, calc(100dvh - 270px), 900px); overflow: auto; background: var(--muted); padding: 12px; }
+.home-paper-desk { height: clamp(180px, calc(100dvh - 330px), 900px); overflow: auto; background: var(--muted); padding: 12px; }
 .home-ai-sheet { min-height: 100%; border-radius: 0; padding: 32px 48px; margin: 0 auto; overflow-wrap: anywhere; }
 .home-paper-content { min-height: 100%; }
 .home-paper-content > div { min-height: calc(100dvh - 294px); }
@@ -131,6 +131,6 @@
 .zoom-125 .home-ai-sheet { zoom: 1.25; }
 .zoom-150 .home-ai-sheet { zoom: 1.5; }
 @media (min-width: 768px) { .home-command-bar { bottom: 0; } }
-@media (max-width: 640px) { .home-paper-desk { padding: 8px; height: max(180px, calc(100dvh - 255px)); } .home-ai-sheet { padding: 20px 16px; min-height: calc(100dvh - 271px); } .margin-Larges .home-ai-sheet { padding: 32px; } }
+@media (max-width: 640px) { .home-paper-desk { padding: 8px; height: max(140px, calc(100dvh - 380px)); } .home-ai-sheet { padding: 20px 16px; min-height: calc(100dvh - 396px); } .margin-Larges .home-ai-sheet { padding: 32px; } }
 @media print { .home-paper-desk { height: auto; overflow: visible; padding: 0; background: var(--card); } .home-ai-sheet { zoom: 1; min-height: 0; } }
 

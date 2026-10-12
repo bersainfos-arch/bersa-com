@@ -38,7 +38,7 @@ export function HomeEditor() {
  useEffect(() => { if (!editor) return; const request = sessionStorage.getItem("bersa-writing-request"); if (request) { editor.commands.setContent(paragraphs(request)); sessionStorage.removeItem("bersa-writing-request"); } }, [editor]);
  useEffect(() => { if (!audio) { setAudioUrl(""); return; } const url = URL.createObjectURL(audio); setAudioUrl(url); return () => URL.revokeObjectURL(url); }, [audio]);
  useEffect(() => () => { void recorder.current?.stop().catch(() => {}); }, []);
- async function run(chosen = action) {
+  async function run(chosen = action) {
   if (!editor || busy) return;
   const { from, to } = editor.state.selection; const selected = editor.state.doc.textBetween(from, to, "\n");
   const text = writingTarget(editor.getText(), { from, to, text: selected }).trim();
@@ -65,14 +65,14 @@ export function HomeEditor() {
   if (issue || !data) { toast.error(issue?.message ?? "Sauvegarde impossible."); return; } nav({ to: "/editeur/$id", params: { id: data.id } });
  }
  async function toggleRecord() {
-  try { if (recording && recorder.current) { setAudio(await recorder.current.stop()); recorder.current = null; setRecording(false); } else { recorder.current = await recordWav(); setRecording(true); } }
+   try { if (recording && recorder.current) { const recorded = await recorder.current.stop(); setAudio(recorded); recorder.current = null; setRecording(false); await transcribeAudio(recorded); } else { recorder.current = await recordWav(); setRecording(true); } }
   catch { setRecording(false); toast.error("Microphone refusé ou indisponible. Autorisez l’enregistrement dans votre navigateur."); }
  }
- async function transcribeAudio() {
-  if (!audio || !editor) return; setTranscribing(true);
+  async function transcribeAudio(recorded = audio) {
+   if (!recorded || !editor) return; setTranscribing(true);
   try {
    const { data } = await supabase.auth.getSession(); if (!data.session) throw new Error("Connectez-vous pour transcrire.");
-   const form = new FormData(); form.append("file", audio);
+    const form = new FormData(); form.append("file", recorded);
    const response = await fetch("/api/transcribe", { method: "POST", headers: { Authorization: `Bearer ${data.session.access_token}` }, body: form });
    if (!response.ok) { const problem = await response.text(); throw new Error(problem || "Transcription indisponible."); }
    if (!response.body) throw new Error("Transcription vide.");
@@ -80,11 +80,13 @@ export function HomeEditor() {
    const reader = response.body.getReader(); const decoder = new TextDecoder(); while (true) { const chunk = await reader.read(); if (chunk.done) break; parser.feed(decoder.decode(chunk.value, { stream: true })); }
    if (failure) throw new Error(failure); if (!transcript.trim()) throw new Error("Aucune parole reconnue.");
    editor.chain().focus().insertContent(paragraphs(transcript)).run();
+    await run("generate");
   } catch (e) { toast.error(e instanceof Error ? e.message : "Transcription impossible."); } finally { setTranscribing(false); }
  }
  const remaining = quota ? Math.max(0, quota.limit - quota.used) : null;
  return <AppShell><section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-2 py-2 sm:px-4">
   <EditorRibbon editor={editor} tab={tab} setTab={setTab} settings={settings} setSettings={setSettings} attach={() => fileInput.current?.click()} save={() => void save()} correct={() => { setAction("correct"); void run("correct"); }} />
+   {tab === "Assistant" && <div className="no-print flex flex-wrap items-center gap-1 border-b bg-card p-2" aria-label="Services de l’Assistant"><span className="mr-2 text-xs font-semibold text-muted-foreground">A4</span>{assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => <Button key={id} size="sm" variant="ghost" className="h-8 px-2 text-xs" onMouseDown={e => e.preventDefault()} disabled={busy || transcribing || recording} onClick={() => { setAction("generate"); void run(id); }}>{label}</Button>)}</div>}
   <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
   {tab === "Insérer" && <p className="no-print px-2 py-1 text-[11px] text-muted-foreground">3 fichiers, 5 Mo chacun · Analyse : texte, PDF, Word (.docx), images PNG/JPEG/WebP. Autres formats : pièces jointes uniquement.</p>}
   {files.length > 0 && <div className="no-print flex gap-1 overflow-x-auto py-1">{files.map((f, i) => <span key={`${f.name}-${i}`} className="flex shrink-0 items-center gap-1 border bg-card pl-2 text-xs">{f.name}{f.type === "other" && " · non analysable"}<Button size="icon" variant="ghost" aria-label={`Retirer ${f.name}`} onClick={() => setFiles(files.filter((_, n) => n !== i))}><X className="h-3 w-3" /></Button></span>)}</div>}
@@ -94,7 +96,7 @@ export function HomeEditor() {
   </div>
   <div className="no-print home-command-bar border-t bg-card px-2 py-2">
    <div className="flex items-center gap-2">
-    <select aria-label="Action IA" value={action} onChange={e => setAction(e.target.value)} className="h-10 min-w-0 flex-1 rounded border bg-background px-2 text-sm" disabled={busy}>{assistantActions.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select>
+     <span className="min-w-0 flex-1 text-xs text-muted-foreground">{busy ? "Rédaction en cours…" : transcribing ? "Votre consigne audio…" : "Assistant BERSA"}</span>
     <Button variant="outline" size="icon" aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"} title={recording ? "Arrêter" : "Enregistrer"} onClick={() => void toggleRecord()} disabled={transcribing || busy}>{recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}</Button>
     <Button onClick={() => void run()} disabled={busy || recording || transcribing} aria-label="Envoyer la commande IA">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span>Envoyer</span></Button>
    </div>

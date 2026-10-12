@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_knowledge: {
+        Row: {
+          content: string
+          created_at: string
+          enabled: boolean
+          file_path: string | null
+          id: string
+          title: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          enabled?: boolean
+          file_path?: string | null
+          id?: string
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          enabled?: boolean
+          file_path?: string | null
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           conversation_id: string | null
@@ -84,6 +111,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      author_profiles: {
+        Row: {
+          bio: string
+          contact_email: string | null
+          display_name: string
+          domain: string
+          photo_path: string | null
+          published: boolean
+          user_id: string
+        }
+        Insert: {
+          bio?: string
+          contact_email?: string | null
+          display_name: string
+          domain?: string
+          photo_path?: string | null
+          published?: boolean
+          user_id: string
+        }
+        Update: {
+          bio?: string
+          contact_email?: string | null
+          display_name?: string
+          domain?: string
+          photo_path?: string | null
+          published?: boolean
+          user_id?: string
+        }
+        Relationships: []
       }
       book_links: {
         Row: {
@@ -174,6 +231,115 @@ export type Database = {
         }
         Relationships: []
       }
+      course_enrollments: {
+        Row: {
+          amount: number
+          course_id: string
+          created_at: string
+          currency: string
+          id: string
+          payment_method: string | null
+          payment_reference: string | null
+          progress: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          course_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          progress?: number
+          status?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          course_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string | null
+          payment_reference?: string | null
+          progress?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_resources: {
+        Row: {
+          course_id: string
+          file_path: string
+        }
+        Insert: {
+          course_id: string
+          file_path: string
+        }
+        Update: {
+          course_id?: string
+          file_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_resources_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: true
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          cover_path: string | null
+          created_at: string
+          currency: string
+          description: string
+          domain: string
+          id: string
+          price: number
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          cover_path?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          domain?: string
+          id?: string
+          price?: number
+          status?: string
+          title: string
+          user_id?: string
+        }
+        Update: {
+          cover_path?: string | null
+          created_at?: string
+          currency?: string
+          description?: string
+          domain?: string
+          id?: string
+          price?: number
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           content: string
@@ -210,10 +376,29 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_rates: {
+        Row: {
+          currency: string
+          units_per_usd: number
+          updated_at: string
+        }
+        Insert: {
+          currency: string
+          units_per_usd: number
+          updated_at?: string
+        }
+        Update: {
+          currency?: string
+          units_per_usd?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       opportunities: {
         Row: {
           conditions: string | null
           contact_email: string
+          cover_path: string | null
           created_at: string
           deadline: string | null
           description: string
@@ -233,6 +418,7 @@ export type Database = {
         Insert: {
           conditions?: string | null
           contact_email: string
+          cover_path?: string | null
           created_at?: string
           deadline?: string | null
           description?: string
@@ -252,6 +438,7 @@ export type Database = {
         Update: {
           conditions?: string | null
           contact_email?: string
+          cover_path?: string | null
           created_at?: string
           deadline?: string | null
           description?: string
@@ -275,6 +462,7 @@ export type Database = {
           attachment_link: string | null
           book_id: string | null
           created_at: string
+          currency: string
           details: string | null
           email: string | null
           full_name: string
@@ -283,6 +471,8 @@ export type Database = {
           kind: string
           modality: string | null
           paid: boolean
+          payment_amount: number | null
+          payment_currency: string | null
           payment_method: string | null
           payment_ref: string | null
           phone: string
@@ -294,6 +484,7 @@ export type Database = {
           attachment_link?: string | null
           book_id?: string | null
           created_at?: string
+          currency?: string
           details?: string | null
           email?: string | null
           full_name: string
@@ -302,6 +493,8 @@ export type Database = {
           kind?: string
           modality?: string | null
           paid?: boolean
+          payment_amount?: number | null
+          payment_currency?: string | null
           payment_method?: string | null
           payment_ref?: string | null
           phone: string
@@ -313,6 +506,7 @@ export type Database = {
           attachment_link?: string | null
           book_id?: string | null
           created_at?: string
+          currency?: string
           details?: string | null
           email?: string | null
           full_name?: string
@@ -321,6 +515,8 @@ export type Database = {
           kind?: string
           modality?: string | null
           paid?: boolean
+          payment_amount?: number | null
+          payment_currency?: string | null
           payment_method?: string | null
           payment_ref?: string | null
           phone?: string
@@ -342,6 +538,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          birth_date: string | null
           created_at: string
           email: string | null
           first_name: string
@@ -357,6 +554,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string | null
           first_name: string
@@ -372,6 +570,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string
           email?: string | null
           first_name?: string
@@ -436,6 +635,8 @@ export type Database = {
           duration_months: number
           expires_at: string | null
           id: string
+          payment_amount: number | null
+          payment_currency: string | null
           payment_provider: string | null
           payment_reference: string | null
           plan_code: string
@@ -451,6 +652,8 @@ export type Database = {
           duration_months: number
           expires_at?: string | null
           id?: string
+          payment_amount?: number | null
+          payment_currency?: string | null
           payment_provider?: string | null
           payment_reference?: string | null
           plan_code: string
@@ -466,6 +669,8 @@ export type Database = {
           duration_months?: number
           expires_at?: string | null
           id?: string
+          payment_amount?: number | null
+          payment_currency?: string | null
           payment_provider?: string | null
           payment_reference?: string | null
           plan_code?: string
@@ -515,6 +720,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          recipient_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          recipient_id: string
+          sender_id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -538,7 +767,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bersa_admin_stats: { Args: never; Returns: Json }
       can_access_book: { Args: { _book: string }; Returns: boolean }
+      can_access_course: { Args: { cid: string }; Returns: boolean }
       consume_ai_quota: { Args: never; Returns: Json }
       current_daily_limit: { Args: { _user: string }; Returns: number }
       has_role: {
@@ -547,6 +778,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      search_bersa_knowledge: {
+        Args: { query_text: string }
+        Returns: {
+          content: string
+          title: string
+        }[]
       }
     }
     Enums: {

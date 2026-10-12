@@ -1,0 +1,3 @@
+ALTER TABLE public.profiles ADD COLUMN birth_date date;
+CREATE FUNCTION public.validate_private_birth_date() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN IF NEW.birth_date IS NOT NULL AND NEW.birth_date>current_date THEN RAISE EXCEPTION 'La date de naissance ne peut pas être future'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER validate_private_birth_date BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.validate_private_birth_date();

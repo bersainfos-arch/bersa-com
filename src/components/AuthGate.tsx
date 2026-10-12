@@ -52,6 +52,7 @@ function SignForm() {
     const meta = {
       first_name: String(f.get("first_name")).trim().slice(0, 80),
       last_name: String(f.get("last_name")).trim().slice(0, 80),
+      birth_date: String(f.get("birth_date")),
     };
     const { error } = await supabase.auth.signUp({
       ...identifier,
@@ -89,6 +90,7 @@ function SignForm() {
               <Input name="first_name" placeholder="Prénom" required maxLength={80} />
               <Input name="last_name" placeholder="Nom" required maxLength={80} />
             </div>
+            <label className="grid gap-1 text-xs">Date de naissance<Input name="birth_date" aria-label="Date de naissance" type="date" required max={new Date().toISOString().slice(0,10)} /></label>
           </>
         )}
         <Input name="email" type="text" autoComplete="username" aria-label="E-mail ou numéro de téléphone" placeholder="E-mail ou numéro de téléphone" required />
@@ -141,6 +143,7 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
       first_name: String(f.get("first_name")).trim().slice(0, 80),
       last_name: String(f.get("last_name")).trim().slice(0, 80),
       email: user.email ?? null,
+      birth_date: m["birth_date"] || null,
     });
     setBusy(false);
     if (error) toast.error(error.message);
@@ -172,7 +175,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       const m = user.user_metadata ?? {};
       if (m["first_name"] && m["last_name"]) {
         const { error } = await supabase.from("profiles").insert({
-          id: user.id, first_name: m["first_name"], last_name: m["last_name"], email: user.email ?? null,
+          id: user.id, first_name: m["first_name"], last_name: m["last_name"], email: user.email ?? null, birth_date: m["birth_date"] || null,
         });
         return setHasProfile(!error);
       }
