@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { downloadBook } from "@/lib/books";
 import { StatusBadge } from "@/components/StatusBadge";
+import { ProfileDetails } from "@/components/ProfileDetails";
 
 export const Route = createFileRoute("/profil")({
   head: () => ({
@@ -83,6 +84,7 @@ function Page() {
           <AuthForm />
         ) : (
           <div className="space-y-6">
+            <ProfileDetails />
             <div className="flex items-center justify-between rounded-xl border bg-card p-4">
               <span className="font-semibold">{user.email}</span>
               <Button variant="outline" size="sm" onClick={() => supabase.auth.signOut()}>{t("signOut")}</Button>
