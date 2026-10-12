@@ -9,7 +9,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "BERSA — Berceau du Savoir" },
       { property: "og:description", content: "Rédaction, formations et bibliothèque au service de votre avenir." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "/icon-512.png" }, { property: "og:url", content: "https://bersa.org" },
     ],
   }),
   component: HomeEditor,

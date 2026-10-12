@@ -25,7 +25,7 @@ export const Route = createFileRoute("/bibliotheque")({
       { name: "description", content: "Ouvrages classés par domaine et assistant IA pour orienter vos lectures et recherches." },
       { property: "og:title", content: "BERSA Library" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "/icon-512.png" }, { property: "og:url", content: "https://bersa.org/bibliotheque" },
       { property: "og:description", content: "Bibliothèque par pôles disciplinaires avec assistant intelligent." },
     ],
   }),

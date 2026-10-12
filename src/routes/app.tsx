@@ -7,7 +7,7 @@ export const Route = createFileRoute("/app")({
     { property: "og:title", content: "Assistant IA et éditeur Word — BERSA" },
     { property: "og:description", content: "Votre espace de rédaction assistée BERSA." },
     { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "/icon-512.png" }, { property: "og:url", content: "https://bersa.org/app" },
   ] }),
   component: HomeEditor,
 });

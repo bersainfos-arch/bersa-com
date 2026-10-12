@@ -43,7 +43,7 @@ export const Route = createFileRoute("/opportunites")({
       { property: "og:title", content: "Opportunités — BERSA" },
       { property: "og:description", content: "Emplois, stages, bourses et appels d'offres publiés et vérifiés par BERSA." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "/icon-512.png" }, { property: "og:url", content: "https://bersa.org/opportunites" },
     ],
   }),
   component: Opportunites,

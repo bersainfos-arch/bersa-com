@@ -16,7 +16,7 @@ export const Route = createFileRoute("/abonnements")({
       { property: "og:title", content: "Abonnements — BERSA" },
       { property: "og:description", content: "Comparez les cinq formules BERSA et choisissez la vôtre." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" }, { property: "og:image", content: "/icon-512.png" }, { property: "og:url", content: "https://bersa.org/abonnements" },
     ],
   }),
   component: Page,
