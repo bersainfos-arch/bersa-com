@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { runWriter } from "@/lib/writer.functions";
 import { PlanQuickList } from "@/components/PlanQuickList";
+import { QuotaMeter, useDailyQuota } from "@/components/QuotaMeter";
 
 export const Route = createFileRoute("/assistant")({
   head: () => ({
@@ -49,6 +50,7 @@ const KEY = "bersa-assistant-history";
 
 function Page() {
   const ask = useServerFn(runWriter);
+  const { quota: daily, setQuota: setDaily } = useDailyQuota();
   const [action, setAction] = useState<string>("chat");
   const [text, setText] = useState("");
   const [msgs, setMsgs] = useState<Msg[]>([]);
@@ -75,6 +77,7 @@ function Page() {
       const ctx = act === "chat" ? history : history.slice(-1);
       const r = await ask({ data: { action: act, messages: ctx.map(({ role, content }) => ({ role, content })) } });
       save([...history, { role: "assistant", content: r.reply }]);
+      setDaily({ used: r.used, limit: r.limit });
       const remaining = r.limit - r.used;
       if (remaining > 0 && remaining <= Math.max(3, Math.ceil(r.limit * 0.2))) {
         setWarn({ remaining, limit: r.limit });
@@ -138,6 +141,9 @@ function Page() {
     <AppShell>
       <PageHeader title="Assistant IA" subtitle="Rédigez, corrigez, résumez, traduisez ou discutez avec BERSA." />
       <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="mb-4">
+          <QuotaMeter quota={daily} />
+        </div>
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-7">
           {actions.map((a) => (
             <button

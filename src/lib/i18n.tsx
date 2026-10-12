@@ -12,6 +12,7 @@ const dict = {
   admin: { fr: "Gestion", en: "Manager" },
   profile: { fr: "Profil", en: "Profile" },
   plans: { fr: "Abonnements", en: "Plans" },
+  jobs: { fr: "Opportunités", en: "Opportunities" },
   slogan: { fr: "Le berceau du savoir, au service de votre plume", en: "The cradle of knowledge, serving your pen" },
   heroText: {
     fr: "Rédaction académique, juridique et administrative, formations pratiques et bibliothèque intelligente — au service des étudiants, chercheurs et entrepreneurs.",

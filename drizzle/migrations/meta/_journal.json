@@ -50,6 +50,13 @@
       "when": 1791819320037,
       "tag": "0006_subscriptions_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791820260156,
+      "tag": "0007_0007_opportunities",
+      "breakpoints": true
     }
   ]
 }

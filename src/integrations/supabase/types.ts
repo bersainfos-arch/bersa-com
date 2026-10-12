@@ -41,6 +41,50 @@ export type Database = {
         }
         Relationships: []
       }
+      applications: {
+        Row: {
+          attachment_link: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          message: string
+          opportunity_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          attachment_link?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          message?: string
+          opportunity_id: string
+          status?: string
+          user_id?: string
+        }
+        Update: {
+          attachment_link?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string
+          opportunity_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       books: {
         Row: {
           author: string | null
@@ -104,6 +148,66 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      opportunities: {
+        Row: {
+          conditions: string | null
+          contact_email: string
+          created_at: string
+          deadline: string | null
+          description: string
+          documents: string | null
+          domain: string
+          external_link: string | null
+          id: string
+          kind: string
+          location: string | null
+          organisation: string
+          qualifications: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conditions?: string | null
+          contact_email: string
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          documents?: string | null
+          domain?: string
+          external_link?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          organisation: string
+          qualifications?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          conditions?: string | null
+          contact_email?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          documents?: string | null
+          domain?: string
+          external_link?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          organisation?: string
+          qualifications?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

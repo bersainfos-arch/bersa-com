@@ -13,11 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AbonnementsRouteImport } from './routes/abonnements'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
-import { Route as CheckPlansRouteImport } from './routes/check-plans'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
+import { Route as OpportunitesRouteImport } from './routes/opportunites'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as RedactionRouteImport } from './routes/redaction'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -44,11 +44,6 @@ const BibliothequeRoute = BibliothequeRouteImport.update({
   path: '/bibliotheque',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckPlansRoute = CheckPlansRouteImport.update({
-  id: '/check-plans',
-  path: '/check-plans',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -67,6 +62,11 @@ const FormationsRoute = FormationsRouteImport.update({
 const GestionRoute = GestionRouteImport.update({
   id: '/gestion',
   path: '/gestion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpportunitesRoute = OpportunitesRouteImport.update({
+  id: '/opportunites',
+  path: '/opportunites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfilRoute = ProfilRouteImport.update({
@@ -100,11 +100,11 @@ export interface FileRoutesByFullPath {
   '/abonnements': typeof AbonnementsRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
-  '/check-plans': typeof CheckPlansRoute
   '/contact': typeof ContactRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
+  '/opportunites': typeof OpportunitesRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -116,11 +116,11 @@ export interface FileRoutesByTo {
   '/abonnements': typeof AbonnementsRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
-  '/check-plans': typeof CheckPlansRoute
   '/contact': typeof ContactRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
+  '/opportunites': typeof OpportunitesRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -133,11 +133,11 @@ export interface FileRoutesById {
   '/abonnements': typeof AbonnementsRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
-  '/check-plans': typeof CheckPlansRoute
   '/contact': typeof ContactRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
+  '/opportunites': typeof OpportunitesRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -151,11 +151,11 @@ export interface FileRouteTypes {
     | '/abonnements'
     | '/assistant'
     | '/bibliotheque'
-    | '/check-plans'
     | '/contact'
     | '/documents'
     | '/formations'
     | '/gestion'
+    | '/opportunites'
     | '/profil'
     | '/redaction'
     | '/reset-password'
@@ -167,11 +167,11 @@ export interface FileRouteTypes {
     | '/abonnements'
     | '/assistant'
     | '/bibliotheque'
-    | '/check-plans'
     | '/contact'
     | '/documents'
     | '/formations'
     | '/gestion'
+    | '/opportunites'
     | '/profil'
     | '/redaction'
     | '/reset-password'
@@ -183,11 +183,11 @@ export interface FileRouteTypes {
     | '/abonnements'
     | '/assistant'
     | '/bibliotheque'
-    | '/check-plans'
     | '/contact'
     | '/documents'
     | '/formations'
     | '/gestion'
+    | '/opportunites'
     | '/profil'
     | '/redaction'
     | '/reset-password'
@@ -200,11 +200,11 @@ export interface RootRouteChildren {
   AbonnementsRoute: typeof AbonnementsRoute
   AssistantRoute: typeof AssistantRoute
   BibliothequeRoute: typeof BibliothequeRoute
-  CheckPlansRoute: typeof CheckPlansRoute
   ContactRoute: typeof ContactRoute
   DocumentsRoute: typeof DocumentsRoute
   FormationsRoute: typeof FormationsRoute
   GestionRoute: typeof GestionRoute
+  OpportunitesRoute: typeof OpportunitesRoute
   ProfilRoute: typeof ProfilRoute
   RedactionRoute: typeof RedactionRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -242,13 +242,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BibliothequeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/check-plans': {
-      id: '/check-plans'
-      path: '/check-plans'
-      fullPath: '/check-plans'
-      preLoaderRoute: typeof CheckPlansRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -275,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/gestion'
       fullPath: '/gestion'
       preLoaderRoute: typeof GestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/opportunites': {
+      id: '/opportunites'
+      path: '/opportunites'
+      fullPath: '/opportunites'
+      preLoaderRoute: typeof OpportunitesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profil': {
@@ -320,11 +320,11 @@ const rootRouteChildren: RootRouteChildren = {
   AbonnementsRoute: AbonnementsRoute,
   AssistantRoute: AssistantRoute,
   BibliothequeRoute: BibliothequeRoute,
-  CheckPlansRoute: CheckPlansRoute,
   ContactRoute: ContactRoute,
   DocumentsRoute: DocumentsRoute,
   FormationsRoute: FormationsRoute,
   GestionRoute: GestionRoute,
+  OpportunitesRoute: OpportunitesRoute,
   ProfilRoute: ProfilRoute,
   RedactionRoute: RedactionRoute,
   ResetPasswordRoute: ResetPasswordRoute,
