@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AbonnementsRouteImport } from './routes/abonnements'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
+import { Route as CheckPlansRouteImport } from './routes/check-plans'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as FormationsRouteImport } from './routes/formations'
@@ -41,6 +42,11 @@ const AssistantRoute = AssistantRouteImport.update({
 const BibliothequeRoute = BibliothequeRouteImport.update({
   id: '/bibliotheque',
   path: '/bibliotheque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckPlansRoute = CheckPlansRouteImport.update({
+  id: '/check-plans',
+  path: '/check-plans',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/abonnements': typeof AbonnementsRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
+  '/check-plans': typeof CheckPlansRoute
   '/contact': typeof ContactRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/abonnements': typeof AbonnementsRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
+  '/check-plans': typeof CheckPlansRoute
   '/contact': typeof ContactRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/abonnements': typeof AbonnementsRoute
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
+  '/check-plans': typeof CheckPlansRoute
   '/contact': typeof ContactRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/abonnements'
     | '/assistant'
     | '/bibliotheque'
+    | '/check-plans'
     | '/contact'
     | '/documents'
     | '/formations'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/abonnements'
     | '/assistant'
     | '/bibliotheque'
+    | '/check-plans'
     | '/contact'
     | '/documents'
     | '/formations'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/abonnements'
     | '/assistant'
     | '/bibliotheque'
+    | '/check-plans'
     | '/contact'
     | '/documents'
     | '/formations'
@@ -188,6 +200,7 @@ export interface RootRouteChildren {
   AbonnementsRoute: typeof AbonnementsRoute
   AssistantRoute: typeof AssistantRoute
   BibliothequeRoute: typeof BibliothequeRoute
+  CheckPlansRoute: typeof CheckPlansRoute
   ContactRoute: typeof ContactRoute
   DocumentsRoute: typeof DocumentsRoute
   FormationsRoute: typeof FormationsRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/bibliotheque'
       fullPath: '/bibliotheque'
       preLoaderRoute: typeof BibliothequeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/check-plans': {
+      id: '/check-plans'
+      path: '/check-plans'
+      fullPath: '/check-plans'
+      preLoaderRoute: typeof CheckPlansRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -300,6 +320,7 @@ const rootRouteChildren: RootRouteChildren = {
   AbonnementsRoute: AbonnementsRoute,
   AssistantRoute: AssistantRoute,
   BibliothequeRoute: BibliothequeRoute,
+  CheckPlansRoute: CheckPlansRoute,
   ContactRoute: ContactRoute,
   DocumentsRoute: DocumentsRoute,
   FormationsRoute: FormationsRoute,

@@ -7,6 +7,8 @@
 - [ ] Tableau de bord /app avec barre IA centrale et 18 modèles
 - [ ] Éditeur Word riche (TipTap, notes, table des matières)
 - [ ] Assistant en streaming, conversations enregistrées, fenêtre quota
+- [x] Avertissement quota avec formules disponibles (prix + conversations/jour)
+- [ ] Assistant : indicateur permanent du quota (utilisé, restant, date de renouvellement)
 - [ ] Activation des abonnements dans Gestion, prix modifiables
 - [ ] Mes documents (partage public révocable, commentaires), profil enrichi, badges
 - [ ] Formations (modules, inscription, progression)
