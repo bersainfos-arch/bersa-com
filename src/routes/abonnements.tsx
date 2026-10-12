@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { PaymentCurrency } from "@/components/PaymentCurrency";
 
 export const Route = createFileRoute("/abonnements")({
   head: () => ({
@@ -127,13 +128,16 @@ export function QuotaBar({ used, limit }: { used: number; limit: number }) {
 
 function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
   const [busy, setBusy] = useState(false);
+  const [paymentCurrency,setPaymentCurrency]=useState("USD");const [paymentAmount,setPaymentAmount]=useState<number|null>(plan.price);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    if(paymentAmount===null){toast.error("Taux de paiement indisponible.");return;}
     setBusy(true);
     const { error } = await supabase.from("subscriptions").insert({
       plan_code: plan.plan_code, duration_months: plan.duration_months, amount: plan.price, currency: plan.currency,
       payment_provider: String(f.get("method")), payment_reference: String(f.get("ref")).trim().slice(0, 80),
+      payment_currency:paymentCurrency,payment_amount:paymentAmount,
     });
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -146,6 +150,8 @@ function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
       <form onClick={(e) => e.stopPropagation()} onSubmit={submit} className="w-full max-w-md space-y-3 rounded-2xl bg-card p-6">
         <h3 className="text-2xl font-bold">{plan.plan_name} — {plan.duration_months} mois</h3>
         <p className="text-3xl font-bold text-primary">{Number(plan.price)} $ USD</p>
+        <PaymentCurrency usd={plan.price} onChange={(currency,amount)=>{setPaymentCurrency(currency);setPaymentAmount(amount);}}/>
+        {!["USD","CDF"].includes(paymentCurrency)&&<p className="text-sm">Contactez bersainfos@gmail.com pour les coordonnées de paiement dans cette devise.</p>}
         <p className="rounded-md bg-muted p-3 text-sm">Le paiement automatique n'est pas encore disponible. Envoyez le montant par Mobile Money puis indiquez la référence de la transaction. L'abonnement est activé uniquement après vérification par l'équipe BERSA.</p>
         <ul className="rounded-md border p-3 text-sm"><li>M-Pesa : <strong>0818147637</strong></li><li>Airtel Money : <strong>0971395319</strong></li></ul>
         <select name="method" className="w-full rounded-md border bg-background p-2" required>

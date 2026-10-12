@@ -1,0 +1,2 @@
+export const APP_URL = "https://bersacd.lovable.app";
+export async function shareApp(){if(navigator.share)await navigator.share({title:"BERSA — Berceau du Savoir",url:APP_URL});else await navigator.clipboard.writeText(APP_URL);}

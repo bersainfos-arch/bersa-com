@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot, Crown, Briefcase, LayoutDashboard } from "lucide-react";
+import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot, Crown, Briefcase, LayoutDashboard, Settings } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { useI18n, type Key } from "@/lib/i18n";
 import { AuthGate } from "@/components/AuthGate";
@@ -44,7 +44,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <Link to="/contact" className="ml-auto flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-gold-foreground">
+          <div className="ml-auto flex items-center gap-1"><Button asChild variant="ghost" size="icon"><Link to="/profil" aria-label="Mon profil" title="Mon profil"><User className="h-5 w-5"/></Link></Button><Button asChild variant="ghost" size="icon"><Link to="/parametres" aria-label="Paramètres" title="Paramètres"><Settings className="h-5 w-5"/></Link></Button></div>
+          <Link to="/contact" className="flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-gold-foreground">
             <MessageCircle className="h-3.5 w-3.5" /> Contact
           </Link>
           <Button variant="ghost" size="sm"
