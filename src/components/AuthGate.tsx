@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
-import intro from "@/assets/bersa-intro.png.asset.json";
+import { INTRO_STEP_MS, openingPhase } from "@/lib/opening";
 
 function Frame({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -101,45 +101,17 @@ function SignForm() {
 }
 
 function IntroSplash({ onDone }: { onDone: () => void }) {
-  const { lang } = useI18n();
-  const [phase, setPhase] = useState<"logo" | "image">("logo");
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const t = setTimeout(() => setPhase("image"), 500);
-    return () => clearTimeout(t);
-  }, []);
-  useEffect(() => {
-    if (phase !== "image") return;
-    const t = setTimeout(onDone, 1500);
-    return () => clearTimeout(t);
-  }, [phase, onDone]);
+    const second = setTimeout(() => setElapsed(INTRO_STEP_MS), INTRO_STEP_MS);
+    const finish = setTimeout(onDone, INTRO_STEP_MS * 2);
+    return () => { clearTimeout(second); clearTimeout(finish); };
+  }, [onDone]);
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-royal-gradient px-4">
-      {phase === "logo" ? (
-        <div className="flex animate-in flex-col items-center text-center fade-in duration-700">
-          <img src={logo.url} alt="Logo BERSA" className="h-28 w-28 rounded-3xl shadow-soft" />
-          <h1 className="mt-5 text-4xl font-bold text-royal-foreground">BERSA</h1>
-          <p className="mt-1 font-display text-lg italic text-gold">« Le berceau du savoir, au service de votre plume »</p>
-        </div>
-      ) : (
-        <div className="w-full max-w-4xl animate-in fade-in zoom-in-95 duration-700">
-          <img
-            src={intro.url}
-            alt="BERSA — Une plateforme, plusieurs opportunités, un même objectif : votre avenir"
-            className="w-full rounded-2xl shadow-soft"
-            width={1664}
-            height={928}
-          />
-          <div className="mx-auto mt-4 h-1 w-2/3 overflow-hidden rounded-full bg-royal-foreground/20">
-            <div className="h-full rounded-full bg-gold" style={{ animation: "intro-progress 1.5s linear forwards" }} />
-          </div>
-        </div>
-      )}
-      <button
-        onClick={onDone}
-        className="absolute bottom-6 right-6 rounded-full border border-royal-foreground/30 px-4 py-1.5 text-sm text-royal-foreground/80 transition hover:bg-royal-foreground/10"
-      >
-        {lang === "fr" ? "Passer" : "Skip"}
-      </button>
+    <div className="flex min-h-screen items-center justify-center bg-royal px-6 text-center text-royal-foreground">
+      <p className="max-w-3xl font-display text-3xl leading-relaxed md:text-5xl" aria-live="polite">
+        {openingPhase(elapsed) === "slogan" ? "Le berceau du savoir au service de votre plume." : "Transformez vos idées en résultats."}
+      </p>
     </div>
   );
 }
