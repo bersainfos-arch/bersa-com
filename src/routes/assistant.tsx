@@ -53,6 +53,7 @@ function Page() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [quota, setQuota] = useState<{ used: number; limit: number } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,7 +74,13 @@ function Page() {
       const r = await ask({ data: { action: act, messages: ctx.map(({ role, content }) => ({ role, content })) } });
       save([...history, { role: "assistant", content: r.reply }]);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Erreur");
+      const msg = e instanceof Error ? e.message : "Erreur";
+      const m = msg.match(/QUOTA_EXHAUSTED.*\((\d+)\/(\d+)\)/);
+      if (m) {
+        setQuota({ used: Number(m[1]), limit: Number(m[2]) });
+      } else {
+        toast.error(msg);
+      }
       save(history);
     } finally {
       setBusy(false);
