@@ -1,0 +1,3 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+export async function knowledgeContext(client:SupabaseClient<Database>,text:string){const {data,error}=await client.rpc("search_bersa_knowledge",{query_text:text.slice(0,1500)});if(error)throw new Error("Les connaissances de BERSA sont indisponibles.");return (data??[]).map(k=>`Document : ${k.title}\n${k.content}`).join("\n\n");}

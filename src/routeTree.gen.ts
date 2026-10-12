@@ -19,6 +19,7 @@ import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
 import { Route as OpportunitesRouteImport } from './routes/opportunites'
+import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as RedactionRouteImport } from './routes/redaction'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -76,6 +77,11 @@ const OpportunitesRoute = OpportunitesRouteImport.update({
   path: '/opportunites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParametresRoute = ParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilRoute = ProfilRouteImport.update({
   id: '/profil',
   path: '/profil',
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/opportunites': typeof OpportunitesRoute
+  '/parametres': typeof ParametresRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/opportunites': typeof OpportunitesRoute
+  '/parametres': typeof ParametresRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/opportunites': typeof OpportunitesRoute
+  '/parametres': typeof ParametresRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/gestion'
     | '/opportunites'
+    | '/parametres'
     | '/profil'
     | '/redaction'
     | '/reset-password'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/gestion'
     | '/opportunites'
+    | '/parametres'
     | '/profil'
     | '/redaction'
     | '/reset-password'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/formations'
     | '/gestion'
     | '/opportunites'
+    | '/parametres'
     | '/profil'
     | '/redaction'
     | '/reset-password'
@@ -230,6 +242,7 @@ export interface RootRouteChildren {
   FormationsRoute: typeof FormationsRoute
   GestionRoute: typeof GestionRoute
   OpportunitesRoute: typeof OpportunitesRoute
+  ParametresRoute: typeof ParametresRoute
   ProfilRoute: typeof ProfilRoute
   RedactionRoute: typeof RedactionRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -310,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpportunitesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parametres': {
+      id: '/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profil': {
       id: '/profil'
       path: '/profil'
@@ -366,6 +386,7 @@ const rootRouteChildren: RootRouteChildren = {
   FormationsRoute: FormationsRoute,
   GestionRoute: GestionRoute,
   OpportunitesRoute: OpportunitesRoute,
+  ParametresRoute: ParametresRoute,
   ProfilRoute: ProfilRoute,
   RedactionRoute: RedactionRoute,
   ResetPasswordRoute: ResetPasswordRoute,

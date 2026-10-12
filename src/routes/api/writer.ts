@@ -1,0 +1,2 @@
+import { createFileRoute } from "@tanstack/react-router";
+export const Route=createFileRoute("/api/writer")({server:{handlers:{POST:async({request})=>{const {handleWriterStream}=await import("@/lib/writer-stream.server");return handleWriterStream(request);}}}});
