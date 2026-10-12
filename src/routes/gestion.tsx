@@ -57,6 +57,7 @@ function Page() {
   }
 
   async function togglePaid(id: string, paid: boolean) {
+    if (paid && !confirm("Avez-vous vérifié la réception réelle du montant et la référence de la transaction ? Cette confirmation débloque l’accès au livre.")) return;
     const { error } = await supabase.from("orders").update({ paid }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     setOrders((o) => o.map((x) => (x.id === id ? { ...x, paid } : x)));

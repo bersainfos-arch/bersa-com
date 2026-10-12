@@ -14,7 +14,7 @@ export const Route = createFileRoute("/contact")({
       { property: "og:title", content: "Contact — BERSA" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:description", content: "Contactez BERSA sur WhatsApp au +243 818 147 637." },
+      { property: "og:description", content: "Contactez BERSA par message privé." },
     ],
   }),
   component: Page,
@@ -29,7 +29,7 @@ function Page() {
   }
   return (
     <AppShell>
-      <PageHeader title="Contact" subtitle="Votre message arrive directement sur notre WhatsApp : +243 818 147 637." />
+      <PageHeader title="Contact" subtitle="Votre message arrive directement sur notre WhatsApp." />
       <form onSubmit={submit} className="mx-auto max-w-xl space-y-3 px-4 py-10">
         <Input name="name" placeholder="Nom complet" required maxLength={120} />
         <Input name="phone" type="tel" placeholder="Téléphone" required maxLength={40} />
