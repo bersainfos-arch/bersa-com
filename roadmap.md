@@ -1,4 +1,7 @@
 # BERSA roadmap (reconstruction)
+- [ ] Assistant unifié : marque et menus, papier modifiable, actions IA, audio/fichiers, mise en forme et petits écrans
+- [ ] Inscription et connexion par e-mail ou téléphone avec vérification
+- [ ] Publication de livres par utilisateurs, résumé validé et téléchargement sécurisé après paiement vérifié
 - [x] Base abonnements : 5 formules + grille de prix USD, demandes, quota IA côté serveur
 - [x] Page Abonnements (prix, durées, comparaison, quota restant, souscription avec vérification)
 - [x] Accueil sans photo, sans diaporama, sans téléphone ; signature ajoutée
