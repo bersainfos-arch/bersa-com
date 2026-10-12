@@ -112,3 +112,5 @@
   .a4-page { box-shadow: none; padding: 0; width: auto; min-height: 0; }
   .a4-page .page-break { border: 0; margin: 0; break-after: page; }
 }
+
+.home-ai-sheet { min-height: 42vh; border-radius: 0; }

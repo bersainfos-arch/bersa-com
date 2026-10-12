@@ -10,3 +10,6 @@
 <!-- LOVABLE:END -->
 
 - Keep the home announcements slideshow in a browser-safe HomeNews component with category filters; only display supplied media to avoid inventing events.
+
+- Share the browser-safe HomeEditor between / and /app so both entry points show the same writing experience.
+- Keep opening phase timing in a pure module so the two-step signup transition can be tested without authentication.
