@@ -73,7 +73,7 @@ function Page() {
   const [busy, setBusy] = useState(false);
 
   async function run() {
-    if (!text.trim()) return toast.error("Saisissez un texte.");
+    if (!text.trim()) { toast.error("Saisissez un texte."); return; }
     setBusy(true);
     try {
       const r = await ask({ data: { action, messages: [{ role: "user", content: text }] } });
@@ -89,7 +89,7 @@ function Page() {
 
   async function createDoc(title: string, category: string, content: string) {
     const { data, error } = await supabase.from("user_docs").insert({ title, category, content }).select("id").single();
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     nav({ to: "/editeur/$id", params: { id: data.id } });
   }
 
