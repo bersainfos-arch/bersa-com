@@ -47,11 +47,11 @@ function Page() {
   const [stats, setStats] = useState({ words: 0, chars: 0 });
   const [ai, setAi] = useState<{ label: string; text: string; busy: boolean } | null>(null);
   const savedRange = useRef<Range | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     supabase.from("user_docs").select("*").eq("id", id).maybeSingle().then(({ data }) => {
-      if (!data) return toast.error("Document introuvable");
+      if (!data) { toast.error("Document introuvable"); return; }
       setTitle(data.title); setCategory(data.category); setTags(data.tags.join(", ")); setFav(data.favorite);
       if (ed.current) ed.current.innerHTML = data.content;
       refreshStats(); setLoaded(true);
@@ -109,7 +109,7 @@ function Page() {
 
   function addToc() {
     const hs = Array.from(ed.current?.querySelectorAll("h1,h2,h3") ?? []);
-    if (!hs.length) return toast.info("Ajoutez d'abord des titres H1, H2 ou H3.");
+    if (!hs.length) { toast.info("Ajoutez d'abord des titres H1, H2 ou H3."); return; }
     const items = hs.map((h) => `<li style="margin-left:${(Number(h.tagName[1]) - 1) * 20}px">${h.textContent}</li>`).join("");
     ed.current?.querySelector(".toc")?.remove();
     ed.current?.insertAdjacentHTML("afterbegin", `<div class="toc"><p><b>TABLE DES MATIÈRES</b></p><ul style="list-style:none;padding:0">${items}</ul></div>`);
@@ -121,7 +121,7 @@ function Page() {
     const selected = sel && ed.current?.contains(sel.anchorNode) ? sel.toString() : "";
     if (sel && sel.rangeCount && ed.current?.contains(sel.anchorNode)) savedRange.current = sel.getRangeAt(0).cloneRange();
     const text = (selected || ed.current?.innerText || "").slice(0, 15000);
-    if (!text.trim()) return toast.info("Écrivez ou sélectionnez d'abord un texte.");
+    if (!text.trim()) { toast.info("Écrivez ou sélectionnez d'abord un texte."); return; }
     setAi({ label, text: "", busy: true });
     const prompt = action === "titles" ? `Propose 5 titres pertinents pour le texte suivant.\n\n${text}` : text;
     try {

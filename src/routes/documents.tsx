@@ -41,7 +41,7 @@ function Page() {
 
   async function create() {
     const { data, error } = await supabase.from("user_docs").insert({}).select("id").single();
-    if (error || !data) return toast.error(error?.message ?? "Erreur");
+    if (error || !data) { toast.error(error?.message ?? "Erreur"); return; }
     nav({ to: "/editeur/$id", params: { id: data.id } });
   }
   async function remove(d: Doc) {
