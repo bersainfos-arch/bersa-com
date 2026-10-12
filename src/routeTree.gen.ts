@@ -13,11 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
 import { Route as ProfilRouteImport } from './routes/profil'
 import { Route as RedactionRouteImport } from './routes/redaction'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as EditeurIdRouteImport } from './routes/editeur.$id'
 import { Route as FactureIdRouteImport } from './routes/facture.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -38,6 +40,11 @@ const BibliothequeRoute = BibliothequeRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentsRoute = DocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FormationsRoute = FormationsRouteImport.update({
@@ -65,6 +72,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EditeurIdRoute = EditeurIdRouteImport.update({
+  id: '/editeur/$id',
+  path: '/editeur/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FactureIdRoute = FactureIdRouteImport.update({
   id: '/facture/$id',
   path: '/facture/$id',
@@ -76,11 +88,13 @@ export interface FileRoutesByFullPath {
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
+  '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
 }
 export interface FileRoutesByTo {
@@ -88,11 +102,13 @@ export interface FileRoutesByTo {
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
+  '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
 }
 export interface FileRoutesById {
@@ -101,11 +117,13 @@ export interface FileRoutesById {
   '/assistant': typeof AssistantRoute
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
+  '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
   '/profil': typeof ProfilRoute
   '/redaction': typeof RedactionRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
 }
 export interface FileRouteTypes {
@@ -115,11 +133,13 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/bibliotheque'
     | '/contact'
+    | '/documents'
     | '/formations'
     | '/gestion'
     | '/profil'
     | '/redaction'
     | '/reset-password'
+    | '/editeur/$id'
     | '/facture/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,11 +147,13 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/bibliotheque'
     | '/contact'
+    | '/documents'
     | '/formations'
     | '/gestion'
     | '/profil'
     | '/redaction'
     | '/reset-password'
+    | '/editeur/$id'
     | '/facture/$id'
   id:
     | '__root__'
@@ -139,11 +161,13 @@ export interface FileRouteTypes {
     | '/assistant'
     | '/bibliotheque'
     | '/contact'
+    | '/documents'
     | '/formations'
     | '/gestion'
     | '/profil'
     | '/redaction'
     | '/reset-password'
+    | '/editeur/$id'
     | '/facture/$id'
   fileRoutesById: FileRoutesById
 }
@@ -152,11 +176,13 @@ export interface RootRouteChildren {
   AssistantRoute: typeof AssistantRoute
   BibliothequeRoute: typeof BibliothequeRoute
   ContactRoute: typeof ContactRoute
+  DocumentsRoute: typeof DocumentsRoute
   FormationsRoute: typeof FormationsRoute
   GestionRoute: typeof GestionRoute
   ProfilRoute: typeof ProfilRoute
   RedactionRoute: typeof RedactionRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  EditeurIdRoute: typeof EditeurIdRoute
   FactureIdRoute: typeof FactureIdRoute
 }
 
@@ -188,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents': {
+      id: '/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof DocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/formations': {
@@ -225,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/editeur/$id': {
+      id: '/editeur/$id'
+      path: '/editeur/$id'
+      fullPath: '/editeur/$id'
+      preLoaderRoute: typeof EditeurIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/facture/$id': {
       id: '/facture/$id'
       path: '/facture/$id'
@@ -240,11 +280,13 @@ const rootRouteChildren: RootRouteChildren = {
   AssistantRoute: AssistantRoute,
   BibliothequeRoute: BibliothequeRoute,
   ContactRoute: ContactRoute,
+  DocumentsRoute: DocumentsRoute,
   FormationsRoute: FormationsRoute,
   GestionRoute: GestionRoute,
   ProfilRoute: ProfilRoute,
   RedactionRoute: RedactionRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  EditeurIdRoute: EditeurIdRoute,
   FactureIdRoute: FactureIdRoute,
 }
 export const routeTree = rootRouteImport

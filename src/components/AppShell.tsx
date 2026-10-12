@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot } from "lucide-react";
+import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bot } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { useI18n, type Key } from "@/lib/i18n";
 import { AuthGate } from "@/components/AuthGate";
@@ -9,6 +9,7 @@ import { MessageCircle } from "lucide-react";
 const tabs: { to: string; key: Key; icon: typeof Home }[] = [
   { to: "/", key: "home", icon: Home },
   { to: "/assistant", key: "ai", icon: Bot },
+  { to: "/documents", key: "docs", icon: FileText },
   { to: "/redaction", key: "writing", icon: PenLine },
   { to: "/formations", key: "academy", icon: GraduationCap },
   { to: "/bibliotheque", key: "library", icon: BookOpen },
@@ -53,7 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main>{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-card md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t [&>a]:min-w-16 [&>a]:flex-1 bg-card md:hidden">
         {tabs.map((tb) => (
           <Link
             key={tb.to}
