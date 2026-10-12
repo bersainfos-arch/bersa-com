@@ -33,6 +33,7 @@ type Order = {
   id: string; item: string; kind: string; modality: string | null; status: string; created_at: string;
   full_name: string; phone: string; email: string | null; details: string | null; attachment_link: string | null; price_usd: number | null;
   payment_method: string | null; payment_ref: string | null; paid: boolean;
+   payment_currency: string | null; payment_amount: number | null;
 };
 
 function Page() {
@@ -103,6 +104,7 @@ function Page() {
                   {o.price_usd ? (
                     <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                       <span>{o.payment_method ?? "—"} · Réf. <b>{o.payment_ref ?? "—"}</b></span>
+                       <span>Montant déclaré : {o.payment_amount ?? o.price_usd} {o.payment_currency ?? "USD"}</span>
                       <Button size="sm" variant={o.paid ? "default" : "outline"} onClick={() => togglePaid(o.id, !o.paid)}>
                         {o.paid ? "Paiement confirmé ✓" : "Confirmer le paiement"}
                       </Button>

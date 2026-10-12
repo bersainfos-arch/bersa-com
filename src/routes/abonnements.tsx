@@ -127,15 +127,18 @@ export function QuotaBar({ used, limit }: { used: number; limit: number }) {
 }
 
 function Checkout({ plan, onClose }: { plan: Plan; onClose: () => void }) {
+  const { user } = useAuth();
   const [busy, setBusy] = useState(false);
   const [paymentCurrency,setPaymentCurrency]=useState("USD");const [paymentAmount,setPaymentAmount]=useState<number|null>(plan.price);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+     if (!user) return;
     const f = new FormData(e.currentTarget);
     if(paymentAmount===null){toast.error("Taux de paiement indisponible.");return;}
     setBusy(true);
     const { error } = await supabase.from("subscriptions").insert({
       plan_code: plan.plan_code, duration_months: plan.duration_months, amount: plan.price, currency: plan.currency,
+       user_id: user.id, status: "pending", started_at: null, expires_at: null,
       payment_provider: String(f.get("method")), payment_reference: String(f.get("ref")).trim().slice(0, 80),
       payment_currency:paymentCurrency,payment_amount:paymentAmount,
     });
