@@ -83,7 +83,7 @@ function Invoice() {
           <div>M-Pesa : {MOBILE_MONEY.mpesa}</div>
           <div>Airtel Money : {MOBILE_MONEY.airtel}</div>
         </div>
-        <p className="mt-8 text-center font-display italic text-muted-foreground">« Notre devoir est d'acquérir le savoir »</p>
+        <p className="mt-8 text-center font-display italic text-muted-foreground">« Le berceau du savoir, au service de votre plume »</p>
       </div>
     </div>
   );
