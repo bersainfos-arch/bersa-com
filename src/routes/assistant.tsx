@@ -1,10 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Wand2, SpellCheck, Repeat, Expand, AlignLeft, Star, ArrowRight, ListTree, Lightbulb,
   Languages, FileUser, BookMarked, GraduationCap, MessagesSquare, Copy, Volume2, Mic,
-  RotateCcw, Trash2, Loader2, Send,
+  RotateCcw, Trash2, Loader2, Send, CircleAlert, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/AppShell";
