@@ -98,10 +98,10 @@ export function HomeEditor() {
           </div>
           <div className="space-y-3 bg-muted/40 p-4">
             <div ref={sheet} contentEditable suppressContentEditableWarning
+              role="textbox" aria-label="Texte à rédiger" aria-multiline="true"
               onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run(); }}
               data-placeholder="Écrivez votre demande ou votre texte…"
-              className="mx-auto min-h-48 w-full max-w-[794px] rounded bg-white p-8 text-black shadow-md outline-none empty:before:text-neutral-400 empty:before:content-[attr(data-placeholder)]"
-              style={{ fontFamily: "'Times New Roman', serif", fontSize: "13pt", lineHeight: 1.6 }} />
+              className="a4-page home-ai-sheet mx-auto" />
             {reply && (
               <div className="mx-auto max-w-[794px] rounded-xl border bg-card p-4">
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{reply}</p>
