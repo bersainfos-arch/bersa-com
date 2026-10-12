@@ -190,6 +190,14 @@ function Page() {
         </section>
 
         <section>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 font-display text-3xl font-bold"><Clock className="h-6 w-6 text-gold" /> Documents récents</h2>
+            <Button variant="outline" size="sm" onClick={() => nav({ to: "/documents" })}>Tous mes documents</Button>
+          </div>
+          <RecentDocs />
+        </section>
+
+        <section>
           <h2 className="mb-4 font-display text-3xl font-bold">18 modèles</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {TEMPLATES.map((t) => (
