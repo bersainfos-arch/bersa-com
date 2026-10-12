@@ -86,3 +86,29 @@
   from { width: 0%; }
   to { width: 100%; }
 }
+
+.a4-page {
+  width: 794px; max-width: 100%; min-height: 1123px; padding: 72px 76px;
+  background: var(--card); color: oklch(0.15 0 0); box-shadow: var(--shadow-soft);
+  font-family: "Times New Roman", Times, serif; font-size: 13pt; line-height: 1.6; outline: none;
+}
+.a4-page:empty::before { content: attr(data-placeholder); color: var(--muted-foreground); }
+.a4-page h1, .a4-page h2, .a4-page h3 { font-family: inherit; font-weight: 700; margin: 0.8em 0 0.4em; }
+.a4-page h1 { font-size: 1.6em; } .a4-page h2 { font-size: 1.3em; } .a4-page h3 { font-size: 1.1em; }
+.a4-page p { margin: 0 0 0.6em; }
+.a4-page ul { list-style: disc; padding-left: 1.5em; } .a4-page ol { list-style: decimal; padding-left: 1.5em; }
+.a4-page blockquote { border-left: 3px solid var(--gold); padding-left: 1em; font-style: italic; margin: 0.6em 0; }
+.a4-page table { border-collapse: collapse; width: 100%; margin: 0.6em 0; }
+.a4-page td, .a4-page th { border: 1px solid oklch(0.7 0 0); padding: 4px 8px; }
+.a4-page a { color: var(--primary); text-decoration: underline; }
+.a4-page img { max-width: 100%; }
+.a4-page .footnotes { font-size: 10pt; }
+.a4-page .page-break { border-top: 2px dashed var(--border); margin: 24px -76px; }
+@media (max-width: 640px) { .a4-page { padding: 32px 20px; min-height: 70vh; } }
+@media print {
+  @page { size: A4; margin: 2cm; }
+  header, nav, .no-print, [data-sonner-toaster] { display: none !important; }
+  .a4-desk { background: none !important; padding: 0 !important; }
+  .a4-page { box-shadow: none; padding: 0; width: auto; min-height: 0; }
+  .a4-page .page-break { border: 0; margin: 0; break-after: page; }
+}
