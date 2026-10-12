@@ -11,7 +11,8 @@ export function interfaceTranslations(): Plugin {
   return {
     name: "bersa-interface-translations", enforce: "pre",
     transform(source, id) {
-      if (!/\/src\/(components|routes)\/.*\.tsx$/.test(id) || /\/ui\//.test(id)) return;
+      const filename = id.split("?")[0] ?? id;
+      if (!/\/src\/(components|routes)\/.*\.tsx$/.test(filename) || /\/ui\//.test(filename)) return;
       const ast = parse(source, { sourceType: "module", plugins: ["typescript", "jsx"] });
       let changed = false;
       const translated = (node: types.Expression) => types.callExpression(types.identifier("bersaTranslateUi"), [node]);
