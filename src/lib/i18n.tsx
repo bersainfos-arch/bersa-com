@@ -81,7 +81,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (!active) return;
       userId.current = user?.id;
       const local = localStorage.getItem(languageStorageKey(user?.id));
-      void apply(preferredLanguage(user?.user_metadata.preferred_language, local));
+      void apply(preferredLanguage(user?.user_metadata['preferred_language'], local));
     };
     void apply(preferredLanguage(undefined, localStorage.getItem(languageStorageKey())));
     void supabase.auth.getSession().then(({ data }) => restore(data.session?.user ?? null));

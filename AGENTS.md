@@ -22,3 +22,5 @@
 - Retrieve only administrator-enabled knowledge as untrusted reference context; private uploads must never enter ordinary assistant answers.
 - Keep course resources private and authorize downloads against active, price-matching enrollment; manual payments require administrator confirmation.
 - Keep currency conversion dependent on configured exchange rates; never synthesize payment rates.
+- Keep static interface translations in lazy-loaded locale dictionaries; the compile-time UI transform must never translate document content, user publications, state values or API payloads.
+- Persist language preferences in auth user metadata and user-scoped local storage; only these non-privileged preferences may be user-editable, and account preferences take precedence when signing in.

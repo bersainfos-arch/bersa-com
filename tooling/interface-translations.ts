@@ -61,7 +61,7 @@ export function interfaceTranslations(): Plugin {
       if (!changed) return;
       ast.program.body.unshift(types.importDeclaration([types.importSpecifier(types.identifier("bersaTranslateUi"), types.identifier("translateUi")), types.importSpecifier(types.identifier("bersaUseUiLanguage"), types.identifier("useUiLanguage"))], types.stringLiteral("@/lib/translate-ui")));
       const output = generate(ast, { retainLines: true, sourceMaps: true, sourceFileName: id }, source);
-      return { code: output.code, map: output.map };
+      return { code: output.code, map: output.map ? JSON.stringify(output.map) : null };
     },
   };
 }
