@@ -1,0 +1,60 @@
+import { parse } from "@babel/parser";
+import traverseModule from "@babel/traverse";
+import generateModule from "@babel/generator";
+import * as types from "@babel/types";
+import type { Plugin } from "vite";
+
+const traverse = (traverseModule as unknown as { default?: typeof traverseModule }).default ?? traverseModule;
+const generate = (generateModule as unknown as { default?: typeof generateModule }).default ?? generateModule;
+// Compile static interface copy only; never translate user documents or API payloads.
+export function interfaceTranslations(): Plugin {
+  return {
+    name: "bersa-interface-translations", enforce: "pre",
+    transform(source, id) {
+      if (!/\/src\/(components|routes)\/.*\.tsx$/.test(id) || /\/ui\//.test(id)) return;
+      const ast = parse(source, { sourceType: "module", plugins: ["typescript", "jsx"] });
+      let changed = false;
+      const translated = (node: types.Expression) => types.callExpression(types.identifier("bersaTranslateUi"), [node]);
+      traverse(ast, {
+        JSXText(path) {
+          const value = path.node.value.replace(/\s+/g, " ");
+          if (!/[A-Za-zÀ-ÿ]/.test(value)) return;
+          path.replaceWith(types.jsxExpressionContainer(translated(types.stringLiteral(value)))); changed = true;
+          path.skip();
+        },
+        JSXAttribute(path) {
+          const name = types.isJSXIdentifier(path.node.name) ? path.node.name.name : "";
+          if (!["title", "subtitle", "placeholder", "aria-label", "alt", "label"].includes(name)) return;
+          if (types.isStringLiteral(path.node.value)) {
+            path.node.value = types.jsxExpressionContainer(translated(path.node.value)); changed = true;
+          }
+        },
+        StringLiteral(path) {
+          if (!/[A-Za-zÀ-ÿ]/.test(path.node.value)) return;
+          const parent = path.parentPath;
+          const inJsx = Boolean(path.findParent(p => p.isJSXExpressionContainer()));
+          const call = parent.isCallExpression() && (
+            types.isIdentifier(parent.node.callee, { name: "prompt" }) ||
+            types.isMemberExpression(parent.node.callee) && types.isIdentifier(parent.node.callee.object, { name: "toast" })
+          );
+          // Do not touch comparisons, state values, commands, links or styling.
+          if (!(inJsx && (parent.isConditionalExpression() || parent.isLogicalExpression()) || call)) return;
+          if (parent.isConditionalExpression() && path.key === "test") return;
+          path.replaceWith(translated(types.cloneNode(path.node))); changed = true; path.skip();
+        },
+        JSXExpressionContainer(path) {
+          const expression = path.node.expression;
+          if (types.isJSXEmptyExpression(expression)) return;
+          // Known built-in labels, not names/titles supplied by users.
+          if (types.isIdentifier(expression) && ["label"].includes(expression.name) ||
+              types.isMemberExpression(expression) && types.isIdentifier(expression.object) && ["d", "g", "s", "item"].includes(expression.object.name) && types.isIdentifier(expression.property) && ["fr", "en", "name", "nameEn", "title", "titleEn"].includes(expression.property.name)) {
+            path.node.expression = translated(expression); changed = true; path.skip();
+          }
+        },
+      });
+      if (!changed) return;
+      ast.program.body.unshift(types.importDeclaration([types.importSpecifier(types.identifier("bersaTranslateUi"), types.identifier("translateUi"))], types.stringLiteral("@/lib/translate-ui")));
+      return generate(ast, { retainLines: true, sourceMaps: true, sourceFileName: id }, source);
+    },
+  };
+}
