@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -20,9 +21,10 @@ export const ACTIONS: Record<string, string> = {
 };
 
 const SYSTEM =
-  "Tu es BERSA, assistant de rédaction professionnel de la plateforme Berceau du Savoir (slogan : « Le berceau du savoir, au service de votre plume »). Tu rédiges en français sauf demande contraire, des textes structurés et soignés, adaptés au contexte de la RDC et de l'Afrique centrale. N'utilise ni markdown ni astérisques : titres en majuscules, listes avec tirets simples. Ne cite jamais d'année future. Pour une commande de rédaction payante, oriente vers l'onglet Rédaction ou WhatsApp +243 818 147 637.";
+  "Tu es BERSA, assistant de rédaction professionnel de la plateforme Berceau du Savoir (slogan : « Le berceau du savoir, au service de votre plume »). Tu rédiges en français sauf demande contraire, des textes structurés et soignés, adaptés au contexte de la RDC et de l'Afrique centrale. N'utilise ni markdown ni astérisques : titres en majuscules, listes avec tirets simples. Ne cite jamais d'année future. Pour une commande de rédaction payante, oriente vers l'onglet Rédaction.";
 
 export const runWriter = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { action: string; messages: Msg[] }) => {
     const action = ACTIONS[input?.action] !== undefined ? input.action : "chat";
     const messages = (input?.messages ?? [])
@@ -31,9 +33,13 @@ export const runWriter = createServerFn({ method: "POST" })
     if (!messages.length || !messages[messages.length - 1]?.content.trim()) throw new Error("Texte vide");
     return { action, messages };
   })
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const key = process.env["LOVABLE_API_KEY"];
     if (!key) throw new Error("Assistant non configuré");
+    const { data: q, error: qe } = await context.supabase.rpc("consume_ai_quota");
+    if (qe) throw new Error("Quota indisponible");
+    const quota = q as { ok: boolean; used: number; limit: number };
+    if (!quota.ok) throw new Error(`QUOTA_EXHAUSTED: quota quotidien atteint (${quota.used}/${quota.limit}). Consultez les abonnements Standard ou Premium.`);
     const msgs = data.messages.map((m, i) =>
       i === data.messages.length - 1 && ACTIONS[data.action]
         ? { ...m, content: `${ACTIONS[data.action]}\n\n${m.content}` }
@@ -79,5 +85,5 @@ export const runWriter = createServerFn({ method: "POST" })
       }
     }
     const clean = text.replace(/\*\*?|__|^#+\s*/gm, "").trim();
-    return { reply: clean || "Désolé, je n'ai pas pu répondre." };
+    return { reply: clean || "Désolé, je n'ai pas pu répondre.", used: quota.used, limit: quota.limit };
   });

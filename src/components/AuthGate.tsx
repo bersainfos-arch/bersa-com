@@ -30,6 +30,7 @@ function SignForm() {
   const { t } = useI18n();
   const [mode, setMode] = useState<"in" | "up">("up");
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -42,10 +43,10 @@ function SignForm() {
       if (error) toast.error("E-mail ou mot de passe incorrect.");
       return;
     }
+    if (password !== String(f.get("confirm"))) { setBusy(false); toast.error("Les mots de passe ne correspondent pas."); return; }
     const meta = {
       first_name: String(f.get("first_name")).trim().slice(0, 80),
       last_name: String(f.get("last_name")).trim().slice(0, 80),
-      phone: String(f.get("phone")).trim().slice(0, 40),
     };
     const { error } = await supabase.auth.signUp({
       email,
@@ -76,11 +77,14 @@ function SignForm() {
               <Input name="first_name" placeholder="Prénom" required maxLength={80} />
               <Input name="last_name" placeholder="Nom" required maxLength={80} />
             </div>
-            <Input name="phone" type="tel" placeholder={t("phone")} required maxLength={40} />
           </>
         )}
         <Input name="email" type="email" placeholder={t("email")} required />
-        <Input name="password" type="password" placeholder={t("password")} required minLength={6} />
+        <div className="relative">
+          <Input name="password" type={show ? "text" : "password"} placeholder={t("password")} required minLength={6} />
+          <button type="button" onClick={() => setShow(!show)} className="absolute right-2 top-2 text-xs text-muted-foreground">{show ? "Masquer" : "Afficher"}</button>
+        </div>
+        {mode === "up" && <Input name="confirm" type={show ? "text" : "password"} placeholder="Confirmer le mot de passe" required minLength={6} />}
         <Button type="submit" className="w-full" disabled={busy}>
           {mode === "in" ? t("signIn") : t("signUp")}
         </Button>
@@ -151,7 +155,6 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
       id: user.id,
       first_name: String(f.get("first_name")).trim().slice(0, 80),
       last_name: String(f.get("last_name")).trim().slice(0, 80),
-      phone: String(f.get("phone")).trim().slice(0, 40),
       email: user.email ?? null,
     });
     setBusy(false);
@@ -166,7 +169,6 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
         <Input name="first_name" placeholder="Prénom" required defaultValue={m["first_name"] ?? first} />
         <Input name="last_name" placeholder="Nom" required defaultValue={m["last_name"] ?? rest.join(" ")} />
       </div>
-      <Input name="phone" type="tel" placeholder="Téléphone / WhatsApp" required defaultValue={m["phone"] ?? ""} />
       <Button type="submit" className="w-full" disabled={busy}>Continuer</Button>
     </form>
   );
@@ -183,9 +185,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
       const { data } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
       if (data) return setHasProfile(true);
       const m = user.user_metadata ?? {};
-      if (m["first_name"] && m["last_name"] && m["phone"]) {
+      if (m["first_name"] && m["last_name"]) {
         const { error } = await supabase.from("profiles").insert({
-          id: user.id, first_name: m["first_name"], last_name: m["last_name"], phone: m["phone"], email: user.email ?? null,
+          id: user.id, first_name: m["first_name"], last_name: m["last_name"], email: user.email ?? null,
         });
         return setHasProfile(!error);
       }
