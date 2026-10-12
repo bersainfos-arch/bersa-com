@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";
-import { OrderDialog } from "@/components/OrderDialog";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { serviceGroups, type Service } from "@/lib/catalog";
@@ -11,7 +10,7 @@ export const Route = createFileRoute("/redaction")({
   head: () => ({
     meta: [
       { title: "Rédaction & Services — BERSA" },
-      { name: "description", content: "Mémoires, thèses, articles, actes juridiques, statuts OHADA, business plans : commandez votre document." },
+      { name: "description", content: "Mémoires, thèses, articles, actes juridiques, statuts OHADA, business plans : rédigez votre document avec l’Assistant." },
       { property: "og:title", content: "Rédaction & Services — BERSA" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -22,6 +21,7 @@ export const Route = createFileRoute("/redaction")({
 });
 
 function Card({ s }: { s: Service }) {
+  const nav = useNavigate();
   const { t, lang } = useI18n();
   const [shown, setShown] = useState(false);
   const name = lang === "fr" ? s.name : s.nameEn;
@@ -37,12 +37,7 @@ function Card({ s }: { s: Service }) {
             <Eye className="mr-1 h-4 w-4" /> {t("seePrice")}
           </Button>
         )}
-        <OrderDialog
-          kind="redaction"
-          item={s.name}
-          price={s.priceNum}
-          trigger={<Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90">{t("order")}</Button>}
-        />
+        <Button size="sm" onClick={() => { sessionStorage.setItem("bersa-writing-request", `Rédige un ${name} : `); nav({ to: "/" }); }}>Rédiger</Button>
       </div>
     </div>
   );

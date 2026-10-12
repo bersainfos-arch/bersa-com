@@ -4,14 +4,14 @@ import { FileText, Home, PenLine, GraduationCap, BookOpen, ShieldCheck, User, Bo
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { useI18n, type Key } from "@/lib/i18n";
 import { AuthGate } from "@/components/AuthGate";
+import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 
 const tabs: { to: string; key: Key; icon: typeof Home }[] = [
-  { to: "/", key: "home", icon: Home },
+  { to: "/", key: "ai", icon: Bot },
   { to: "/app", key: "dashboard", icon: LayoutDashboard },
-  { to: "/assistant", key: "ai", icon: Bot },
-  { to: "/documents", key: "docs", icon: FileText },
   { to: "/redaction", key: "writing", icon: PenLine },
+  { to: "/documents", key: "docs", icon: FileText },
   { to: "/formations", key: "academy", icon: GraduationCap },
   { to: "/bibliotheque", key: "library", icon: BookOpen },
   { to: "/opportunites", key: "jobs", icon: Briefcase },
@@ -26,18 +26,18 @@ export function AppShell({ children }: { children: ReactNode }) {
     <AuthGate>
     <div className="min-h-screen pb-24 md:pb-0">
       <header className="sticky top-0 z-30 bg-royal text-royal-foreground shadow-soft">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo.url} alt="Logo BERSA" className="h-10 w-10 rounded-lg" />
-            <span className="font-display text-2xl font-bold tracking-wide">BERSA</span>
+            <span className="flex flex-col"><span className="font-display text-2xl font-bold">BERSA</span><span className="font-display text-xs text-gold">Berceau du Savoir</span></span>
           </Link>
-          <nav className="ml-6 hidden gap-1 md:flex">
+          <nav className="order-last hidden w-full gap-1 overflow-x-auto md:flex">
             {tabs.map((tb) => (
               <Link
                 key={tb.to}
                 to={tb.to}
                 activeOptions={{ exact: tb.to === "/" }}
-                className="rounded-md px-3 py-2 text-sm opacity-80 hover:opacity-100"
+                className="shrink-0 rounded-md px-3 py-2 text-sm opacity-80 hover:opacity-100"
                 activeProps={{ className: "bg-gold text-gold-foreground opacity-100 font-semibold" }}
               >
                 {t(tb.key)}
@@ -47,13 +47,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to="/contact" className="ml-auto flex items-center gap-1 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-gold-foreground">
             <MessageCircle className="h-3.5 w-3.5" /> Contact
           </Link>
-          <button
+          <Button variant="ghost" size="sm"
             onClick={() => setLang(lang === "fr" ? "en" : "fr")}
             className="rounded-full border border-gold px-3 py-1 text-xs font-semibold text-gold"
             aria-label="Langue / Language"
           >
             {lang === "fr" ? "EN" : "FR"}
-          </button>
+          </Button>
         </div>
       </header>
       <main>{children}</main>
