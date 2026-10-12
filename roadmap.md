@@ -3,17 +3,19 @@
 - [x] Page Abonnements (prix, durées, comparaison, quota restant, souscription avec vérification)
 - [x] Accueil sans photo, sans diaporama, sans téléphone ; signature ajoutée
 - [x] Inscription sans téléphone, confirmation et affichage du mot de passe
+- [x] Avertissement quota avec formules disponibles (prix + conversations/jour)
+- [x] Assistant : indicateur permanent du quota (utilisé, restant, date de renouvellement)
+- [x] Activation des abonnements dans Gestion
+- [x] Opportunités et candidatures (publication, vérification, dépôt de candidature)
+- [x] Assistant en streaming, fenêtre quota
 - [ ] Écran de démarrage + /signup /login /app /admin, menu latéral
 - [ ] Tableau de bord /app avec barre IA centrale et 18 modèles
 - [ ] Éditeur Word riche (TipTap, notes, table des matières)
-- [ ] Assistant en streaming, conversations enregistrées, fenêtre quota
-- [x] Avertissement quota avec formules disponibles (prix + conversations/jour)
-- [ ] Assistant : indicateur permanent du quota (utilisé, restant, date de renouvellement)
-- [ ] Activation des abonnements dans Gestion, prix modifiables
+- [ ] Conversations de l'assistant enregistrées et reprises
+- [ ] Prix des formules modifiables par l'administrateur
 - [ ] Mes documents (partage public révocable, commentaires), profil enrichi, badges
 - [ ] Formations (modules, inscription, progression)
 - [ ] Bibliothèque 12 domaines
-- [ ] Opportunités et candidatures
 - [ ] Paramètres (25 langues, mode sombre, confidentialité, règlement)
 - [ ] Admin statistiques réelles
 - [ ] Paiement automatique — en attente des clés d'un service de paiement
