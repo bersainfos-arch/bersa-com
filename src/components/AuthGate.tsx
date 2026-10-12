@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { INTRO_STEP_MS, openingPhase } from "@/lib/opening";
+import { authIdentifier } from "@/lib/auth-identifier";
 
 function Frame({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -18,6 +19,7 @@ function Frame({ children }: { children: ReactNode }) {
         <div className="flex flex-col items-center text-center">
           <img src={logo.url} alt="Logo BERSA" className="h-20 w-20 rounded-2xl" />
           <h1 className="mt-3 text-3xl font-bold">BERSA</h1>
+          <p className="font-display text-lg text-primary">Berceau du Savoir</p>
           <p className="font-display italic text-muted-foreground">« {t("slogan")} »</p>
         </div>
         {children}
@@ -31,14 +33,17 @@ function SignForm() {
   const [mode, setMode] = useState<"in" | "up">("up");
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
+  const [pendingPhone, setPendingPhone] = useState("");
+  const [code, setCode] = useState("");
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const email = String(f.get("email")).trim();
+    const identifier = authIdentifier(String(f.get("email")));
+    if (!identifier) { toast.error("Saisissez un e-mail valide ou un numéro international (ex. +243…)."); return; }
     const password = String(f.get("password"));
     setBusy(true);
     if (mode === "in") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ ...identifier, password });
       setBusy(false);
       if (error) toast.error("E-mail ou mot de passe incorrect.");
       return;
@@ -49,12 +54,13 @@ function SignForm() {
       last_name: String(f.get("last_name")).trim().slice(0, 80),
     };
     const { error } = await supabase.auth.signUp({
-      email,
+      ...identifier,
       password,
       options: { data: meta, emailRedirectTo: window.location.origin },
     });
     setBusy(false);
     if (error) toast.error(error.message);
+    else if ("phone" in identifier) { setPendingPhone(identifier.phone); toast.success("Confirmez le code reçu par SMS."); }
     else toast.success("Compte créé ! Confirmez votre e-mail pour vous connecter.");
   }
   async function forgot() {
@@ -68,6 +74,12 @@ function SignForm() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (r.error) toast.error("Connexion Google impossible.");
   }
+  async function verify(e: React.FormEvent) {
+    e.preventDefault(); setBusy(true);
+    const { error } = await supabase.auth.verifyOtp({ phone: pendingPhone, token: code, type: "sms" });
+    setBusy(false); if (error) toast.error(error.message); else setPendingPhone("");
+  }
+  if (pendingPhone) return <form onSubmit={verify} className="space-y-3"><Input aria-label="Code SMS" placeholder="Code SMS" value={code} onChange={e => setCode(e.target.value)} required /><Button type="submit" disabled={busy}>Vérifier</Button><Button variant="ghost" onClick={() => setPendingPhone("")}>Retour</Button></form>;
   return (
     <>
       <form onSubmit={submit} className="space-y-3">
@@ -79,10 +91,11 @@ function SignForm() {
             </div>
           </>
         )}
-        <Input name="email" type="email" placeholder={t("email")} required />
+        <Input name="email" type="text" autoComplete="username" aria-label="E-mail ou numéro de téléphone" placeholder="E-mail ou numéro de téléphone" required />
+        <p className="text-[11px] text-muted-foreground">Numéro au format international (+243…). L’inscription SMS nécessite l’activation de l’envoi des codes ; l’e-mail reste disponible.</p>
         <div className="relative">
           <Input name="password" type={show ? "text" : "password"} placeholder={t("password")} required minLength={6} />
-          <button type="button" onClick={() => setShow(!show)} className="absolute right-2 top-2 text-xs text-muted-foreground">{show ? "Masquer" : "Afficher"}</button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setShow(!show)} className="absolute right-0 top-0 text-xs text-muted-foreground">{show ? "Masquer" : "Afficher"}</Button>
         </div>
         {mode === "up" && <Input name="confirm" type={show ? "text" : "password"} placeholder="Confirmer le mot de passe" required minLength={6} />}
         <Button type="submit" className="w-full" disabled={busy}>
@@ -91,11 +104,11 @@ function SignForm() {
       </form>
       <Button variant="outline" className="w-full" onClick={google}>{t("google")}</Button>
       {mode === "in" && (
-        <button className="w-full text-sm text-muted-foreground underline" onClick={forgot}>Mot de passe oublié ?</button>
+        <Button variant="link" className="w-full text-sm text-muted-foreground" onClick={forgot}>Mot de passe oublié ?</Button>
       )}
-      <button className="w-full text-sm text-primary underline" onClick={() => setMode(mode === "in" ? "up" : "in")}>
+      <Button variant="link" className="w-full text-sm text-primary" onClick={() => setMode(mode === "in" ? "up" : "in")}>
         {mode === "in" ? "Pas encore de compte ? S'inscrire" : "Déjà inscrit ? Se connecter"}
-      </button>
+      </Button>
     </>
   );
 }
