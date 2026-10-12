@@ -12,6 +12,7 @@ import { waLink } from "@/lib/catalog";
 import { BookManager } from "@/components/BookManager";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { OpportunityManager } from "@/components/OpportunityManager";
+import { AdminCommunity } from "@/components/AdminCommunity";
 
 export const Route = createFileRoute("/gestion")({
   head: () => ({
@@ -71,10 +72,11 @@ function Page() {
       <div className="mx-auto max-w-6xl px-4 py-10">
         {loading ? null : !user ? (
           <div className="text-center"><Button asChild><Link to="/profil">{t("signIn")}</Link></Button></div>
-        ) : isAdmin === false ? (
+        ) : isAdmin === null ? <p className="text-sm text-muted-foreground">Vérification de l’accès…</p> : isAdmin === false ? (
           <p className="text-center text-muted-foreground">Accès réservé aux gestionnaires BERSA.</p>
         ) : (
           <>
+            <AdminCommunity />
             <div className="flex flex-wrap gap-2">
               {([["all", "Tout"], ["redaction", "Rédaction"], ["formation", "Formations"], ["livre", "Livres"]] as const).map(([v, l]) => (
                 <Button key={v} size="sm" variant={filter === v ? "default" : "outline"} onClick={() => setFilter(v)}>{l}</Button>

@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { PublicationSlideshow } from "@/components/PublicationSlideshow";
+import { signedCommunity, uploadCommunity } from "@/lib/community";
 import {
   Briefcase,
   CalendarClock,
@@ -64,6 +66,7 @@ type Opp = {
   deadline: string | null;
   status: string;
   created_at: string;
+  cover_path?: string | null;
 };
 
 type AppRow = {
@@ -118,6 +121,7 @@ function Opportunites() {
   const [applyTo, setApplyTo] = useState<Opp | null>(null);
   const [apply, setApply] = useState({ full_name: "", email: "", message: "", attachment_link: "" });
   const [busy, setBusy] = useState(false);
+  const [cover,setCover]=useState<File|null>(null); const [images,setImages]=useState<Record<string,string>>({});
 
   async function load() {
     setLoading(true);
@@ -129,6 +133,7 @@ function Opportunites() {
         .order("created_at", { ascending: false }),
     ]);
     setRows((r ?? []) as unknown as Opp[]);
+    const imgs:Record<string,string>={}; await Promise.all((r??[]).filter(x=>x.cover_path).map(async x=>{if(x.cover_path){try{imgs[x.id]=await signedCommunity(x.cover_path);}catch{}}})); setImages(imgs);
     setApps((a ?? []) as unknown as AppRow[]);
     setLoading(false);
   }
@@ -170,7 +175,10 @@ function Opportunites() {
       return;
     }
     setBusy(true);
+    let coverPath:string|null=null;
+    try{if(cover)coverPath=await uploadCommunity(userId,cover);}catch(e){setBusy(false);toast.error(e instanceof Error?e.message:"Affiche impossible");return;}
     const { error } = await supabase.from("opportunities").insert({
+      cover_path:coverPath,
       user_id: userId,
       organisation: form.organisation.trim(),
       contact_email: form.contact_email.trim(),
@@ -243,6 +251,7 @@ function Opportunites() {
         title="Opportunités et emplois"
         subtitle="Emplois, stages, bourses et appels d'offres publiés par des organisations, vérifiés avant mise en ligne."
       />
+      <PublicationSlideshow label="Dernières opportunités" items={rows.filter(r=>r.status==="active").map(r=>({id:r.id,title:r.title,subtitle:r.organisation,image:images[r.id],created_at:r.created_at}))}/>
       <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-56 flex-1">
@@ -428,6 +437,7 @@ function Opportunites() {
             <DialogTitle>Publier une opportunité</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
+            <Label className="grid gap-1 text-sm sm:col-span-2">Affiche facultative<Input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setCover(e.target.files?.[0]??null)}/></Label>
             <Label className="grid gap-1 text-sm">
               Organisation *
               <Input {...field("organisation")} placeholder="Nom de l'organisation" />
