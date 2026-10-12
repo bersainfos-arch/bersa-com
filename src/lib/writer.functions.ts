@@ -85,5 +85,5 @@ export const runWriter = createServerFn({ method: "POST" })
       }
     }
     const clean = text.replace(/\*\*?|__|^#+\s*/gm, "").trim();
-    return { reply: clean || "Désolé, je n'ai pas pu répondre." };
+    return { reply: clean || "Désolé, je n'ai pas pu répondre.", used: quota.used, limit: quota.limit };
   });
