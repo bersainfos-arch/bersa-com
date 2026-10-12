@@ -54,6 +54,7 @@ function Page() {
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [quota, setQuota] = useState<{ used: number; limit: number } | null>(null);
+  const [warn, setWarn] = useState<{ remaining: number; limit: number } | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,6 +74,12 @@ function Page() {
       const ctx = act === "chat" ? history : history.slice(-1);
       const r = await ask({ data: { action: act, messages: ctx.map(({ role, content }) => ({ role, content })) } });
       save([...history, { role: "assistant", content: r.reply }]);
+      const remaining = r.limit - r.used;
+      if (remaining > 0 && remaining <= Math.max(3, Math.ceil(r.limit * 0.2))) {
+        setWarn({ remaining, limit: r.limit });
+      } else {
+        setWarn(null);
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur";
       const m = msg.match(/QUOTA_EXHAUSTED.*\((\d+)\/(\d+)\)/);
