@@ -9,7 +9,7 @@
 - [x] Opportunités et candidatures (publication, vérification, dépôt de candidature)
 - [x] Assistant en streaming, fenêtre quota
 - [ ] Écran de démarrage + /signup /login /app /admin, menu latéral
-- [ ] Tableau de bord /app avec barre IA centrale et 18 modèles
+- [x] Tableau de bord /app avec barre IA centrale et 18 modèles
 - [ ] Éditeur Word riche (TipTap, notes, table des matières)
 - [ ] Conversations de l'assistant enregistrées et reprises
 - [ ] Prix des formules modifiables par l'administrateur
