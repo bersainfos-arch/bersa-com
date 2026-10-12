@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   Repeat, ListTree, Expand, AlignLeft, SpellCheck, Star, BookMarked, Languages, Lightbulb,
-  Send, Loader2, Copy, FilePlus2, FileText,
+  Send, Loader2, Copy, FilePlus2, FileText, Clock, Star as StarIcon,
 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
