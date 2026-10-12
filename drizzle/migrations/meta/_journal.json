@@ -43,6 +43,13 @@
       "when": 1791812188093,
       "tag": "0005_user_docs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791819320037,
+      "tag": "0006_subscriptions_foundation",
+      "breakpoints": true
     }
   ]
 }

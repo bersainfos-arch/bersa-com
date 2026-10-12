@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          quota_period: string
+          usage_type: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          quota_period?: string
+          usage_type?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          quota_period?: string
+          usage_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       books: {
         Row: {
           author: string | null
@@ -139,31 +166,139 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string | null
           first_name: string
           id: string
           last_name: string
-          phone: string
+          marital_status: string | null
+          phone: string | null
+          physical_address: string | null
           post_nom: string | null
+          research_domain: string | null
+          updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           first_name: string
           id: string
           last_name: string
-          phone: string
+          marital_status?: string | null
+          phone?: string | null
+          physical_address?: string | null
           post_nom?: string | null
+          research_domain?: string | null
+          updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           first_name?: string
           id?: string
           last_name?: string
-          phone?: string
+          marital_status?: string | null
+          phone?: string | null
+          physical_address?: string | null
           post_nom?: string | null
+          research_domain?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          daily_conversation_limit: number
+          duration_months: number
+          features: string[]
+          id: string
+          is_active: boolean
+          plan_code: string
+          plan_name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          daily_conversation_limit: number
+          duration_months: number
+          features?: string[]
+          id?: string
+          is_active?: boolean
+          plan_code: string
+          plan_name: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          daily_conversation_limit?: number
+          duration_months?: number
+          features?: string[]
+          id?: string
+          is_active?: boolean
+          plan_code?: string
+          plan_name?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          duration_months: number
+          expires_at: string | null
+          id: string
+          payment_provider: string | null
+          payment_reference: string | null
+          plan_code: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          duration_months: number
+          expires_at?: string | null
+          id?: string
+          payment_provider?: string | null
+          payment_reference?: string | null
+          plan_code: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          duration_months?: number
+          expires_at?: string | null
+          id?: string
+          payment_provider?: string | null
+          payment_reference?: string | null
+          plan_code?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -229,6 +364,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_ai_quota: { Args: never; Returns: Json }
+      current_daily_limit: { Args: { _user: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
