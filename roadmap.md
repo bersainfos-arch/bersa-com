@@ -35,4 +35,4 @@
 - [ ] Paramètres (25 langues, mode sombre, confidentialité, règlement)
 - [x] Admin statistiques réelles
 - [ ] Paiement automatique — en attente des clés d'un service de paiement
-- [ ] Basculer l'IA (Assistant, dictée) sur la clé Gemini gratuite, sans crédit Lovable
+- [x] Basculer l'IA (Assistant, dictée) sur la clé Gemini gratuite, sans crédit Lovable
