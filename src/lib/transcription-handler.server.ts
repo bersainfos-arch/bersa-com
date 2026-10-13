@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-import { transcribe } from "./ai/transcribe.server";
+import { geminiText } from "./ai/gemini.server";
 const MAX_BODY = 24 * 1024 * 1024;
 export async function handleTranscription(request: Request) {
- const url = process.env["SUPABASE_URL"]; const key = process.env["SUPABASE_PUBLISHABLE_KEY"]; const aiKey = process.env["LOVABLE_API_KEY"];
+ const url = process.env["SUPABASE_URL"]; const key = process.env["SUPABASE_PUBLISHABLE_KEY"]; const aiKey = process.env["GEMINI_API_KEY"];
  if (!url || !key || !aiKey) return new Response("Transcription non configurée.", { status: 503 });
  const token = request.headers.get("Authorization")?.replace(/^Bearer /, "");
  if (!token) return new Response("Connexion requise.", { status: 401 });
@@ -16,7 +16,9 @@ export async function handleTranscription(request: Request) {
   const bytes = new Uint8Array(size); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   const form = await new Response(bytes, { headers: { "Content-Type": request.headers.get("Content-Type") ?? "" } }).formData(); const file = form.get("file");
   if (!(file instanceof File) || !file.size || file.size > 23 * 1024 * 1024 || !file.type.startsWith("audio/")) return new Response("Fichier audio invalide.", { status: 400 });
-  const response = await transcribe({ baseURL: "https://ai.gateway.lovable.dev", apiKey: aiKey, model: "openai/gpt-transcribe", maxFileBytes: 23 * 1024 * 1024, audioOnly: false }, file, { language: "fr", signal: request.signal });
-  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") ?? "text/event-stream", "Cache-Control": "no-store" } });
+   const b64 = btoa(Array.from(new Uint8Array(await file.arrayBuffer()), (c) => String.fromCharCode(c)).join(""));
+   const text = (await geminiText([{ role: "user", parts: [{ inline_data: { mime_type: file.type.split(";")[0] || "audio/wav", data: b64 } }, { text: "Transcris fidèlement cet audio dans sa langue d'origine. Renvoie uniquement la transcription." }] }], undefined, request.signal)).trim();
+   const sse = `data: ${JSON.stringify({ type: "transcript.text.delta", delta: text })}\n\ndata: ${JSON.stringify({ type: "transcript.text.done", text })}\n\n`;
+   return new Response(sse, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" } });
  } catch (e) { if (request.signal.aborted) return new Response(null, { status: 499 }); return new Response(e instanceof Error ? e.message : "Transcription impossible.", { status: 400 }); }
 }
