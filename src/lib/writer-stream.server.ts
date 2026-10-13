@@ -5,7 +5,7 @@ import { knowledgeContext } from "./knowledge.server";
 import { ACTIONS } from "./writer.functions";
 import type { Attachment } from "./attachments";
 export async function handleWriterStream(request:Request){
- const url=process.env["SUPABASE_URL"],key=process.env["SUPABASE_PUBLISHABLE_KEY"],aiKey=process.env["LOVABLE_API_KEY"];if(!url||!key||!aiKey)return new Response("Assistant non configuré.",{status:503});
+ const url=process.env["SUPABASE_URL"],key=process.env["SUPABASE_PUBLISHABLE_KEY"],aiKey=process.env["GEMINI_API_KEY"];if(!url||!key||!aiKey)return new Response("Assistant non configuré.",{status:503});
  const token=request.headers.get("Authorization")?.replace(/^Bearer /,"");if(!token)return new Response("Connexion requise.",{status:401});
  const client=createClient<Database>(url,key,{auth:{persistSession:false},global:{headers:{Authorization:`Bearer ${token}`},fetch:(input,init)=>{const h=new Headers(init?.headers);h.set("apikey",key);if(h.get("Authorization")===`Bearer ${key}`)h.delete("Authorization");return fetch(input,{...init,headers:h});}}});
  const auth=await client.auth.getUser(token);if(auth.error||!auth.data.user)return new Response("Connexion requise.",{status:401});
