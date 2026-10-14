@@ -32,7 +32,7 @@ export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attac
  return <div className="no-print border-b bg-card">  
   <div className="flex items-center gap-1 bg-primary p-0.5 text-primary-foreground" role="tablist" aria-label="Rubriques de l’éditeur">
   {["Assistant", "Insérer", "Mise en forme"].map(name => <Button key={name} role="tab" aria-selected={tab === name} variant="ghost" onClick={() => setTab(name)} className={`h-8 rounded px-2.5 text-xs ${tab === name ? "bg-card text-foreground" : "text-primary-foreground"}`}>{name}</Button>)}
-   <div className="ml-auto flex">{tool(Save, "Sauvegarder et ouvrir", save)}{tool(Download, "Exporter HTML", exportHtml)}</div>
+   <div className="ml-auto flex items-center">
   </div>
   {tab === "Assistant" && <div className="flex h-10 items-center justify-end px-2">{tool(Undo2, "Annuler", () => editor?.chain().focus().undo().run())}{tool(Redo2, "Rétablir", () => editor?.chain().focus().redo().run())}</div>}
   {tab === "Insérer" && <div className="flex flex-wrap items-center gap-1 p-1">
