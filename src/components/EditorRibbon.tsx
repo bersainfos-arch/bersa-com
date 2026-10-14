@@ -30,7 +30,7 @@ export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attac
   else { const text = prompt(kind === "note" ? "Texte de la note" : "Référence bibliographique vérifiée"); if (!text) return; const n = (editor.getText().match(/\[Note /g) ?? []).length + 1; editor.chain().focus().insertContent({ type: "paragraph", content: [{ type: "text", text: kind === "note" ? `[Note ${n}] ${text}` : text }] }).run(); }
  }
  return <div className="no-print border-b bg-card">
-  <div className="flex items-center gap-1 bg-primary p-1 text-primary-foreground" role="tablist" aria-label="Rubriques de l’éditeur">
+  <div className="flex items-center gap-1 bg-primary p-0.5 text-primary-foreground" role="tablist" aria-label="Rubriques de l’éditeur">
    {["Assistant", "Insérer", "Mise en forme"].map(name => <Button key={name} role="tab" aria-selected={tab === name} variant="ghost" onClick={() => setTab(name)} className={`h-9 rounded px-3 text-xs sm:text-sm ${tab === name ? "bg-card text-foreground" : "text-primary-foreground"}`}>{name}</Button>)}
    <div className="ml-auto flex">{tool(Save, "Sauvegarder et ouvrir", save)}{tool(Download, "Exporter HTML", exportHtml)}</div>
   </div>
