@@ -85,7 +85,7 @@ export function HomeEditor() {
   } catch (e) { toast.error(e instanceof Error ? e.message : "Transcription impossible."); } finally { setTranscribing(false); }
  }
  const remaining = quota ? Math.max(0, quota.limit - quota.used) : null;
- return <AppShell><section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-2 py-2 sm:px-4">
+ return <AppShell><section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-1 py-1 sm:px-4">
   <EditorRibbon editor={editor} tab={tab} setTab={setTab} settings={settings} setSettings={setSettings} attach={() => fileInput.current?.click()} save={() => void save()} correct={() => { setAction("correct"); void run("correct"); }} />
    {tab === "Assistant" && <div className="no-print flex flex-wrap items-center gap-1 border-b bg-card p-2" aria-label="Services de l’Assistant"><span className="mr-2 text-xs font-semibold text-muted-foreground">A4</span>{assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => <Button key={id} size="sm" variant="ghost" className="h-8 px-2 text-xs" onMouseDown={e => e.preventDefault()} disabled={busy || transcribing || recording} onClick={() => { setAction("generate"); void run(id); }}>{label}</Button>)}</div>}
   <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
