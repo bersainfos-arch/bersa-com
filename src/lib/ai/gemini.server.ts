@@ -2,8 +2,7 @@
 export type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } };
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
-const MODEL = "gemini-3.5-flash-lite";
-;
+const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-2.5-flash"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export class GeminiError extends Error {
