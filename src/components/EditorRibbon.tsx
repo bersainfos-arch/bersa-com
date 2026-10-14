@@ -35,7 +35,8 @@ export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attac
    <div className="ml-auto flex items-center">
   {tab === "Assistant" && <>{tool(Undo2, "Annuler", () => editor?.chain().focus().undo().run())}
   {tool(Redo2, "Rétablir", () => editor?.chain().focus().redo().run())}</>}
-     {tool(Save, "Sauvegarder et ouvrir", save)}
+   {tool(Save, "Sauvegarder et ouvrir", save)}
+   {tool(Download, "Exporter HTML", exportHtml)}
   {tab === "Insérer" && <div className="flex flex-wrap items-center gap-1 p-1">
    <Button size="sm" variant="outline" onClick={attach}><Paperclip className="h-4 w-4" /> Ajouter un fichier</Button>
    {tool(Table, "Insérer un tableau", () => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}
