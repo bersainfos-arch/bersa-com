@@ -131,6 +131,6 @@
 .zoom-125 .home-ai-sheet { zoom: 1.25; }
 .zoom-150 .home-ai-sheet { zoom: 1.5; }
 @media (min-width: 768px) { .home-command-bar { bottom: 0; } }
-@media (max-width: 640px) { .home-paper-desk { padding: 8px; height: max(140px, calc(100dvh - 380px)); } .home-ai-sheet { padding: 20px 16px; min-height: calc(100dvh - 396px); } .margin-Larges .home-ai-sheet { padding: 32px; } }
+@media (max-width: 640px) { .home-paper-desk { padding: 4px; height: calc(100dvh - 170px); } .home-ai-sheet { padding: 16px 12px; min-height: calc(100dvh - 180px); } .margin-Larges .home-ai-sheet { padding: 24px; } }
 @media print { .home-paper-desk { height: auto; overflow: visible; padding: 0; background: var(--card); } .home-ai-sheet { zoom: 1; min-height: 0; } }
 
