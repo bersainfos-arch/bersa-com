@@ -2,8 +2,7 @@
 export type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } };
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
-const MODEL = "gemini-3.5-flash-lite";
-;
+const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-2.5-flash"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export class GeminiError extends Error {
@@ -27,18 +26,26 @@ function body(contents: GeminiContent[], system?: string) {
   return JSON.stringify({
     contents,
     ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
-    generationConfig: { thinkingConfig: { thinkingBudget: 0 } },
   });
 }
 
 export async function* geminiStream(contents: GeminiContent[], system?: string, signal?: AbortSignal) {
-  const res = await fetch(`${BASE}/${MODEL}:streamGenerateContent?alt=sse`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey() },
-    body: body(contents, system),
-    ...(signal ? { signal } : {}),
-  });
-  if (!res.ok || !res.body) throw await failure(res);
+  const key = apiKey();
+  let res: Response | null = null;
+  let lastError: GeminiError | null = null;
+  for (const model of MODELS) {
+    res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: body(contents, system),
+      ...(signal ? { signal } : {}),
+    });
+    if (res.ok && res.body) break;
+    lastError = await failure(res);
+    res = null;
+    if (lastError.status !== 503 && lastError.status !== 429 && lastError.status !== 400) throw lastError;
+  }
+  if (!res || !res.body) throw lastError ?? new GeminiError("Assistant indisponible.", 503);
   const reader = res.body.getReader();
   const dec = new TextDecoder();
   let buf = "";
