@@ -33,8 +33,8 @@ export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attac
   <div className="flex items-center gap-1 bg-primary p-0.5 text-primary-foreground" role="tablist" aria-label="Rubriques de l’éditeur">
   {["Assistant", "Insérer", "Mise en forme"].map(name => <Button key={name} role="tab" aria-selected={tab === name} variant="ghost" onClick={() => setTab(name)} className={`h-8 rounded px-2.5 text-xs ${tab === name ? "bg-card text-foreground" : "text-primary-foreground"}`}>{name}</Button>)}
    <div className="ml-auto flex items-center">
-      {tab === "Assistant" && <>{tool(Undo2, "Annuler", () => editor?.chain().focus().undo().run())}
-  {tab === "Assistant" && <div className="flex h-10 items-center justify-end px-2">{tool(Undo2, "Annuler", () => editor?.chain().focus().undo().run())}{tool(Redo2, "Rétablir", () => editor?.chain().focus().redo().run())}</div>}
+  {tab === "Assistant" && <>{tool(Undo2, "Annuler", () => editor?.chain().focus().undo().run())}
+  {tool(Redo2, "Rétablir", () => editor?.chain().focus().redo().run())}</>}
   {tab === "Insérer" && <div className="flex flex-wrap items-center gap-1 p-1">
    <Button size="sm" variant="outline" onClick={attach}><Paperclip className="h-4 w-4" /> Ajouter un fichier</Button>
    {tool(Table, "Insérer un tableau", () => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}
