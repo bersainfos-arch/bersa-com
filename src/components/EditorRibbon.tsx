@@ -29,9 +29,9 @@ export function EditorRibbon({ editor, tab, setTab, settings, setSettings, attac
   if (kind === "toc") { const titles: { type: "paragraph"; content: { type: "text"; text: string }[] }[] = []; editor.state.doc.descendants(node => { if (node.type.name === "heading") titles.push({ type: "paragraph", content: [{ type: "text", text: node.textContent }] }); }); if (!titles.length) { toast.info("Ajoutez des titres au document."); return; } editor.chain().focus().insertContent([{ type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "TABLE DES MATIÈRES" }] }, ...titles]).run(); }
   else { const text = prompt(kind === "note" ? "Texte de la note" : "Référence bibliographique vérifiée"); if (!text) return; const n = (editor.getText().match(/\[Note /g) ?? []).length + 1; editor.chain().focus().insertContent({ type: "paragraph", content: [{ type: "text", text: kind === "note" ? `[Note ${n}] ${text}` : text }] }).run(); }
  }
- return <div className="no-print border-b bg-card">
+ return <div className="no-print border-b bg-card">  
   <div className="flex items-center gap-1 bg-primary p-0.5 text-primary-foreground" role="tablist" aria-label="Rubriques de l’éditeur">
-   {["Assistant", "Insérer", "Mise en forme"].map(name => <Button key={name} role="tab" aria-selected={tab === name} variant="ghost" onClick={() => setTab(name)} className={`h-9 rounded px-3 text-xs sm:text-sm ${tab === name ? "bg-card text-foreground" : "text-primary-foreground"}`}>{name}</Button>)}
+  {["Assistant", "Insérer", "Mise en forme"].map(name => <Button key={name} role="tab" aria-selected={tab === name} variant="ghost" onClick={() => setTab(name)} className={`h-8 rounded px-2.5 text-xs ${tab === name ? "bg-card text-foreground" : "text-primary-foreground"}`}>{name}</Button>)}
    <div className="ml-auto flex">{tool(Save, "Sauvegarder et ouvrir", save)}{tool(Download, "Exporter HTML", exportHtml)}</div>
   </div>
   {tab === "Assistant" && <div className="flex h-10 items-center justify-end px-2">{tool(Undo2, "Annuler", () => editor?.chain().focus().undo().run())}{tool(Redo2, "Rétablir", () => editor?.chain().focus().redo().run())}</div>}
