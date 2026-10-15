@@ -116,23 +116,6 @@ function SignForm() {
     </>
   );
 }
-
-function IntroSplash({ onDone }: { onDone: () => void }) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const second = setTimeout(() => setElapsed(INTRO_STEP_MS), INTRO_STEP_MS);
-    const finish = setTimeout(onDone, INTRO_STEP_MS * 2);
-    return () => { clearTimeout(second); clearTimeout(finish); };
-  }, [onDone]);
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-royal px-6 text-center text-royal-foreground">
-      <p className="max-w-3xl font-display text-3xl leading-relaxed md:text-5xl" aria-live="polite">
-        {openingPhase(elapsed) === "slogan" ? "Le berceau du savoir au service de votre plume." : "Transformez vos idées en résultats."}
-      </p>
-    </div>
-  );
-}
-
 function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
   const [busy, setBusy] = useState(false);
   const m = user.user_metadata ?? {};
@@ -184,14 +167,20 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setHasProfile(false);
     })();
   }, [user]);
-
-  if (loading || (user && hasProfile === null)) {
-    return <div className="flex min-h-screen items-center justify-center bg-royal-gradient"><img src={logo.url} alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" /></div>;
-  }
-  if (!user) {
-    if (!introDone) return <IntroSplash onDone={() => setIntroDone(true)} />;
+    if (!user) {
+    const seen = typeof window !== "undefined" && sessionStorage.getItem("bersa_intro_seen") === "true";
+    if (!introDone && !seen) {
+      return (
+        <OpeningPresentation
+          onDone={() => {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("bersa_intro_seen", "true");
+            }
+            setIntroDone(true);
+          }}
+        />
+      );
+    }
     return <Frame><SignForm /></Frame>;
   }
-  if (!hasProfile) return <Frame><CompleteProfile user={user} onDone={() => setHasProfile(true)} /></Frame>;
-  return <>{children}</>;
-}
+  
