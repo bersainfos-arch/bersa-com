@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
-import { INTRO_STEP_MS, openingPhase } from "@/lib/opening";
+import { OpeningPresentation } from "@/components/OpeningPresentation";
 import { authIdentifier } from "@/lib/auth-identifier";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
