@@ -29,7 +29,7 @@ export function HomeEditor() {
  const [action, setAction] = useState("generate"); const [tab, setTab] = useState("Assistant");
  const [busy, setBusy] = useState(false); const [error, setError] = useState("");
  const [files, setFiles] = useState<Attachment[]>([]); const fileInput = useRef<HTMLInputElement>(null);
- const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, reading: false });
+ const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "" });
  const [recording, setRecording] = useState(false); const [audio, setAudio] = useState<File | null>(null); const [audioUrl, setAudioUrl] = useState(""); const [transcribing, setTranscribing] = useState(false);
  const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
  const editor = useEditor({ immediatelyRender: false, extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak], content: "<p></p>", editorProps: { attributes: { role: "textbox", "aria-label": "Texte à rédiger", "aria-multiline": "true", class: "a4-page home-ai-sheet" } } });
@@ -75,7 +75,7 @@ export function HomeEditor() {
     const parser=createParser({onEvent(event){try{const item=JSON.parse(event.data);if(item.type==="quota")setQuota({used:item.used,limit:item.limit});if(item.type==="delta"){reply+=item.text;if(performance.now()-lastPaint>100){paint();lastPaint=performance.now();}}if(item.type==="error")failure=item.message;}catch{}}});
     const reader=response.body.getReader(),decoder=new TextDecoder();while(true){const chunk=await reader.read();if(chunk.done)break;parser.feed(decoder.decode(chunk.value,{stream:true}));}paint();if(failure)throw new Error(failure);if(!reply.trim())throw new Error("L’Assistant n’a pas produit de texte.");
   } catch (e) { const message = e instanceof Error ? e.message : "Assistant indisponible."; setError(message); const match = message.match(/QUOTA_EXHAUSTED.*\((\d+)\/(\d+)\)/); if (match) setQuota({ used: Number(match[1]), limit: Number(match[2]) }); }
-  finally { setBusy(false); editor.setEditable(!settings.reading); }
+  finally { setBusy(false); editor.setEditable(settings.viewMode !== "lecture"); }
  }
  async function addFiles(list: FileList | null) {
   if (!list) return;
