@@ -52,16 +52,15 @@ export function OpeningPresentation({ onDone }: { onDone: () => void }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-6 text-center text-white">
       {/* Arrière-plan avec les 20 photos en fondu et flou doux */}
+            {/* Arrière-plan avec les 20 photos */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 blur-[3px] scale-105"
+        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 scale-105"
         style={{ backgroundImage: `url(${OPENING_PHOTOS[photoIndex]})` }}
       />
 
-      {/* Voile sombre bleu nuit et dégradé protecteur de lisibilité */}
-      <div className="absolute inset-0 bg-gradient-to-b from-royal/85 via-slate-950/80 to-slate-950/95" />
-
-      {/* Bloc central */}
+      {/* Voile léger pour garantir la lisibilité du texte sans cacher l'image */}
+      <div className="absolute inset-0 bg-slate-950/45 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50" />
       <div className="relative z-10 flex max-w-4xl flex-col items-center space-y-6">
         <div className="flex flex-col items-center">
           <img
