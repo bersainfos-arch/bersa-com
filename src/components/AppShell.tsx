@@ -78,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link
                   key={tb.to}
                   to={tb.to}
-                  activeOptions={{ exact: tb.exact }}
+                  activeOptions={{ exact: tb.exact ?? false }}
                   className="shrink-0 rounded-md px-2.5 py-1 text-xs font-medium opacity-85 transition hover:opacity-100"
                   activeProps={{ className: "bg-gold text-gold-foreground opacity-100 font-semibold" }}
                 >
@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link
               key={tb.to}
               to={tb.to}
-              activeOptions={{ exact: tb.exact }}
+              activeOptions={{ exact: tb.exact ?? false }}
               className="flex min-w-[62px] flex-1 flex-col items-center gap-0.5 py-1 text-[9px] text-muted-foreground"
               activeProps={{ className: "text-primary font-semibold" }}
             >

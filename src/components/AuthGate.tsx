@@ -38,9 +38,9 @@ function normalizeBirthDate(raw: string): string | null {
   // Format francophone : JJ/MM/AAAA ou JJ-MM-AAAA
   const match = clean.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
   if (match) {
-    const day = match[1].padStart(2, "0");
-    const month = match[2].padStart(2, "0");
-    const year = match[3];
+    const day = (match[1] ?? "").padStart(2, "0");
+    const month = (match[2] ?? "").padStart(2, "0");
+    const year = match[3] ?? "";
     return `${year}-${month}-${day}`;
   }
   return clean;
