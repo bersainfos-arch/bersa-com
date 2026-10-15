@@ -150,7 +150,7 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
-  const [introDone, setIntroDone] = useState(false);
+  const [postLoginIntroDone, setPostLoginIntroDone] = useState(false);
 
   useEffect(() => {
     if (!user) return setHasProfile(null);
@@ -160,14 +160,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
       const m = user.user_metadata ?? {};
       if (m["first_name"] && m["last_name"]) {
         const { error } = await supabase.from("profiles").insert({
-          id: user.id, first_name: m["first_name"], last_name: m["last_name"], email: user.email ?? null, birth_date: m["birth_date"] || null,
+          id: user.id,
+          first_name: m["first_name"],
+          last_name: m["last_name"],
+          email: user.email ?? null,
+          birth_date: m["birth_date"] || null,
         });
         return setHasProfile(!error);
       }
       setHasProfile(false);
     })();
   }, [user]);
-     if (loading || (user && hasProfile === null)) {
+
+  if (loading || (user && hasProfile === null)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-royal-gradient">
         <img src={logo.url} alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" />
@@ -175,24 +180,43 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Utilisateur non connecté : formulaire de connexion / inscription
   if (!user) {
-    const seen = typeof window !== "undefined" && sessionStorage.getItem("bersa_intro_seen") === "true";
-    if (!introDone && !seen) {
-      return (
-        <OpeningPresentation
-          onDone={() => {
-            if (typeof window !== "undefined") {
-              sessionStorage.setItem("bersa_intro_seen", "true");
-            }
-            setIntroDone(true);
-          }}
-        />
-      );
-    }
-    return <Frame><SignForm /></Frame>;
+    return (
+      <Frame>
+        <SignForm />
+      </Frame>
+    );
   }
 
-  if (!hasProfile) return <Frame><CompleteProfile user={user} onDone={() => setHasProfile(true)} /></Frame>;
+  // Profil à compléter en premier si nécessaire
+  if (!hasProfile) {
+    return (
+      <Frame>
+        <CompleteProfile user={user} onDone={() => setHasProfile(true)} />
+      </Frame>
+    );
+  }
 
+  // Utilisateur connecté : présentation de 8 secondes avant d'ouvrir l'application
+  const sessionKey = `bersa_intro_seen_${user.id}`;
+  const alreadySeenInSession =
+    typeof window !== "undefined" && sessionStorage.getItem(sessionKey) === "true";
+
+  if (!postLoginIntroDone && !alreadySeenInSession) {
+    return (
+      <OpeningPresentation
+        onDone={() => {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(sessionKey, "true");
+          }
+          setPostLoginIntroDone(true);
+        }}
+      />
+    );
+  }
+
+  // Ouverture de l'application BERSA
   return <>{children}</>;
-} 
+}
+
