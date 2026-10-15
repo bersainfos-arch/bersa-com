@@ -4,13 +4,11 @@ import logo from "@/assets/bersa-logo.png.asset.json";
 import { ChevronRight } from "lucide-react";
 
 const SLOGAN = "Le Berceau du Savoir au service de votre plume";
-const SIGNATURE = "Transformer vos idées en résultats";
+const SIGNATURE = "Transformez vos idées en résultats";
 
 export function OpeningPresentation({ onDone }: { onDone: () => void }) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [elapsed, setElapsed] = useState(0);
-
-
 
   // Rotation des 20 photos toutes les 5 minutes
   useEffect(() => {
@@ -51,16 +49,16 @@ export function OpeningPresentation({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-6 text-center text-white">
-      {/* Arrière-plan avec les 20 photos en fondu et flou doux */}
-            {/* Arrière-plan avec les 20 photos */}
+      {/* Arrière-plan avec les 20 photos en rotation */}
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 scale-105"
         style={{ backgroundImage: `url(${OPENING_PHOTOS[photoIndex]})` }}
       />
 
-      {/* Voile léger pour garantir la lisibilité du texte sans cacher l'image */}
-      <div className="absolute inset-0 bg-slate-950/45 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50" />
+      {/* Voile protecteur pour préserver la clarté de l'image et la lisibilité du texte */}
+      <div className="absolute inset-0 bg-slate-950/45 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-slate-950/60" />
+
       <div className="relative z-10 flex max-w-4xl flex-col items-center space-y-6">
         <div className="flex flex-col items-center">
           <img
@@ -68,9 +66,12 @@ export function OpeningPresentation({ onDone }: { onDone: () => void }) {
             alt="Logo BERSA"
             className="h-24 w-24 rounded-2xl shadow-2xl border border-white/10 ring-2 ring-primary/40 animate-pulse"
           />
-          <h1 className="mt-4 text-2xl font-bold tracking-widest text-primary font-display uppercase">
+          <h1 className="mt-4 text-3xl font-bold tracking-widest text-white font-display uppercase drop-shadow">
             BERSA
           </h1>
+          <p className="mt-1 text-xs md:text-sm font-medium tracking-widest text-amber-300 uppercase font-sans">
+            Berceau du Savoir
+          </p>
         </div>
 
         {/* Zone de texte avec frappe animée */}
@@ -97,4 +98,3 @@ export function OpeningPresentation({ onDone }: { onDone: () => void }) {
     </div>
   );
 }
-
