@@ -22,7 +22,6 @@ export const ACTIONS: Record<string, string> = {
   academic: "Aide académique : réponds avec rigueur méthodologique à la demande suivante.",
   chat: "",
 };
-
 const SYSTEM =
   "Tu es BERSA, assistant de rédaction professionnel de la plateforme Berceau du Savoir (slogan : « Le berceau du savoir, au service de votre plume »). Tu rédiges en français sauf demande contraire, des textes structurés et soignés, adaptés au contexte de la RDC et de l'Afrique centrale. N'utilise ni markdown ni astérisques : titres en majuscules, listes avec tirets simples. Ne cite jamais d'année future.";
 
@@ -71,3 +70,26 @@ export const runWriter = createServerFn({ method: "POST" })
     if (!text.trim()) throw new Error("L’Assistant n’a pas produit de texte. La demande est terminée.");
     return { reply: text.replace(/\*\*?|__|^#+\s*/gm, "").trim(), used: quota.used, limit: quota.limit };
   });
+  // Restauration automatique du brouillon précédent au démarrage
+  useEffect(() => {
+    if (!editor) return;
+    const savedDraft = localStorage.getItem("bersa_current_draft");
+    if (savedDraft && !editor.getText().trim()) {
+      try {
+        editor.commands.setContent(JSON.parse(savedDraft));
+      } catch {
+        /* ignorer si format invalide */
+      }
+    }
+  }, [editor]);
+
+  // Sauvegarde automatique du document en cours à chaque modification
+  useEffect(() => {
+    if (!editor) return;
+    const saveTimer = setInterval(() => {
+      if (editor.getText().trim()) {
+        localStorage.setItem("bersa_current_draft", JSON.stringify(editor.getJSON()));
+      }
+    }, 2000);
+    return () => clearInterval(saveTimer);
+  }, [editor]);
