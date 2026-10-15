@@ -8,7 +8,8 @@ const SIGNATURE = "Transformer vos idées en résultats";
 
 export function OpeningPresentation({ onDone }: { onDone: () => void }) {
   const [photoIndex, setPhotoIndex] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
+  import { INTRO_STEP_MS, openingPhase } from "@/lib/opening";
+
 
   // Rotation des 20 photos toutes les 5 minutes
   useEffect(() => {
