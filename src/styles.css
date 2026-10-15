@@ -34,9 +34,108 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-border: var(--border);
- /* ==========================================================================
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+}
+
+:root {
+  --radius: 0.5rem;
+  --paper-ink: oklch(0.15 0 0);
+  --background: oklch(0.985 0.006 85);
+  --foreground: oklch(0.22 0.08 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.08 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.08 265);
+  --primary: oklch(0.32 0.15 264);
+  --primary-foreground: oklch(0.98 0.01 85);
+  --royal: oklch(0.26 0.13 265);
+  --royal-foreground: oklch(0.97 0.01 85);
+  --gold: oklch(0.78 0.15 80);
+  --gold-foreground: oklch(0.22 0.08 265);
+  --secondary: oklch(0.95 0.02 85);
+  --secondary-foreground: oklch(0.26 0.13 265);
+  --muted: oklch(0.95 0.012 85);
+  --muted-foreground: oklch(0.5 0.04 265);
+  --accent: oklch(0.93 0.05 85);
+  --accent-foreground: oklch(0.26 0.13 265);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0 0);
+  --success: oklch(0.6 0.15 150);
+  --border: oklch(0.9 0.02 85);
+  --input: oklch(0.9 0.02 85);
+  --ring: oklch(0.78 0.15 80);
+  --gradient-royal: linear-gradient(160deg, oklch(0.3 0.15 265), oklch(0.2 0.11 265));
+  --shadow-soft: 0 10px 30px -12px oklch(0.26 0.13 265 / 0.25);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0; }
+}
+
+@utility bg-royal-gradient { background-image: var(--gradient-royal); }
+@utility shadow-soft { box-shadow: var(--shadow-soft); }
+
+@keyframes intro-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.a4-page {
+  width: 794px; max-width: 100%; min-height: 1123px; padding: 72px 76px;
+  background: var(--card); color: var(--paper-ink); box-shadow: var(--shadow-soft);
+  font-family: "Times New Roman", Times, serif; font-size: 13pt; line-height: 1.6; outline: none;
+}
+.a4-page:empty::before { content: attr(data-placeholder); color: var(--muted-foreground); }
+.a4-page h1, .a4-page h2, .a4-page h3 { font-family: inherit; font-weight: 700; margin: 0.8em 0 0.4em; }
+.a4-page h1 { font-size: 1.6em; } .a4-page h2 { font-size: 1.3em; } .a4-page h3 { font-size: 1.1em; }
+.a4-page p { margin: 0 0 0.6em; }
+.a4-page ul { list-style: disc; padding-left: 1.5em; } .a4-page ol { list-style: decimal; padding-left: 1.5em; }
+.a4-page blockquote { border-left: 3px solid var(--gold); padding-left: 1em; font-style: italic; margin: 0.6em 0; }
+.a4-page table { border-collapse: collapse; width: 100%; margin: 0.6em 0; }
+.a4-page td, .a4-page th { border: 1px solid var(--border); padding: 4px 8px; }
+.a4-page a { color: var(--primary); text-decoration: underline; }
+.a4-page img { max-width: 100%; }
+.a4-page .footnotes { font-size: 10pt; }
+.a4-page .page-break { border-top: 2px dashed var(--border); margin: 24px -76px; }
+@media (max-width: 640px) { .a4-page { padding: 32px 20px; min-height: 70vh; } }
+@media print {
+  @page { size: A4; margin: 2cm; }
+  header, nav, .no-print, [data-sonner-toaster] { display: none !important; }
+  .a4-desk { background: none !important; padding: 0 !important; }
+  .a4-page { box-shadow: none; padding: 0; width: auto; min-height: 0; }
+  .a4-page .page-break { border: 0; margin: 0; break-after: page; }
+}
+
+
+.home-paper-desk { height: clamp(180px, calc(100dvh - 330px), 900px); overflow: auto; background: var(--muted); padding: 12px; }
+.home-ai-sheet { min-height: 100%; border-radius: 0; padding: 32px 48px; margin: 0 auto; overflow-wrap: anywhere; }
+.home-paper-content { min-height: 100%; }
+.home-paper-content > div { min-height: calc(100dvh - 294px); }
+.home-command-bar { position: sticky; bottom: 60px; z-index: 20; }
+.home-ai-sheet p:only-child:has(br.ProseMirror-trailingBreak)::before { content: "Écrivez votre demande ou votre texte…"; color: var(--muted-foreground); float: left; height: 0; pointer-events: none; }
+.editor-ruler { height: 24px; overflow: hidden; font-size: 11px; word-spacing: 12px; border-bottom: 1px solid var(--border); }
+.margin-Étroites .home-ai-sheet { padding: 20px; }
+.margin-Larges .home-ai-sheet { padding: 48px 80px; }
+.orientation-Paysage .home-ai-sheet { width: 1123px; }
+.format-A5 .home-ai-sheet { width: 560px; }
+.format-Letter .home-ai-sheet { width: 816px; }
+.zoom-75 .home-ai-sheet { zoom: .75; }
+.zoom-125 .home-ai-sheet { zoom: 1.25; }
+.zoom-150 .home-ai-sheet { zoom: 1.5; }
+@media (min-width: 768px) { .home-command-bar { bottom: 0; } }
+@media (max-width: 640px) { .home-paper-desk { padding: 4px; height: calc(100dvh - 170px); } .home-ai-sheet { padding: 16px 12px; min-height: calc(100dvh - 180px); } .margin-Larges .home-ai-sheet { padding: 24px; } }
+@media print { .home-paper-desk { height: auto; overflow: visible; padding: 0; background: var(--card); } .home-ai-sheet { zoom: 1; min-height: 0; } }
+
+/* ==========================================================================
    PAGINATION A4 RÉELLE, MULTI-PAGES & IMPRESSION (Point 8)
-   À ajouter à partir de la ligne 137 dans src/styles.css
    ========================================================================== */
 
 /* Conteneur bureau pour feuilles A4 */
@@ -56,10 +155,10 @@
   width: 794px;
   min-height: 1123px;
   max-width: 100%;
-  background: #ffffff;
-  color: #111827;
+  background: var(--card);
+  color: var(--paper-ink);
   padding: 76px 76px;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px -2px oklch(0.26 0.13 265 / 0.12), 0 2px 6px -1px oklch(0.26 0.13 265 / 0.06);
   font-family: "Times New Roman", Times, serif;
   font-size: 13pt;
   line-height: 1.6;
@@ -74,8 +173,8 @@
   left: 76px;
   right: 76px;
   font-size: 9pt;
-  color: #6b7280;
-  border-bottom: 1px solid #e5e7eb;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 4px;
   display: flex;
   justify-content: space-between;
@@ -87,8 +186,8 @@
   left: 76px;
   right: 76px;
   font-size: 9pt;
-  color: #6b7280;
-  border-top: 1px solid #e5e7eb;
+  color: var(--muted-foreground);
+  border-top: 1px solid var(--border);
   padding-top: 4px;
   display: flex;
   justify-content: space-between;
@@ -96,7 +195,7 @@
 
 /* Saut de page visuel à l'écran */
 .a4-page-break {
-  border-top: 2px dashed #cbd5e1;
+  border-top: 2px dashed var(--border);
   margin: 32px -76px;
   position: relative;
 }
@@ -106,21 +205,6 @@
   @page {
     size: A4 portrait;
     margin: 20mm 20mm 20mm 20mm;
-  }
-
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  /* Masquer tous les éléments d'interface hors impression */
-  header,
-  nav,
-  aside,
-  .no-print,
-  .home-command-bar,
-  [data-sonner-toaster] {
-    display: none !important;
   }
 
   .a4-desk,
