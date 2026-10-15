@@ -36,6 +36,29 @@ export function HomeEditor() {
  useEffect(() => { if (!editor) return; const request = sessionStorage.getItem("bersa-writing-request"); if (request) { editor.commands.setContent(paragraphs(request)); sessionStorage.removeItem("bersa-writing-request"); } }, [editor]);
  useEffect(() => { if (!audio) { setAudioUrl(""); return; } const url = URL.createObjectURL(audio); setAudioUrl(url); return () => URL.revokeObjectURL(url); }, [audio]);
  useEffect(() => () => { void recorder.current?.stop().catch(() => {}); }, []);
+   // Restauration automatique du brouillon précédent au démarrage
+  useEffect(() => {
+    if (!editor) return;
+    const savedDraft = localStorage.getItem("bersa_current_draft");
+    if (savedDraft && !editor.getText().trim()) {
+      try {
+        editor.commands.setContent(JSON.parse(savedDraft));
+      } catch {
+        /* ignorer si format invalide */
+      }
+    }
+  }, [editor]);
+
+  // Sauvegarde automatique du document en cours à chaque modification
+  useEffect(() => {
+    if (!editor) return;
+    const saveTimer = setInterval(() => {
+      if (editor.getText().trim()) {
+        localStorage.setItem("bersa_current_draft", JSON.stringify(editor.getJSON()));
+      }
+    }, 2000);
+    return () => clearInterval(saveTimer);
+  }, [editor]);
   async function run(chosen = action) {
   if (!editor || busy) return;
   const { from, to } = editor.state.selection; const selected = editor.state.doc.textBetween(from, to, "\n");
