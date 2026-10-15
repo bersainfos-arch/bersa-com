@@ -167,7 +167,15 @@ export function AuthGate({ children }: { children: ReactNode }) {
       setHasProfile(false);
     })();
   }, [user]);
-    if (!user) {
+     if (loading || (user && hasProfile === null)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-royal-gradient">
+        <img src={logo.url} alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" />
+      </div>
+    );
+  }
+
+  if (!user) {
     const seen = typeof window !== "undefined" && sessionStorage.getItem("bersa_intro_seen") === "true";
     if (!introDone && !seen) {
       return (
@@ -183,4 +191,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
     }
     return <Frame><SignForm /></Frame>;
   }
-  
+
+  if (!hasProfile) return <Frame><CompleteProfile user={user} onDone={() => setHasProfile(true)} /></Frame>;
+
+  return <>{children}</>;
+} 
