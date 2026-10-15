@@ -349,9 +349,13 @@ export function EditorRibbon({
               };
               inp.click();
             })}
-            {btn(<Link2 className="h-4 w-4" />, "Lien", () => {
+             {btn(<Link2 className="h-4 w-4" />, "Lien", () => {
               const url = prompt("Adresse URL (ex: https://...) :");
-              if (url) editor?.chain().focus().setLink({ href: safeLink(url) }).run();
+              if (url) {
+                const valid = safeLink(url);
+                if (valid) editor?.chain().focus().setLink({ href: valid }).run();
+                else toast.error("Adresse URL invalide (doit commencer par http:// ou https://).");
+              }
             })}
             {btn(<FilePlus className="h-4 w-4" />, "Saut de page", () => editor?.chain().focus().insertContent({ type: "pageBreak" }).run())}
             {btn(<PlusCircle className="h-4 w-4" />, "Page de garde", () => {
