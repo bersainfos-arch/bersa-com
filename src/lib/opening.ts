@@ -1,4 +1,5 @@
-export const INTRO_STEP_MS = 3000; // 3 secondes par phrase = 6 secondes au total
+// 4 secondes par phrase = 8 secondes au total (ou 3500 pour 7 secondes)
+export const INTRO_STEP_MS = 4000;
 
 export function openingPhase(elapsedMs: number): "slogan" | "signature" | "signup" {
   if (elapsedMs < INTRO_STEP_MS) return "slogan";
