@@ -195,7 +195,7 @@ export function EditorRibbon({
     const headings: string[] = [];
     editor.state.doc.descendants((node) => {
       if (node.type.name === "heading") {
-        headings.push(`${node.attrs.level === 1 ? "• " : "    - "}${node.textContent}`);
+      headings.push(`${node.attrs["level"] === 1 ? "• " : "    - "}${node.textContent}`);
       }
     });
     if (!headings.length) {
