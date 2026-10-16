@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { safeLink } from "@/lib/assistant-actions";
+import { insertFootnote } from "@/lib/footnotes";
 import { toast } from "sonner";
 import { translateUi } from "@/lib/translate-ui";
 

@@ -230,3 +230,18 @@
     break-after: page;
   }
 }
+
+/* Notes de bas de page : appel en exposant + zone de notes en bas du papier */
+.footnote-ref { color: hsl(var(--primary)); font-size: 0.75em; vertical-align: super; cursor: pointer; padding: 0 1px; }
+.a4-footnotes { background: #fff; padding: 0 24px 24px; font-family: "Times New Roman", serif; }
+.a4-footnotes-rule { border: none; border-top: 1px solid #444; width: 40%; margin: 0 0 6px; }
+.a4-footnotes-list { list-style: none; margin: 0; padding: 0; }
+.a4-footnote-item { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.5; padding: 1px 0; }
+.a4-footnote-number { color: hsl(var(--primary)); font-size: 0.75em; min-width: 14px; }
+.a4-footnote-text { flex: 1; }
+.a4-footnote-action { font-size: 10px; color: hsl(var(--muted-foreground)); text-decoration: underline; margin-left: 6px; }
+.a4-footnote-action:hover { color: hsl(var(--primary)); }
+@media print {
+  .a4-footnotes { padding: 0 0 12px; }
+  .a4-footnote-action { display: none; }
+}
