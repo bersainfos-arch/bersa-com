@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { safeLink } from "@/lib/assistant-actions";
+import { insertFootnote } from "@/lib/footnotes";
 import { toast } from "sonner";
 import { translateUi } from "@/lib/translate-ui";
 
@@ -443,9 +444,9 @@ export function EditorRibbon({
             {btn(<BookmarkCheck className="h-4 w-4" />, "Insérer une citation", insertCitation)}
             {btn(<BookOpen className="h-4 w-4" />, "Table des matières", insertTOC)}
             {btn(<Hash className="h-4 w-4" />, "Note de bas de page", () => {
-              const note = prompt("Texte de la note explicative :");
-              if (!note) return;
-              editor?.chain().focus().insertContent(`<sup>[Note]</sup> <small style="font-size:10pt;">${note}</small>`).run();
+              const note = prompt("Texte de la note de bas de page :");
+              if (!note || !editor) return;
+              insertFootnote(editor, note);
             })}
           </div>
         )}
