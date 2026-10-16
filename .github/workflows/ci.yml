@@ -1,0 +1,28 @@
+name: CI — TypeScript, tests et build
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Installer les dépendances
+        run: bun install --frozen-lockfile
+
+      - name: Vérification TypeScript (tsgo)
+        run: bunx tsgo
+
+      - name: Tests automatisés
+        run: bunx vitest run
+
+      - name: Build de production
+        run: bun run build
