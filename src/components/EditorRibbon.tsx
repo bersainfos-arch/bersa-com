@@ -307,7 +307,27 @@ export function EditorRibbon({
             {btn(<AlignCenter className="h-4 w-4" />, "Centré", () => editor?.chain().focus().setTextAlign("center").run())}
             {btn(<AlignRight className="h-4 w-4" />, "Droite", () => editor?.chain().focus().setTextAlign("right").run())}
             {btn(<AlignJustify className="h-4 w-4" />, "Justifié", () => editor?.chain().focus().setTextAlign("justify").run())}
-
+            {/* Interligne */}
+            <select
+              className="h-7 rounded border bg-card px-1 text-xs"
+              title="Interligne"
+              value={settings.lineSpacing || "1.6"}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSettings({ ...settings, lineSpacing: val });
+                if (editor?.view?.dom) {
+                  (editor.view.dom as HTMLElement).style.lineHeight = val;
+                }
+              }}
+            >
+              <option value="1.0">1,0 (Simple)</option>
+              <option value="1.15">1,15</option>
+              <option value="1.5">1,5</option>
+              <option value="1.6">1,6 (BERSA)</option>
+              <option value="2.0">2,0 (Double)</option>
+              <option value="2.5">2,5</option>
+              <option value="3.0">3,0</option>
+            </select>
             {btn(<List className="h-4 w-4" />, "Puces", () => editor?.chain().focus().toggleBulletList().run())}
             {btn(<ListOrdered className="h-4 w-4" />, "Numéros", () => editor?.chain().focus().toggleOrderedList().run())}
 
