@@ -207,7 +207,6 @@ export function EditorRibbon({
     editor.chain().focus().insertContent(tocHtml).run();
     toast.success("Table des matières générée.");
   };
-
   return (
     <div className="no-print border-b bg-card text-foreground">
       {/* Barre supérieure des onglets Office */}
@@ -218,7 +217,7 @@ export function EditorRibbon({
           className="h-7 px-3 text-xs font-semibold"
           onClick={() => setTab("Assistant")}
         >
-          <Sparkles className="h-3.5 w-3.5 mr-1" /> Assistant IA
+            <Sparkles className="h-3.5 w-3.5 mr-1" /> Assistant
         </Button>
         {[
           "Fichier", "Accueil", "Insérer", "Mise en page",
