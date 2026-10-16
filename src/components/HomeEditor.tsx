@@ -19,6 +19,7 @@ import { PlanQuickList } from "@/components/PlanQuickList";
 import { assistantActions, writingTarget } from "@/lib/assistant-actions";
 import { readAttachment, type Attachment } from "@/lib/attachments";
 import { recordWav } from "@/lib/record-wav";
+import { Footnote, collectFootnotes, renumberFootnotes, updateFootnote, deleteFootnote, type FootnoteItem } from "@/lib/footnotes";
 import { createParser } from "eventsource-parser";
 const PageBreak = Node.create({ name: "pageBreak", group: "block", atom: true, parseHTML: () => [{ tag: "div.page-break" }], renderHTML: () => ["div", { class: "page-break" }] });
 const paragraphs = (text: string) => text.split(/\n/).map(line => ({ type: "paragraph", ...(line ? { content: [{ type: "text", text: line }] } : {}) }));
@@ -32,7 +33,7 @@ export function HomeEditor() {
  const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "" });
  const [recording, setRecording] = useState(false); const [audio, setAudio] = useState<File | null>(null); const [audioUrl, setAudioUrl] = useState(""); const [transcribing, setTranscribing] = useState(false);
  const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
- const editor = useEditor({ immediatelyRender: false, extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak], content: "<p></p>", editorProps: { attributes: { role: "textbox", "aria-label": "Texte à rédiger", "aria-multiline": "true", class: "a4-page home-ai-sheet" } } });
+ const editor = useEditor({ immediatelyRender: false, extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote], content: "<p></p>", onUpdate: ({ editor: e }) => { renumberFootnotes(e); setFootnotes(collectFootnotes(e)); }, editorProps: { attributes: { role: "textbox", "aria-label": "Texte à rédiger", "aria-multiline": "true", class: "a4-page home-ai-sheet" } } });
  useEffect(() => { if (!editor) return; const request = sessionStorage.getItem("bersa-writing-request"); if (request) { editor.commands.setContent(paragraphs(request)); sessionStorage.removeItem("bersa-writing-request"); } }, [editor]);
  useEffect(() => { if (!audio) { setAudioUrl(""); return; } const url = URL.createObjectURL(audio); setAudioUrl(url); return () => URL.revokeObjectURL(url); }, [audio]);
  useEffect(() => () => { void recorder.current?.stop().catch(() => {}); }, []);
