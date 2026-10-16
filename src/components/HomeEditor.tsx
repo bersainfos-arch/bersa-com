@@ -110,6 +110,8 @@ export function HomeEditor() {
   } catch (e) { toast.error(e instanceof Error ? e.message : "Transcription impossible."); } finally { setTranscribing(false); }
  }
  const remaining = quota ? Math.max(0, quota.limit - quota.used) : null;
+  const textLength = editor?.getText().length ?? 0;
+ const totalPages = Math.max(1, Math.ceil(textLength / 2200));
  return <AppShell><section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-1 py-1 sm:px-4">
  <EditorRibbon editor={editor} tab={tab} setTab={setTab} settings={settings} setSettings={setSettings} attach={() => fileInput.current?.click()} save={() => void save()} correct={() => { setAction("correct"); void run("correct"); }} />
        {tab === "Assistant" && <div className="no-print flex items-center gap-1 overflow-x-auto border-b bg-card px-2 py-1 scrollbar-none" aria-label="Services de l’Assistant"><span className="shrink-0 text-xs font-semibold text-muted-foreground">A4</span>{assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => <Button key={id} size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onMouseDown={e => e.preventDefault()} disabled={busy || transcribing || recording} onClick={() => { setAction("generate"); void run(id); }}>{label}</Button>)}</div>}
@@ -133,6 +135,13 @@ export function HomeEditor() {
        ))}
       </ol>
      </div>
+      {/* Pied de page numéroté automatique façon WPS Office */}
+    <div className="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
+      <span>{settings.format} · Marges {settings.margin}</span>
+      <span className="font-semibold text-primary">
+        Page 1 sur {totalPages} {totalPages > 1 && `(${Math.ceil(textLength / 5)} mots)`}
+      </span>
+    </div>
     )}
    </div>
   <div className="no-print home-command-bar border-t bg-card px-2 py-2">
