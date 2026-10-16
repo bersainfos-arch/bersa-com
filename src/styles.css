@@ -113,27 +113,86 @@
   .a4-page { box-shadow: none; padding: 0; width: auto; min-height: 0; }
   .a4-page .page-break { border: 0; margin: 0; break-after: page; }
 }
+/* Plan de travail (fond bureau WPS Office) */
+.home-paper-desk {
+  height: clamp(240px, calc(100dvh - 210px), 920px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: hsl(var(--muted) / 0.7);
+  padding: 16px 12px 64px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  scroll-behavior: smooth;
+}
 
+/* Feuille A4 mobile et desktop style WPS Office */
+.home-ai-sheet {
+  width: min(100%, 794px);
+  min-height: 1123px; /* Ratio standard A4 à 96 DPI */
+  background: var(--card);
+  color: var(--paper-ink);
+  border-radius: 2px; /* 4 coins nets et subtilement adoucis */
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  padding: 56px 48px;
+  margin: 0 auto 24px auto;
+  position: relative;
+  box-sizing: border-box;
+}
 
-.home-paper-desk { height: clamp(180px, calc(100dvh - 330px), 900px); overflow: auto; background: var(--muted); padding: 12px; }
-.home-ai-sheet { min-height: 100%; border-radius: 0; padding: 32px 48px; margin: 0 auto; overflow-wrap: anywhere; }
-.home-paper-content { min-height: 100%; }
-.home-paper-content > div { min-height: calc(100dvh - 294px); }
-.home-command-bar { position: sticky; bottom: 60px; z-index: 20; }
-.home-ai-sheet p:only-child:has(br.ProseMirror-trailingBreak)::before { content: "Écrivez votre demande ou votre texte…"; color: var(--muted-foreground); float: left; height: 0; pointer-events: none; }
-.editor-ruler { height: 24px; overflow: hidden; font-size: 11px; word-spacing: 12px; border-bottom: 1px solid var(--border); }
-.margin-Étroites .home-ai-sheet { padding: 20px; }
-.margin-Larges .home-ai-sheet { padding: 48px 80px; }
-.orientation-Paysage .home-ai-sheet { width: 1123px; }
-.format-A5 .home-ai-sheet { width: 560px; }
-.format-Letter .home-ai-sheet { width: 816px; }
-.zoom-75 .home-ai-sheet { zoom: .75; }
-.zoom-125 .home-ai-sheet { zoom: 1.25; }
-.zoom-150 .home-ai-sheet { zoom: 1.5; }
-@media (min-width: 768px) { .home-command-bar { bottom: 0; } }
-@media (max-width: 640px) { .home-paper-desk { padding: 4px; height: calc(100dvh - 170px); } .home-ai-sheet { padding: 16px 12px; min-height: calc(100dvh - 180px); } .margin-Larges .home-ai-sheet { padding: 24px; } }
-@media print { .home-paper-desk { height: auto; overflow: visible; padding: 0; background: var(--card); } .home-ai-sheet { zoom: 1; min-height: 0; } }
+/* Sur écran smartphone (WPS Office mobile view) */
+@media (max-width: 640px) {
+  .home-paper-desk {
+    padding: 12px 8px 48px 8px;
+    height: calc(100dvh - 180px);
+  }
 
+  .home-ai-sheet {
+    /* Largeur laissant voir les 4 coins et le fond autour */
+    width: calc(100vw - 20px);
+    max-width: 420px;
+    /* Hauteur proportionnelle au ratio A4 (1 : 1.414) */
+    min-height: calc((100vw - 20px) * 1.414);
+    padding: 28px 18px 36px 18px;
+    font-size: 11.5pt;
+    line-height: 1.5;
+  }
+}
+
+/* Coupure de page automatique (Saut entre page 1 et page 2) */
+.a4-page-break,
+.page-break {
+  display: block;
+  break-after: page;
+  margin: 32px -48px;
+  padding: 16px 0;
+  background: hsl(var(--muted) / 0.7); /* Espace vide entre les deux pages */
+  border-top: 1px dashed var(--border);
+  border-bottom: 1px dashed var(--border);
+  text-align: center;
+  position: relative;
+}
+
+@media (max-width: 640px) {
+  .a4-page-break,
+  .page-break {
+    margin: 24px -18px;
+    padding: 12px 0;
+  }
+}
+
+.a4-page-break::after,
+.page-break::after {
+  content: "— Page suivante —";
+  font-size: 9pt;
+  color: var(--muted-foreground);
+  font-family: var(--font-sans);
+  background: var(--card);
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
 /* ==========================================================================
    PAGINATION A4 RÉELLE, MULTI-PAGES & IMPRESSION (Point 8)
    ========================================================================== */
