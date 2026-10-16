@@ -133,21 +133,18 @@ export function HomeEditor() {
          <button type="button" className="no-print a4-footnote-action" aria-label={`Supprimer la note ${fn.number}`} onClick={() => { if (editor) deleteFootnote(editor, fn.pos); }}>Supprimer</button>
         </li>
        ))}
-       </ol>
+      </ol>
      </div>
     )}
-    <divclassName="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
+    {/* Pied de page numéroté automatique façon WPS Office */}
+    <div className="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
       <span>{settings.format} · Marges {settings.margin}</span>
       <span className="font-semibold text-primary">
         Page 1 sur {totalPages} {totalPages > 1 && `(${Math.ceil(textLength / 5)} mots)`}
       </span>
     </div>
    </div>
-    </div>
-    )}
-   </div>
-  <div className="no-print home-command-bar border-t bg-card px-2 py-2">
-   <div className="flex items-center gap-2">
+   <div className="no-print home-command-bar border-t bg-card px-2 py-2">
      <span className="min-w-0 flex-1 text-xs text-muted-foreground">{busy ? "Rédaction en cours…" : transcribing ? "Votre consigne audio…" : "Assistant BERSA"}</span>
     <Button variant="outline" size="icon" aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"} title={recording ? "Arrêter" : "Enregistrer"} onClick={() => void toggleRecord()} disabled={transcribing || busy}>{recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}</Button>
     <Button onClick={() => void run()} disabled={busy || recording || transcribing} aria-label="Envoyer la commande IA">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span>Envoyer</span></Button>
