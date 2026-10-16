@@ -33,6 +33,7 @@ export function HomeEditor() {
  const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "" });
  const [recording, setRecording] = useState(false); const [audio, setAudio] = useState<File | null>(null); const [audioUrl, setAudioUrl] = useState(""); const [transcribing, setTranscribing] = useState(false);
  const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
+ const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
  const editor = useEditor({ immediatelyRender: false, extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote], content: "<p></p>", onUpdate: ({ editor: e }) => { renumberFootnotes(e); setFootnotes(collectFootnotes(e)); }, editorProps: { attributes: { role: "textbox", "aria-label": "Texte à rédiger", "aria-multiline": "true", class: "a4-page home-ai-sheet" } } });
  useEffect(() => { if (!editor) return; const request = sessionStorage.getItem("bersa-writing-request"); if (request) { editor.commands.setContent(paragraphs(request)); sessionStorage.removeItem("bersa-writing-request"); } }, [editor]);
  useEffect(() => { if (!audio) { setAudioUrl(""); return; } const url = URL.createObjectURL(audio); setAudioUrl(url); return () => URL.revokeObjectURL(url); }, [audio]);
@@ -117,8 +118,23 @@ export function HomeEditor() {
   {files.length > 0 && <div className="no-print flex gap-1 overflow-x-auto py-1">{files.map((f, i) => <span key={`${f.name}-${i}`} className="flex shrink-0 items-center gap-1 border bg-card pl-2 text-xs">{f.name}{f.type === "other" && " · non analysable"}<Button size="icon" variant="ghost" aria-label={`Retirer ${f.name}`} onClick={() => setFiles(files.filter((_, n) => n !== i))}><X className="h-3 w-3" /></Button></span>)}</div>}
   <div className={`home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}>
    {settings.ruler && <div className="no-print editor-ruler mx-auto max-w-[794px]">0 ┆ 1 ┆ 2 ┆ 3 ┆ 4 ┆ 5 ┆ 6 ┆ 7 ┆ 8 ┆ 9 ┆ 10</div>}
-   <EditorContent editor={editor} className="home-paper-content" />
-  </div>
+    <EditorContent editor={editor} className="home-paper-content" />
+    {footnotes.length > 0 && (
+     <div className="a4-footnotes mx-auto max-w-[794px]" aria-label="Notes de bas de page">
+      <hr className="a4-footnotes-rule" />
+      <ol className="a4-footnotes-list">
+       {footnotes.map(fn => (
+        <li key={fn.pos} className="a4-footnote-item">
+         <sup className="a4-footnote-number">{fn.number}</sup>
+         <span className="a4-footnote-text">{fn.note}</span>
+         <button type="button" className="no-print a4-footnote-action" aria-label={`Modifier la note ${fn.number}`} onClick={() => { const text = prompt("Modifier la note :", fn.note); if (text && editor) updateFootnote(editor, fn.pos, text); }}>Modifier</button>
+         <button type="button" className="no-print a4-footnote-action" aria-label={`Supprimer la note ${fn.number}`} onClick={() => { if (editor) deleteFootnote(editor, fn.pos); }}>Supprimer</button>
+        </li>
+       ))}
+      </ol>
+     </div>
+    )}
+   </div>
   <div className="no-print home-command-bar border-t bg-card px-2 py-2">
    <div className="flex items-center gap-2">
      <span className="min-w-0 flex-1 text-xs text-muted-foreground">{busy ? "Rédaction en cours…" : transcribing ? "Votre consigne audio…" : "Assistant BERSA"}</span>
