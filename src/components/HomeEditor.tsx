@@ -133,14 +133,17 @@ export function HomeEditor() {
          <button type="button" className="no-print a4-footnote-action" aria-label={`Supprimer la note ${fn.number}`} onClick={() => { if (editor) deleteFootnote(editor, fn.pos); }}>Supprimer</button>
         </li>
        ))}
-      </ol>
+       </ol>
      </div>
-      {/* Pied de page numéroté automatique façon WPS Office */}
+    )}
+    {/* Pied de page numéroté automatique façon WPS Office */}
     <div className="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
-       <span>{settings.format} · Marges {settings.margin}</span>
+      <span>{settings.format} · Marges {settings.margin}</span>
       <span className="font-semibold text-primary">
         Page 1 sur {totalPages} {totalPages > 1 && `(${Math.ceil(textLength / 5)} mots)`}
       </span>
+    </div>
+   </div>
     </div>
     )}
    </div>
