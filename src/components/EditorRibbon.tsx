@@ -13,7 +13,6 @@ import { safeLink } from "@/lib/assistant-actions";
 import { insertFootnote } from "@/lib/footnotes";
 import { toast } from "sonner";
 import { translateUi } from "@/lib/translate-ui";
-
 export type PageSettings = {
   margin: "Normales" | "Étroites" | "Larges";
   orientation: "Portrait" | "Paysage";
@@ -25,8 +24,8 @@ export type PageSettings = {
   viewMode: "page" | "lecture" | "web" | "plan";
   headerText: string;
   footerText: string;
+  lineSpacing?: string;
 };
-
 export function EditorRibbon({
   editor,
   tab,
