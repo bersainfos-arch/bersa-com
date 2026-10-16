@@ -151,7 +151,6 @@ export function HomeEditor() {
    </div>
    {audioUrl && <div className="mt-2 flex flex-wrap items-center gap-2"><audio controls src={audioUrl} className="h-9 min-w-0 max-w-full flex-1" /><Button size="sm" variant="outline" onClick={() => void transcribeAudio()} disabled={transcribing}><FileAudio className="h-4 w-4" />{transcribing ? "Transcription…" : "Transcrire"}</Button><Button size="icon" variant="ghost" aria-label="Supprimer l’audio" onClick={() => setAudio(null)}><Trash2 className="h-4 w-4" /></Button></div>}
    <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground"><span>{quota ? `${quota.used}/${quota.limit} utilisées · ${remaining} restantes · renouvellement à 00:00 UTC` : "Quota du jour…"}</span><Link to="/abonnements" className="font-semibold text-primary underline">S’abonner</Link></div>
-  </div>
   {error && <div role="alert" className="mt-2 border border-destructive p-3 text-sm text-destructive">{error.startsWith("QUOTA_EXHAUSTED") ? `Limite quotidienne atteinte : ${quota?.used}/${quota?.limit} utilisées. Renouvellement à 00:00 UTC.` : error}</div>}
   {quota && remaining !== null && remaining <= Math.max(3, Math.ceil(quota.limit * .2)) && <details className="mt-2 border p-2 text-xs"><summary className="cursor-pointer">{remaining === 0 ? "Limite atteinte" : `${remaining} conversations restantes`} · Options d’abonnement</summary><PlanQuickList /></details>}
  </section></AppShell>;
