@@ -29,10 +29,10 @@ export const Footnote = Node.create({
       "sup",
       {
         class: "footnote-ref",
-        "data-note": node.attrs.note,
-        title: node.attrs.note,
+        "data-note": node.attrs["note"],
+        title: node.attrs["note"],
       },
-      String(node.attrs.number || ""),
+      String(node.attrs["number"] || ""),
     ];
   },
 });
@@ -48,7 +48,7 @@ export function collectFootnotes(editor: Editor): FootnoteItem[] {
   const items: FootnoteItem[] = [];
   editor.state.doc.descendants((node, pos) => {
     if (node.type.name === "footnote") {
-      items.push({ number: items.length + 1, note: node.attrs.note as string, pos });
+      items.push({ number: items.length + 1, note: node.attrs["note"] as string, pos });
     }
     return true;
   });
@@ -62,7 +62,7 @@ export function renumberFootnotes(editor: Editor) {
   const tr = editor.state.tr;
   items.forEach((item) => {
     const node = editor.state.doc.nodeAt(item.pos);
-    if (node && node.attrs.number !== item.number) {
+    if (node && node.attrs["number"] !== item.number) {
       tr.setNodeMarkup(item.pos, undefined, { ...node.attrs, number: item.number });
       dirty = true;
     }
