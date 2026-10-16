@@ -31,7 +31,19 @@ export function EditorRibbon({
   tab,
   setTab,
   settings,
-  setSettings,
+const [settings, setSettings] = useState<PageSettings>({ 
+  margin: "Normales", 
+  orientation: "Portrait", 
+  format: "A4", 
+  zoom: "100%", 
+  ruler: false, 
+  watermark: "", 
+  lineNumbers: false, 
+  viewMode: "page", 
+  headerText: "", 
+  footerText: "",
+  lineSpacing: "1.6" 
+});
   attach,
   save,
   correct
