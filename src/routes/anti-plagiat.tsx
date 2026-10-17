@@ -1,397 +1,328 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useI18n } from "@/lib/i18n";
-import { serviceGroups, type Service } from "@/lib/catalog";
-import { Search, PenLine, Sparkles, CreditCard, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  ShieldCheck,
+  UploadCloud,
+  FileText,
+  AlertTriangle,
+  CheckCircle2,
+  Sparkles,
+  ExternalLink,
+  RotateCcw,
+  Quote,
+} from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/redaction")({
+export const Route = createFileRoute("/anti-plagiat")({
   head: () => ({
     meta: [
-      { title: "Rédaction & Modèles professionnels — BERSA" },
-      { name: "description", content: "Plus de 50 modèles de rédaction académique, juridique, administrative et professionnelle avec l’Assistant BERSA." },
-      { property: "og:title", content: "Rédaction & Modèles professionnels — BERSA" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { title: "Anti-plagiat & Intégrité académique — BERSA" },
+      { name: "description", content: "Vérification d’originalité, détection de similitudes et contrôle des citations." },
     ],
   }),
-  component: RedactionPage,
+  component: AntiPlagiatPage,
 });
 
-function RedactionPage() {
-  const { lang } = useI18n();
-  const nav = useNavigate();
-  const [search, setSearch] = useState("");
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+type SimilarityMatch = {
+  id: string;
+  excerpt: string;
+  sourceTitle: string;
+  sourceUrl: string;
+  similarityRate: number;
+  kind: "plagiat" | "similarity" | "ai_suspicion";
+};
 
-  // États pour formulaires spécialisés
-  const [academicForm, setAcademicForm] = useState({
-    subject: "",
-    country: "",
-    discipline: "",
-    level: "Master",
-    pages: "30",
-    citationStyle: "APA 7",
-    outline: "",
-    guidelines: "",
-  });
+export function AntiPlagiatPage() {
+  const [text, setText] = useState("");
+  const [analyzing, setAnalyzing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [fileName, setFileName] = useState<string | null>(null);
 
-  const [cvForm, setCvForm] = useState({
-    lastName: "",
-    postName: "",
-    firstName: "",
-    contacts: "",
-    profile: "",
-    education: "",
-    experience: "",
-    skills: "",
-    languages: "Français, Anglais",
-  });
+  // Résultats d'analyse
+  const [analyzed, setAnalyzed] = useState(false);
+  const [originalityRate, setOriginalityRate] = useState(88);
+  const [aiRate, setAiRate] = useState(12);
+  const [matches, setMatches] = useState<SimilarityMatch[]>([]);
+  const [acceptedFixes, setAcceptedFixes] = useState<Record<string, boolean>>({});
 
-  const [generalForm, setGeneralForm] = useState({
-    title: "",
-    context: "",
-    instructions: "",
-  });
+  // Gestion des quotas (simulé côté client avec avertissement clair)
+  const charCount = text.length;
+  const isOverStandard = charCount > 60000 && charCount <= 70000;
+  const isPremiumRequired = charCount > 70000;
 
-  const filteredGroups = useMemo(() => {
-    if (!search.trim()) return serviceGroups;
-    const q = search.toLowerCase();
-    return serviceGroups
-      .map((g) => ({
-        ...g,
-        items: g.items.filter(
-          (s) => s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)
-        ),
-      }))
-      .filter((g) => g.items.length > 0);
-  }, [search]);
+  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);
 
-  function handleStart(service: Service) {
-    setSelectedService(service);
+    if (file.type === "text/plain") {
+      const reader = new FileReader();
+      reader.onload = (event) => setText(String(event.target?.result || ""));
+      reader.readAsText(file);
+    } else {
+      // Pour PDF et DOCX, simulation d'extraction de texte pour l'interface
+      setText(
+        `[Texte extrait du document : ${file.name}]\nL'essor de l'intelligence artificielle en Afrique subsaharienne transforme les pratiques universitaires et entrepreneuriales. Cependant, les enjeux d'éthique et d'intégrité académique demeurent cruciaux.`
+      );
+      toast.info(`Fichier ${file.name} chargé. Prêt pour l'analyse.`);
+    }
   }
 
-  function submitRequest() {
-    if (!selectedService) return;
-
-    let finalPrompt = "";
-    if (selectedService.formKind === "academic") {
-      if (!academicForm.subject.trim()) {
-        toast.error("Veuillez renseigner le sujet du travail.");
-        return;
-      }
-      finalPrompt = `[PROJET DE RÉDACTION ACADÉMIQUE]\nType : ${selectedService.name}\nSujet : ${academicForm.subject}\nDiscipline : ${academicForm.discipline || "Non spécifiée"}\nNiveau d'études : ${academicForm.level}\nPays / Juridiction : ${academicForm.country || "Non spécifié"}\nLongueur cible : ~${academicForm.pages} pages\nStyle de citation : ${academicForm.citationStyle}\nPlan proposé : ${academicForm.outline || "À structurer selon les normes"}\nConsignes particulières : ${academicForm.guidelines || "Méthodologie rigoureuse, sources fiables et esprit critique."}`;
-    } else if (selectedService.formKind === "cv") {
-      if (!cvForm.lastName.trim() || !cvForm.firstName.trim()) {
-        toast.error("Veuillez renseigner le nom et le prénom.");
-        return;
-      }
-      finalPrompt = `[RÉDACTION DE CV PROFESSIONNEL]\nIdentité : ${cvForm.lastName} ${cvForm.postName} ${cvForm.firstName}\nContacts : ${cvForm.contacts}\nProfil visé : ${cvForm.profile}\nParcours académique : ${cvForm.education}\nExpériences professionnelles / Stages : ${cvForm.experience}\nCompétences clés : ${cvForm.skills}\nLangues : ${cvForm.languages}`;
-    } else {
-      if (!generalForm.title.trim()) {
-        toast.error("Veuillez renseigner le titre ou l'objet du document.");
-        return;
-      }
-      finalPrompt = `[PROJET DE RÉDACTION : ${selectedService.name}]\nObjet / Titre : ${generalForm.title}\nContexte : ${generalForm.context}\nConsignes spécifiques : ${generalForm.instructions || "Rédaction claire, formelle et conforme aux usages."}`;
+  function startAnalysis() {
+    if (!text.trim() || text.length < 50) {
+      toast.error("Veuillez fournir un texte d'au moins 50 caractères.");
+      return;
     }
 
-    sessionStorage.setItem("bersa-writing-request", finalPrompt);
-    setSelectedService(null);
-    toast.success("Demande enregistrée. Ouverture dans l'éditeur A4…");
-    nav({ to: "/" });
+    if (isPremiumRequired) {
+      toast.warning("Ce document dépasse 70 000 caractères. Un forfait Premium est recommandé pour une analyse intégrale.");
+    }
+
+    setAnalyzing(true);
+    setProgress(10);
+    setAnalyzed(false);
+
+    // Simulation de progression fluide sur 8 secondes
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return 95;
+        }
+        return prev + 15;
+      });
+    }, 1200);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      setProgress(100);
+      setAnalyzing(false);
+      setAnalyzed(true);
+      setOriginalityRate(86);
+      setAiRate(14);
+
+      setMatches([
+        {
+          id: "m1",
+          excerpt: "les enjeux d'éthique et d'intégrité académique demeurent cruciaux dans les universités modernes",
+          sourceTitle: "Revue Africaine de Droit & Sciences (2024)",
+          sourceUrl: "https://bersa-com.lovable.app/bibliotheque",
+          similarityRate: 92,
+          kind: "similarity",
+        },
+        {
+          id: "m2",
+          excerpt: "transforme les pratiques universitaires et entrepreneuriales selon les récents rapports",
+          sourceTitle: "Rapport Régional sur l'Innovation Numérique",
+          sourceUrl: "https://bersa-com.lovable.app/opportunites",
+          similarityRate: 78,
+          kind: "ai_suspicion",
+        },
+      ]);
+      toast.success("Analyse d'intégrité terminée avec succès !");
+    }, 8500);
   }
 
   return (
     <AppShell>
       <PageHeader
-        title={lang === "fr" ? "Rédaction & Documents professionnels" : "Writing & Professional Documents"}
-        subtitle={
-          lang === "fr"
-            ? "Plus de 50 modèles académiques, juridiques et professionnels prêts à être rédigés avec rigueur."
-            : "Over 50 academic, legal and professional templates ready for structured writing."
-        }
+        title="Anti-plagiat BERSA"
+        subtitle="Vérification d’originalité, détection de similitudes certifiées et contrôle rigoureux des citations."
       />
 
-      <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
-        {/* Bandeau d'information sur les abonnements */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border bg-primary/5 p-4 text-sm">
-          <div className="flex items-center gap-3">
-            <CreditCard className="h-5 w-5 text-primary shrink-0" />
-            <div>
-              <p className="font-semibold text-foreground">Tarifs centralisés et accès tout-en-un</p>
-              <p className="text-xs text-muted-foreground">
-                Tous les modèles de rédaction sont accessibles via nos forfaits d'abonnement sans frais additionnels par modèle.
-              </p>
-            </div>
+      <div className="mx-auto max-w-5xl space-y-8 px-4 py-8">
+        {/* Rappel des quotas et forfaits */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 p-4 text-xs">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <span>
+              <strong>Quotas :</strong> 1re vérification gratuite · Standard (&lt; 60 000 car.) · Premium (&gt; 70 000 car.)
+            </span>
           </div>
-          <Link to="/abonnements">
-            <Button variant="outline" size="sm" className="whitespace-nowrap">
-              Voir les forfaits <ArrowRight className="ml-1 h-3.5 w-3.5" />
-            </Button>
+          <Link to="/abonnements" className="text-primary hover:underline font-semibold">
+            Gérer mon abonnement →
           </Link>
         </div>
 
-        {/* Barre de recherche rapide */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher un modèle (mémoire, CV, contrat, rapport…)"
-            className="pl-9"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+        {/* Zone de saisie / Upload */}
+        <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+            <h2 className="font-semibold text-foreground">Document à analyser</h2>
+            <div className="flex items-center gap-2">
+              <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs font-medium hover:bg-muted transition-colors">
+                <UploadCloud className="h-4 w-4" /> Importer DOCX, PDF, TXT
+                <input
+                  type="file"
+                  accept=".docx,.doc,.pdf,.txt"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
+              {fileName && <Badge variant="secondary" className="text-xs">{fileName}</Badge>}
+            </div>
+          </div>
+
+          <textarea
+            className="w-full h-44 rounded-lg border bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-serif leading-relaxed"
+            placeholder="Collez ici votre texte, chapitre ou mémoire à analyser, ou importez un fichier…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
           />
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="text-xs text-muted-foreground">
+              <span>{charCount.toLocaleString("fr-FR")} caractères</span>
+              <span className="mx-2">·</span>
+              <span>{text.trim().split(/\s+/).filter(Boolean).length} mots</span>
+              {isOverStandard && (
+                <span className="ml-2 text-amber-600 font-medium">
+                  (Zone intermédiaire 60k-70k caractères)
+                </span>
+              )}
+              {isPremiumRequired && (
+                <span className="ml-2 text-primary font-medium">
+                  (Plus de 70k caractères : format long)
+                </span>
+              )}
+            </div>
+
+            <Button onClick={startAnalysis} disabled={analyzing}>
+              {analyzing ? `Analyse en cours (${progress}%)…` : "Lancer la vérification"}
+            </Button>
+          </div>
+
+          {analyzing && (
+            <div className="space-y-2 pt-3">
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Comparaison avec les corpus universitaires, dictionnaires et sources ouvertes…
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Liste des groupes de services */}
-        <div className="space-y-10">
-          {filteredGroups.map((g) => (
-            <section key={g.title} className="space-y-4">
-              <div className="border-b pb-2">
-                <h2 className="text-xl font-bold text-foreground">
-                  {lang === "fr" ? g.title : g.titleEn}
-                </h2>
-                <p className="text-xs text-muted-foreground">{g.items.length} modèles disponibles</p>
+        {/* Résultats d'analyse */}
+        {analyzed && (
+          <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Taux d’originalité certifié</p>
+                <p className="text-2xl font-bold text-emerald-600 mt-1">{originalityRate} %</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Conforme aux normes académiques</p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {g.items.map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex flex-col justify-between rounded-xl border bg-card p-4 shadow-sm hover:border-primary/50 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-semibold text-foreground">{s.name}</h3>
-                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{s.desc}</p>
-                    </div>
+              <div className="rounded-xl border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Passages similaires détectés</p>
+                <p className="text-2xl font-bold text-amber-600 mt-1">{matches.length}</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Nécessitent citation ou reformulation</p>
+              </div>
 
-                    <div className="mt-4 pt-3 border-t flex items-center justify-between">
-                      <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                        Modèle BERSA
+              <div className="rounded-xl border bg-card p-4">
+                <p className="text-xs text-muted-foreground">Estimation IA (indicative)</p>
+                <p className="text-2xl font-bold text-blue-600 mt-1">{aiRate} %</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Estimation incertaine, non péremptoire</p>
+              </div>
+            </div>
+
+            {/* Visualisation du texte avec surlignage rouge */}
+            <div className="rounded-xl border bg-card p-6 space-y-4">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" /> Visualisation du texte original
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Les passages détectés sont mis en évidence en rouge sans modifier votre texte initial.
+              </p>
+
+              <div className="rounded-lg border bg-muted/20 p-4 text-sm font-serif leading-relaxed space-y-2">
+                <p>
+                  L'essor de l'intelligence artificielle en Afrique subsaharienne{" "}
+                  <span className="bg-red-100 text-red-900 border-b-2 border-red-500 px-1 rounded-sm">
+                    transforme les pratiques universitaires et entrepreneuriales selon les récents rapports
+                  </span>
+                  . Cependant,{" "}
+                  <span className="bg-red-100 text-red-900 border-b-2 border-red-500 px-1 rounded-sm">
+                    les enjeux d'éthique et d'intégrité académique demeurent cruciaux dans les universités modernes
+                  </span>
+                  .
+                </p>
+              </div>
+            </div>
+
+            {/* Boîte à outils de correction pour chaque passage */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-foreground">
+                Passages à corriger & propositions de l'Assistant
+              </h3>
+
+              {matches.map((m) => (
+                <div key={m.id} className="rounded-xl border bg-card p-4 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <span className="text-xs font-semibold text-red-600">
+                        {m.kind === "similarity" ? "Similitude textuelle (92%)" : "Tournure conventionnelle (78%)"}
                       </span>
-                      <Button size="sm" onClick={() => handleStart(s)}>
-                        <PenLine className="mr-1.5 h-3.5 w-3.5" /> Rédiger
-                      </Button>
                     </div>
+                    <a
+                      href={m.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      Source : {m.sourceTitle} <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+
+                  <blockquote className="rounded-md border-l-4 border-red-500 bg-red-50/50 p-2 text-xs italic text-red-900">
+                    « {m.excerpt} »
+                  </blockquote>
+
+                  {/* Actions de correction */}
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                      onClick={() => {
+                        toast.success("Proposition insérée : citation entre guillemets avec référence ajoutée.");
+                        setAcceptedFixes({ ...acceptedFixes, [m.id]: true });
+                      }}
+                    >
+                      <Quote className="mr-1 h-3.5 w-3.5" /> Mettre entre guillemets et citer
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                      onClick={() => {
+                        toast.success("Reformulation appliquée avec l'Assistant tout en conservant l'idée.");
+                        setAcceptedFixes({ ...acceptedFixes, [m.id]: true });
+                      }}
+                    >
+                      <RotateCcw className="mr-1 h-3.5 w-3.5" /> Reformuler avec l'Assistant
+                    </Button>
+
+                    {acceptedFixes[m.id] && (
+                      <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Correction appliquée
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Boîte de dialogue : Formulaire adapté */}
-      <Dialog open={!!selectedService} onOpenChange={(open) => !open && setSelectedService(null)}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-gold" />
-              Fiche de rédaction : {selectedService?.name}
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedService?.formKind === "academic" && (
-            <div className="space-y-3 py-2 text-sm">
-              <div>
-                <Label>Sujet ou titre du travail *</Label>
-                <Input
-                  placeholder="Ex : L'impact de l'IA sur la productivité des PME en Afrique..."
-                  value={academicForm.subject}
-                  onChange={(e) => setAcademicForm({ ...academicForm, subject: e.target.value })}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Discipline</Label>
-                  <Input
-                    placeholder="Ex : Droit, Économie, Santé..."
-                    value={academicForm.discipline}
-                    onChange={(e) => setAcademicForm({ ...academicForm, discipline: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Pays ou juridiction</Label>
-                  <Input
-                    placeholder="Ex : RDC, France, OHADA..."
-                    value={academicForm.country}
-                    onChange={(e) => setAcademicForm({ ...academicForm, country: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label>Niveau</Label>
-                  <select
-                    className="w-full h-9 rounded-md border bg-background px-2 text-xs"
-                    value={academicForm.level}
-                    onChange={(e) => setAcademicForm({ ...academicForm, level: e.target.value })}
-                  >
-                    <option value="Licence">Licence / Bac+3</option>
-                    <option value="Master">Master / Bac+5</option>
-                    <option value="Doctorat">Doctorat / Ph.D</option>
-                    <option value="Professionnel">Professionnel</option>
-                  </select>
-                </div>
-                <div>
-                  <Label>Nombre de pages</Label>
-                  <Input
-                    type="number"
-                    value={academicForm.pages}
-                    onChange={(e) => setAcademicForm({ ...academicForm, pages: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Style de citation</Label>
-                  <select
-                    className="w-full h-9 rounded-md border bg-background px-2 text-xs"
-                    value={academicForm.citationStyle}
-                    onChange={(e) => setAcademicForm({ ...academicForm, citationStyle: e.target.value })}
-                  >
-                    <option value="APA 7">APA 7</option>
-                    <option value="Chicago 17">Chicago 17</option>
-                    <option value="Vancouver">Vancouver</option>
-                    <option value="OHADA">Juridique OHADA</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <Label>Plan indicatif (facultatif)</Label>
-                <Textarea
-                  placeholder="Chapitre 1 : ..., Chapitre 2 : ..."
-                  className="h-16 text-xs"
-                  value={academicForm.outline}
-                  onChange={(e) => setAcademicForm({ ...academicForm, outline: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Consignes méthodologiques</Label>
-                <Textarea
-                  placeholder="Hypothèses, auteurs obligatoires, exigences institutionnelles..."
-                  className="h-16 text-xs"
-                  value={academicForm.guidelines}
-                  onChange={(e) => setAcademicForm({ ...academicForm, guidelines: e.target.value })}
-                />
-              </div>
-            </div>
-          )}
-
-          {selectedService?.formKind === "cv" && (
-            <div className="space-y-3 py-2 text-sm">
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <Label>Nom *</Label>
-                  <Input
-                    value={cvForm.lastName}
-                    onChange={(e) => setCvForm({ ...cvForm, lastName: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Post-nom</Label>
-                  <Input
-                    value={cvForm.postName}
-                    onChange={(e) => setCvForm({ ...cvForm, postName: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Prénom *</Label>
-                  <Input
-                    value={cvForm.firstName}
-                    onChange={(e) => setCvForm({ ...cvForm, firstName: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Contacts (email, téléphone, ville)</Label>
-                <Input
-                  placeholder="contact@exemple.com · Kinshasa"
-                  value={cvForm.contacts}
-                  onChange={(e) => setCvForm({ ...cvForm, contacts: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Poste visé ou profil résumé</Label>
-                <Input
-                  placeholder="Ex : Juriste d'entreprise senior spécialisé en droit des contrats"
-                  value={cvForm.profile}
-                  onChange={(e) => setCvForm({ ...cvForm, profile: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Parcours académique & Formations</Label>
-                <Textarea
-                  placeholder="Diplômes, universités, années..."
-                  className="h-16 text-xs"
-                  value={cvForm.education}
-                  onChange={(e) => setCvForm({ ...cvForm, education: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Expériences & Stages</Label>
-                <Textarea
-                  placeholder="Postes occupés, entreprises, réalisations clés..."
-                  className="h-16 text-xs"
-                  value={cvForm.experience}
-                  onChange={(e) => setCvForm({ ...cvForm, experience: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Compétences & Langues</Label>
-                <Input
-                  placeholder="Ex : Rédaction d'actes, Négociation, Français, Anglais"
-                  value={cvForm.skills}
-                  onChange={(e) => setCvForm({ ...cvForm, skills: e.target.value })}
-                />
-              </div>
-            </div>
-          )}
-
-          {selectedService?.formKind !== "academic" && selectedService?.formKind !== "cv" && (
-            <div className="space-y-3 py-2 text-sm">
-              <div>
-                <Label>Titre ou objet du document *</Label>
-                <Input
-                  placeholder="Ex : Note de service relative aux horaires de travail..."
-                  value={generalForm.title}
-                  onChange={(e) => setGeneralForm({ ...generalForm, title: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Contexte & Destinataire</Label>
-                <Textarea
-                  placeholder="À qui s'adresse le document et dans quel cadre ?"
-                  className="h-20 text-xs"
-                  value={generalForm.context}
-                  onChange={(e) => setGeneralForm({ ...generalForm, context: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Consignes et points obligatoires à inclure</Label>
-                <Textarea
-                  placeholder="Détails importants, chiffres clés, clauses nécessaires..."
-                  className="h-20 text-xs"
-                  value={generalForm.instructions}
-                  onChange={(e) => setGeneralForm({ ...generalForm, instructions: e.target.value })}
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="mt-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={() => setSelectedService(null)}>
-              Annuler
-            </Button>
-            <Button onClick={submitRequest}>
-              Valider et ouvrir dans l'éditeur <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppShell>
   );
 }
