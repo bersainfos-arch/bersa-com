@@ -441,13 +441,16 @@ const isLongDocument = charCount > 70000;
     <Button disabled variant="outline" className="gap-2 text-muted-foreground">
       <Lock className="h-4 w-4 text-amber-500" /> Abonnement Standard requis
     </Button>
-    <Link to="/abonnements" className="text-xs text-primary underline font-semibold">
+       <Link to="/abonnements" className="text-xs text-primary underline font-semibold">
       S'abonner →
     </Link>
   </div>
 )}
+          </div>
+
           {analyzing && (
             <div className="space-y-2 pt-3">
+
               <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-300"
