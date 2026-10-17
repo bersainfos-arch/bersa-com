@@ -42,22 +42,62 @@ export function HomeEditor() {
   const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
   const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
     // Historique des demandes posées à l'Assistant
-  const [history, setHistory] = useState<{ id: string; prompt: string; action: string; time: string }[]>([]);
-  // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
+   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
     const updateOffset = () => {
-      const offset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
-      setKeyboardOffset(offset);
+      const vv = window.visualViewport;
+      if (!vv) return;
+
+      // Calcul universel : écart entre la hauteur totale et la zone visible actuelle
+      const layoutHeight = window.innerHeight;
+      const visibleBottom = vv.height + vv.offsetTop;
+      const rawOffset = Math.max(0, layoutHeight - visibleBottom);
+
+      // Seuil de 120px pour ignorer le masquage mineur des barres de navigation
+      if (rawOffset > 120 || vv.height < layoutHeight * 0.78) {
+        setKeyboardOffset(rawOffset);
+      } else {
+        setKeyboardOffset(0);
+      }
     };
-    vv.addEventListener("resize", updateOffset);
-    vv.addEventListener("scroll", updateOffset);
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", updateOffset);
+      vv.addEventListener("scroll", updateOffset);
+    }
+    window.addEventListener("scroll", updateOffset);
+
+    // Suivi dynamique pendant l'animation d'ouverture du clavier lors du toucher dans le texte
+    const onFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest(".home-ai-sheet, input, textarea, [contenteditable]")) {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          updateOffset();
+          attempts++;
+          if (attempts > 10) clearInterval(interval);
+        }, 40);
+      }
+    };
+
+    const onFocusOut = () => {
+      setTimeout(updateOffset, 150);
+    };
+
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+
     return () => {
-      vv.removeEventListener("resize", updateOffset);
-      vv.removeEventListener("scroll", updateOffset);
+      if (vv) {
+        vv.removeEventListener("resize", updateOffset);
+        vv.removeEventListener("scroll", updateOffset);
+      }
+      window.removeEventListener("scroll", updateOffset);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
     };
   }, []);
   const editor = useEditor({
