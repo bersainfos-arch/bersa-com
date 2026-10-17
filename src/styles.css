@@ -196,7 +196,6 @@
   z-index: 29;
   background: var(--card);
 }
-}
 /* Coupure de page automatique (Saut entre page 1 et page 2) */
 .a4-page-break,
 .page-break {
