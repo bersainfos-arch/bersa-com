@@ -18,8 +18,10 @@ import {
   BookOpen,
   Info,
   Check,
+  Download,
+  Lock,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/anti-plagiat")({
   head: () => ({
