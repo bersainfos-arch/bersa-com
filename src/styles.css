@@ -113,53 +113,73 @@
   .a4-page { box-shadow: none; padding: 0; width: auto; min-height: 0; }
   .a4-page .page-break { border: 0; margin: 0; break-after: page; }
 }
-/* Plan de travail (fond bureau WPS Office) */
+/* Plan de travail façon WPS Office : feuille centrée, 4 coins visibles */
 .home-paper-desk {
-  height: clamp(240px, calc(100dvh - 210px), 920px);
+  height: calc(100dvh - 150px);
+  min-height: 320px;
   overflow-y: auto;
   overflow-x: hidden;
   background-color: hsl(var(--muted) / 0.7);
-  padding: 16px 12px 64px 12px;
+  padding: 14px 10px 90px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   scroll-behavior: smooth;
 }
 
-/* Feuille A4 mobile et desktop style WPS Office */
-.home-ai-sheet {
+/* Feuille A4 : largeur adaptée, proportions réelles du papier */
+.home-ai-sheet,
+.home-paper-content {
   width: min(100%, 794px);
-  min-height: 1123px; /* Ratio standard A4 à 96 DPI */
+  min-height: 1123px;
   background: var(--card);
   color: var(--paper-ink);
-  border-radius: 2px; /* 4 coins nets et subtilement adoucis */
+  border-radius: 3px;
   border: 1px solid hsl(var(--border) / 0.5);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.10), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
   padding: 56px 48px;
-  margin: 0 auto 24px auto;
+  margin: 0 auto 20px auto;
   position: relative;
   box-sizing: border-box;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 13pt;
+  line-height: 1.6;
 }
 
-/* Sur écran smartphone (WPS Office mobile view) */
+/* Version téléphone : feuille réduite, 4 coins visibles dès l'ouverture */
 @media (max-width: 640px) {
   .home-paper-desk {
-    padding: 12px 8px 48px 8px;
-    height: calc(100dvh - 180px);
+    padding: 10px 8px 90px 8px;
+    height: calc(100dvh - 140px);
   }
-
-  .home-ai-sheet {
-    /* Largeur laissant voir les 4 coins et le fond autour */
+  .home-ai-sheet,
+  .home-paper-content {
     width: calc(100vw - 20px);
     max-width: 420px;
-    /* Hauteur proportionnelle au ratio A4 (1 : 1.414) */
     min-height: calc((100vw - 20px) * 1.414);
-    padding: 28px 18px 36px 18px;
+    padding: 26px 16px 34px 16px;
     font-size: 11.5pt;
     line-height: 1.5;
   }
 }
 
+/* Barre de commande et abonnement : toujours visibles en bas de l'écran */
+.home-command-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+}
+.home-subscribe-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 29;
+  background: var(--card);
+}
+}
 /* Coupure de page automatique (Saut entre page 1 et page 2) */
 .a4-page-break,
 .page-break {
