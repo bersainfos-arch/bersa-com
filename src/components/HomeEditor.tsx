@@ -143,6 +143,15 @@ export function HomeEditor() {
     try {
       const { data } = await supabase.auth.getSession();
       if (!data.session) throw new Error("Connectez-vous pour rédiger.");
+            setHistory(prev => [
+        {
+          id: String(Date.now()),
+          prompt: text.length > 120 ? text.slice(0, 120) + "…" : text,
+          action: chosen,
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+        ...prev.slice(0, 9), // conserve les 10 dernières demandes
+      ]);
       const response = await fetch("/api/writer", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` },
