@@ -479,16 +479,18 @@ const isLongDocument = charCount > 70000;
                     Auteur : <strong>{authorName}</strong> · Émis le {analysisDate}
                   </p>
                 </div>
-
-                <div className="print:hidden flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={printReport} className="gap-1.5 text-xs">
-                    <Printer className="h-4 w-4" /> Imprimer le rapport officiel
-                  </Button>
-                  <Button size="sm" onClick={sendToHomeEditor} className="gap-1.5 text-xs bg-emerald-700 hover:bg-emerald-800 text-white">
-                    <ArrowRight className="h-4 w-4" /> Continuer dans l'Éditeur A4
-                  </Button>
-                </div>
-              </div>
+<div className="print:hidden flex flex-wrap items-center gap-2">
+  <Button variant="outline" size="sm" onClick={downloadFullReport} className="gap-1.5 text-xs">
+    <Download className="h-4 w-4 text-primary" /> Télécharger le rapport (.html)
+  </Button>
+  <Button variant="outline" size="sm" onClick={printReport} className="gap-1.5 text-xs">
+    <Printer className="h-4 w-4" /> Imprimer le rapport officiel
+  </Button>
+  <Button size="sm" onClick={sendToHomeEditor} className="gap-1.5 text-xs bg-emerald-700 hover:bg-emerald-800 text-white">
+    <ArrowRight className="h-4 w-4" /> Continuer dans l'Éditeur A4
+  </Button>
+</div>         
+</div>
 
               {/* GRILLE DES SCORES GLOBAUX COMPILATIO */}
               <div className="grid gap-4 sm:grid-cols-4">
