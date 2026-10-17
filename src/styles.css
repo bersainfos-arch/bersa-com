@@ -340,3 +340,13 @@
   .a4-footnotes { padding: 0 0 12px; }
   .a4-footnote-action { display: none; }
 }
+/* Liens des notes de bas de page */
+.footnote-ref a.footnote-link {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  padding: 0 1px;
+}
+.a4-footnote-backlink {
+  cursor: pointer;
+  text-decoration: none;
+}
