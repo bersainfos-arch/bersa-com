@@ -303,7 +303,8 @@ export function HomeEditor() {
     const dom = editor.view.dom as HTMLElement;
     const updatePages = () => {
       const isMobile = window.innerWidth <= 640;
-      const pageHeight = isMobile ? 580 : 1010;
+      // Hauteur calibrée pour contenir une vraie page dense Word (~3 200 caractères)
+      const pageHeight = isMobile ? 780 : 1100;
       const contentHeight = dom.scrollHeight || dom.clientHeight;
       const count = Math.max(1, Math.ceil(contentHeight / pageHeight));
       setTotalPages(count);
