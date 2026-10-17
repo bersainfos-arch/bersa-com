@@ -3,8 +3,7 @@ import type { Editor } from "@tiptap/react";
 
 /**
  * Note de bas de page : nœud inline atomique portant le texte de la note.
- * Le numéro affiché dépend de la position dans le document (renumérotation
- * automatique via renumberFootnotes après chaque modification).
+ * Liens bidirectionnels automatiques entre l'appel et la note au bas de page.
  */
 export const Footnote = Node.create({
   name: "footnote",
@@ -25,14 +24,25 @@ export const Footnote = Node.create({
   },
 
   renderHTML({ node }) {
+    const num = String(node.attrs["number"] || "");
     return [
       "sup",
       {
         class: "footnote-ref",
+        id: `fnref-${num}`,
+        "data-fn-num": num,
         "data-note": node.attrs["note"],
-        title: node.attrs["note"],
+        title: `${node.attrs["note"]} (Cliquer pour voir la note)`,
       },
-      String(node.attrs["number"] || ""),
+      [
+        "a",
+        {
+          href: `#fn-${num}`,
+          class: "footnote-link",
+          "aria-label": `Aller à la note de bas de page ${num}`,
+        },
+        num,
+      ],
     ];
   },
 });
