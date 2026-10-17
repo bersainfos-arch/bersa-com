@@ -140,6 +140,15 @@ export function HomeEditor() {
     if (!text) { toast.error("Écrivez votre demande sur le papier."); return; }
     if (files.some(file => file.type === "other")) { toast.info("Les pièces jointes non analysables ne sont pas transmises à l’Assistant."); }
     setBusy(true); setError(""); editor.setEditable(false);
+        if (editor) {
+      const selected = editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, " ").trim();
+      const textToRecord = selected || editor.getText().trim();
+      if (textToRecord) {
+        const preview = textToRecord.length > 90 ? textToRecord.slice(0, 90) + "…" : textToRecord;
+        const now = new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+        setHistory(prev => [{ id: `${Date.now()}`, prompt: preview, action: mode, time: now }, ...prev.slice(0, 9)]);
+      }
+    }
     try {
       const { data } = await supabase.auth.getSession();
       if (!data.session) throw new Error("Connectez-vous pour rédiger.");
