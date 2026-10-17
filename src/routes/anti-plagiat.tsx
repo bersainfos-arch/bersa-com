@@ -79,9 +79,7 @@ export function AntiPlagiatPage() {
   const charCount = text.length;
   const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
   const estimatedPages = Math.max(1, Math.ceil(charCount / 2800));
-
-  const isOverStandard = charCount > 60000 && charCount <= 70000;
-  const isPremiumRequired = charCount > 70000;
+const isLongDocument = charCount > 70000;
 
   // Extraction réelle de fichiers DOCX, PDF, TXT
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
