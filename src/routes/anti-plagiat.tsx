@@ -130,7 +130,7 @@ export function AntiPlagiatPage() {
           setText(content);
           toast.success(`Fichier texte chargé (${content.length.toLocaleString("fr-FR")} caractères).`);
         };
-        reader.readAsText(file);
+       reader.readAsText(file, "UTF-8");
       }
     } catch (err: any) {
       toast.error(`Erreur lors de l'extraction du fichier : ${err?.message || "Format non reconnu"}`);
