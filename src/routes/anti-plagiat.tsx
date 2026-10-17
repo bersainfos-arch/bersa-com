@@ -59,6 +59,7 @@ const isAdmin = user?.email === "dieudonnedjoma@gmail.com";
 const [hasEligibleSub, setHasEligibleSub] = useState(false);
 
 const canSubmit = isAdmin || hasEligibleSub;
+
 export function AntiPlagiatPage() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
