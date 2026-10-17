@@ -383,12 +383,21 @@ const isLongDocument = charCount > 70000;
               )}
             </div>
 
-            <Button onClick={startAnalysis} disabled={analyzing} className="gap-2">
-              <ShieldCheck className="h-4 w-4" />
-              {analyzing ? `Vérification en cours (${progress}%)…` : "Lancer l'analyse d'intégrité"}
-            </Button>
-          </div>
-
+           {canSubmit ? (
+  <Button onClick={startAnalysis} disabled={analyzing} className="gap-2">
+    <ShieldCheck className="h-4 w-4" />
+    {analyzing ? `Vérification en cours (${progress}%)…` : "Lancer l'analyse d'intégrité"}
+  </Button>
+) : (
+  <div className="flex items-center gap-2">
+    <Button disabled variant="outline" className="gap-2 text-muted-foreground">
+      <Lock className="h-4 w-4 text-amber-500" /> Abonnement Standard requis
+    </Button>
+    <Link to="/abonnements" className="text-xs text-primary underline font-semibold">
+      S'abonner →
+    </Link>
+  </div>
+)}
           {analyzing && (
             <div className="space-y-2 pt-3">
               <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
