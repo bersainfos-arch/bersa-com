@@ -41,7 +41,25 @@ export function HomeEditor() {
   const [transcribing, setTranscribing] = useState(false);
   const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
   const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
+    // Historique des demandes posées à l'Assistant
+  const [history, setHistory] = useState<{ id: string; prompt: string; action: string; time: string }[]>([]);
+  // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const updateOffset = () => {
+      const offset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+      setKeyboardOffset(offset);
+    };
+    vv.addEventListener("resize", updateOffset);
+    vv.addEventListener("scroll", updateOffset);
+    return () => {
+      vv.removeEventListener("resize", updateOffset);
+      vv.removeEventListener("scroll", updateOffset);
+    };
+  }, []);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote],
