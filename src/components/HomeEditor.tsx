@@ -110,97 +110,87 @@ export function HomeEditor() {
   } catch (e) { toast.error(e instanceof Error ? e.message : "Transcription impossible."); } finally { setTranscribing(false); }
  }
  const remaining = quota ? Math.max(0, quota.limit - quota.used) : null;
-  const textLength = editor?.getText().length ?? 0;
- const totalPages = Math.max(1, Math.ceil(textLength / 2200));
+ const [totalPages, setTotalPages] = useState(1);
+
+ // Pagination dynamique par mesure géométrique réelle de la hauteur du contenu
+ useEffect(() => {
+   if (!editor?.view?.dom) return;
+   const dom = editor.view.dom as HTMLElement;
+   const updatePages = () => {
+     const isMobile = window.innerWidth <= 640;
+     const pageHeight = isMobile ? 580 : 1010;
+     const contentHeight = dom.scrollHeight || dom.clientHeight;
+     const count = Math.max(1, Math.ceil(contentHeight / pageHeight));
+     setTotalPages(count);
+   };
+   updatePages();
+   const observer = new ResizeObserver(updatePages);
+   observer.observe(dom);
+   window.addEventListener("resize", updatePages);
+   return () => {
+     observer.disconnect();
+     window.removeEventListener("resize", updatePages);
+   };
+ }, [editor]);
+
  return <AppShell><section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-1 py-1 sm:px-4">
  <EditorRibbon editor={editor} tab={tab} setTab={setTab} settings={settings} setSettings={setSettings} attach={() => fileInput.current?.click()} save={() => void save()} correct={() => { setAction("correct"); void run("correct"); }} />
-       {tab === "Assistant" && <div className="no-print flex items-center gap-1 overflow-x-auto border-b bg-card px-2 py-1 scrollbar-none" aria-label="Services de l’Assistant"><span className="shrink-0 text-xs font-semibold text-muted-foreground">A4</span>{assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => <Button key={id} size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onMouseDown={e => e.preventDefault()} disabled={busy || transcribing || recording} onClick={() => { setAction("generate"); void run(id); }}>{label}</Button>)}</div>}
-  <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
-  {tab === "Insérer" && <p className="no-print px-2 py-1 text-[11px] text-muted-foreground">3 fichiers, 5 Mo chacun · Analyse : texte, PDF, Word (.docx), images PNG/JPEG/WebP. Autres formats : pièces jointes uniquement.</p>}
-  {files.length > 0 && <div className="no-print flex gap-1 overflow-x-auto py-1">{files.map((f, i) => <span key={`${f.name}-${i}`} className="flex shrink-0 items-center gap-1 border bg-card pl-2 text-xs">{f.name}{f.type === "other" && " · non analysable"}<Button size="icon" variant="ghost" aria-label={`Retirer ${f.name}`} onClick={() => setFiles(files.filter((_, n) => n !== i))}><X className="h-3 w-3" /></Button></span>)}</div>}
-  <div className={`home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}>
-    const remaining = quota ? Math.max(0, quota.limit - quota.used) : null;
-  const [totalPages, setTotalPages] = useState(1);
+ {tab === "Assistant" && <div className="no-print flex items-center gap-1 overflow-x-auto border-b bg-card px-2 py-1 scrollbar-none" aria-label="Services de l’Assistant"><span className="shrink-0 text-xs font-semibold text-muted-foreground">A4</span>{assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => <Button key={id} size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onMouseDown={e => e.preventDefault()} disabled={busy || transcribing || recording} onClick={() => { setAction("generate"); void run(id); }}>{label}</Button>)}</div>}
+ <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
+ {tab === "Insérer" && <p className="no-print px-2 py-1 text-[11px] text-muted-foreground">3 fichiers, 5 Mo chacun · Analyse : texte, PDF, Word (.docx), images PNG/JPEG/WebP. Autres formats : pièces jointes uniquement.</p>}
+ {files.length > 0 && <div className="no-print flex gap-1 overflow-x-auto py-1">{files.map((f, i) => <span key={`${f.name}-${i}`} className="flex shrink-0 items-center gap-1 border bg-card pl-2 text-xs">{f.name}{f.type === "other" && " · non analysable"}<Button size="icon" variant="ghost" aria-label={`Retirer ${f.name}`} onClick={() => setFiles(files.filter((_, n) => n !== i))}><X className="h-3 w-3" /></Button></span>)}</div>}
 
-  // Pagination dynamique par mesure géométrique réelle de la hauteur du contenu
-  useEffect(() => {
-    if (!editor?.view?.dom) return;
-    const dom = editor.view.dom as HTMLElement;
-    const updatePages = () => {
-      const isMobile = window.innerWidth <= 640;
-      const pageHeight = isMobile ? 580 : 1010;
-      const contentHeight = dom.scrollHeight || dom.clientHeight;
-      const count = Math.max(1, Math.ceil(contentHeight / pageHeight));
-      setTotalPages(count);
-    };
-    updatePages();
-    const observer = new ResizeObserver(updatePages);
-    observer.observe(dom);
-    window.addEventListener("resize", updatePages);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updatePages);
-    };
-  }, [editor]);
+ <div className={`home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}>
+   {settings.ruler && <div className="no-print editor-ruler mx-auto max-w-[794px]">0 ┆ 1 ┆ 2 ┆ 3 ┆ 4 ┆ 5 ┆ 6 ┆ 7 ┆ 8 ┆ 9 ┆ 10</div>}
+   <EditorContent editor={editor} className="home-paper-content" />
+   {footnotes.length > 0 && (
+     <div className="a4-footnotes mx-auto max-w-[794px]" aria-label="Notes de bas de page">
+       <hr className="a4-footnotes-rule" />
+       <ol className="a4-footnotes-list">
+         {footnotes.map(fn => (
+           <li key={fn.pos} className="a4-footnote-item">
+             <sup className="a4-footnote-number">{fn.number}</sup>
+             <span className="a4-footnote-text">{fn.note}</span>
+             <button type="button" className="no-print a4-footnote-action" aria-label={`Modifier la note ${fn.number}`} onClick={() => { const text = prompt("Modifier la note :", fn.note); if (text && editor) updateFootnote(editor, fn.pos, text); }}>Modifier</button>
+             <button type="button" className="no-print a4-footnote-action" aria-label={`Supprimer la note ${fn.number}`} onClick={() => { if (editor) deleteFootnote(editor, fn.pos); }}>Supprimer</button>
+           </li>
+         ))}
+       </ol>
+     </div>
+   )}
 
-  return <AppShell><section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-1 py-1 sm:px-4">
-  <EditorRibbon editor={editor} tab={tab} setTab={setTab} settings={settings} setSettings={setSettings} attach={() => fileInput.current?.click()} save={() => void save()} correct={() => { setAction("correct"); void run("correct"); }} />
-  {tab === "Assistant" && <div className="no-print flex items-center gap-1 overflow-x-auto border-b bg-card px-2 py-1 scrollbar-none" aria-label="Services de l’Assistant"><span className="shrink-0 text-xs font-semibold text-muted-foreground">A4</span>{assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => <Button key={id} size="sm" variant="ghost" className="h-7 shrink-0 px-2 text-xs" onMouseDown={e => e.preventDefault()} disabled={busy || transcribing || recording} onClick={() => { setAction("generate"); void run(id); }}>{label}</Button>)}</div>}
-  <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
-  {tab === "Insérer" && <p className="no-print px-2 py-1 text-[11px] text-muted-foreground">3 fichiers, 5 Mo chacun · Analyse : texte, PDF, Word (.docx), images PNG/JPEG/WebP. Autres formats : pièces jointes uniquement.</p>}
-  {files.length > 0 && <div className="no-print flex gap-1 overflow-x-auto py-1">{files.map((f, i) => <span key={`${f.name}-${i}`} className="flex shrink-0 items-center gap-1 border bg-card pl-2 text-xs">{f.name}{f.type === "other" && " · non analysable"}<Button size="icon" variant="ghost" aria-label={`Retirer ${f.name}`} onClick={() => setFiles(files.filter((_, n) => n !== i))}><X className="h-3 w-3" /></Button></span>)}</div>}
+   {/* Pied de page numéroté automatique */}
+   <div className="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
+     <span>{settings.format} · Marges {settings.margin}</span>
+     <span className="font-semibold text-primary">
+       Page 1 sur {totalPages} ({totalPages === 1 ? "1 feuille A4" : `${totalPages} feuilles A4`})
+     </span>
+   </div>
+ </div>
 
-  <div className={`home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}>
-    {settings.ruler && <div className="no-print editor-ruler mx-auto max-w-[794px]">0 ┆ 1 ┆ 2 ┆ 3 ┆ 4 ┆ 5 ┆ 6 ┆ 7 ┆ 8 ┆ 9 ┆ 10</div>}
-    <EditorContent editor={editor} className="home-paper-content" />
-    {footnotes.length > 0 && (
-      <div className="a4-footnotes mx-auto max-w-[794px]" aria-label="Notes de bas de page">
-        <hr className="a4-footnotes-rule" />
-        <ol className="a4-footnotes-list">
-          {footnotes.map(fn => (
-            <li key={fn.pos} className="a4-footnote-item">
-              <sup className="a4-footnote-number">{fn.number}</sup>
-              <span className="a4-footnote-text">{fn.note}</span>
-              <button type="button" className="no-print a4-footnote-action" aria-label={`Modifier la note ${fn.number}`} onClick={() => { const text = prompt("Modifier la note :", fn.note); if (text && editor) updateFootnote(editor, fn.pos, text); }}>Modifier</button>
-              <button type="button" className="no-print a4-footnote-action" aria-label={`Supprimer la note ${fn.number}`} onClick={() => { if (editor) deleteFootnote(editor, fn.pos); }}>Supprimer</button>
-            </li>
-          ))}
-        </ol>
-      </div>
-    )}
+ {/* Boutons flottants à droite sur téléphone sans masquer la feuille */}
+ <div className="no-print fixed right-2 bottom-6 z-40 flex flex-col items-center gap-2 sm:hidden">
+   <Button variant="outline" size="icon" className="h-10 w-10 rounded-full border-border bg-card/90 shadow-md backdrop-blur-sm" aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"} onClick={() => void toggleRecord()} disabled={transcribing || busy}>
+     {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
+   </Button>
+   <Button size="icon" className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg" onClick={() => void run()} disabled={busy || recording || transcribing} aria-label="Envoyer la commande IA">
+     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+   </Button>
+   <Link to="/abonnements" className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/30 bg-card/90 text-[10px] font-bold text-primary shadow backdrop-blur-sm" title="S'abonner">
+     Abo
+   </Link>
+ </div>
 
-    {/* Pied de page numéroté automatique */}
-    <div className="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
-      <span>{settings.format} · Marges {settings.margin}</span>
-      <span className="font-semibold text-primary">
-        Page 1 sur {totalPages} ({totalPages === 1 ? "1 feuille A4" : `${totalPages} feuilles A4`})
-      </span>
-    </div>
-  </div>
+ {/* Barre de commande sur écran large */}
+ <div className="no-print home-command-bar border-t bg-card px-2 py-2">
+   <span className="min-w-0 flex-1 text-xs text-muted-foreground">{busy ? "Rédaction en cours…" : transcribing ? "Votre consigne audio…" : "Assistant BERSA"}</span>
+   <Button variant="outline" size="icon" aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"} title={recording ? "Arrêter" : "Enregistrer"} onClick={() => void toggleRecord()} disabled={transcribing || busy}>{recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}</Button>
+   <Button onClick={() => void run()} disabled={busy || recording || transcribing} aria-label="Envoyer la commande IA">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span>Envoyer</span></Button>
+ </div>
 
-  {/* Boutons flottants à droite sur téléphone sans masquer la feuille */}
-  <div className="no-print fixed right-2 bottom-6 z-40 flex flex-col items-center gap-2 sm:hidden">
-    <Button variant="outline" size="icon" className="h-10 w-10 rounded-full border-border bg-card/90 shadow-md backdrop-blur-sm" aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"} onClick={() => void toggleRecord()} disabled={transcribing || busy}>
-      {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
-    </Button>
-    <Button size="icon" className="h-11 w-11 rounded-full bg-primary text-primary-foreground shadow-lg" onClick={() => void run()} disabled={busy || recording || transcribing} aria-label="Envoyer la commande IA">
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-    </Button>
-    <Link to="/abonnements" className="flex h-9 w-9 items-center justify-center rounded-full border border-primary/30 bg-card/90 text-[10px] font-bold text-primary shadow backdrop-blur-sm" title="S'abonner">
-      Abo
-    </Link>
-  </div>
-
-  {/* Barre de commande sur écran large */}
-  <div className="no-print home-command-bar border-t bg-card px-2 py-2">
-    <span className="min-w-0 flex-1 text-xs text-muted-foreground">{busy ? "Rédaction en cours…" : transcribing ? "Votre consigne audio…" : "Assistant BERSA"}</span>
-    <Button variant="outline" size="icon" aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"} title={recording ? "Arrêter" : "Enregistrer"} onClick={() => void toggleRecord()} disabled={transcribing || busy}>{recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}</Button>
-    <Button onClick={() => void run()} disabled={busy || recording || transcribing} aria-label="Envoyer la commande IA">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}<span>Envoyer</span></Button>
-  </div>
-
-  {audioUrl && <div className="mt-2 flex flex-wrap items-center gap-2"><audio controls src={audioUrl} className="h-9 min-w-0 max-w-full flex-1" /><Button size="sm" variant="outline" onClick={() => void transcribeAudio()} disabled={transcribing}><FileAudio className="h-4 w-4" />{transcribing ? "Transcription…" : "Transcrire"}</Button><Button size="icon" variant="ghost" aria-label="Supprimer l’audio" onClick={() => setAudio(null)}><Trash2 className="h-4 w-4" /></Button></div>}
-  <div className="home-subscribe-bar mt-1 flex flex-wrap items-center justify-between gap-1 border-t bg-card px-2 py-1.5 text-[10px] text-muted-foreground"><span>{quota ? `${quota.used}/${quota.limit} utilisées · ${remaining} restantes · renouvellement à 00:00 UTC` : "Quota du jour…"}</span><Link to="/abonnements" className="font-semibold text-primary underline">S’abonner</Link></div>
-  {error && <div role="alert" className="mt-2 border border-destructive p-3 text-sm text-destructive">{error.startsWith("QUOTA_EXHAUSTED") ? `Limite quotidienne atteinte : ${quota?.used}/${quota?.limit} utilisées. Renouvellement à 00:00 UTC.` : error}</div>}
-  {quota && remaining !== null && remaining <= Math.max(3, Math.ceil(quota.limit * .2)) && <details className="mt-2 border p-2 text-xs"><summary className="cursor-pointer">{remaining === 0 ? "Limite atteinte" : `${remaining} conversations restantes`} · Options d’abonnement</summary><PlanQuickList /></details>}
+ {audioUrl && <div className="mt-2 flex flex-wrap items-center gap-2"><audio controls src={audioUrl} className="h-9 min-w-0 max-w-full flex-1" /><Button size="sm" variant="outline" onClick={() => void transcribeAudio()} disabled={transcribing}><FileAudio className="h-4 w-4" />{transcribing ? "Transcription…" : "Transcrire"}</Button><Button size="icon" variant="ghost" aria-label="Supprimer l’audio" onClick={() => setAudio(null)}><Trash2 className="h-4 w-4" /></Button></div>}
+ <div className="home-subscribe-bar mt-1 flex flex-wrap items-center justify-between gap-1 border-t bg-card px-2 py-1.5 text-[10px] text-muted-foreground"><span>{quota ? `${quota.used}/${quota.limit} utilisées · ${remaining} restantes · renouvellement à 00:00 UTC` : "Quota du jour…"}</span><Link to="/abonnements" className="font-semibold text-primary underline">S’abonner</Link></div>
+ {error && <div role="alert" className="mt-2 border border-destructive p-3 text-sm text-destructive">{error.startsWith("QUOTA_EXHAUSTED") ? `Limite quotidienne atteinte : ${quota?.used}/${quota?.limit} utilisées. Renouvellement à 00:00 UTC.` : error}</div>}
+ {quota && remaining !== null && remaining <= Math.max(3, Math.ceil(quota.limit * .2)) && <details className="mt-2 border p-2 text-xs"><summary className="cursor-pointer">{remaining === 0 ? "Limite atteinte" : `${remaining} conversations restantes`} · Options d’abonnement</summary><PlanQuickList /></details>}
 </section></AppShell>;
 }
