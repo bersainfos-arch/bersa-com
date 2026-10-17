@@ -53,15 +53,13 @@ type IdentifiedSource = {
   similarityShare: number;
   url: string;
 };
-const { user } = useAuth();
-const isAdmin = user?.email === "dieudonnedjoma@gmail.com";
-// Exemple avec vérification d'abonnement actif (ou vérification depuis votre table subscriptions)
-const [hasEligibleSub, setHasEligibleSub] = useState(false);
-
-const canSubmit = isAdmin || hasEligibleSub;
 
 export function AntiPlagiatPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.email === "dieudonnedjoma@gmail.com";
+  const [hasEligibleSub, setHasEligibleSub] = useState(false);
+  const canSubmit = isAdmin || hasEligibleSub;
   const [text, setText] = useState("");
   const [documentTitle, setDocumentTitle] = useState("Mémoire / Travail de recherche");
   const [authorName, setAuthorName] = useState("Chercheur BERSA");
