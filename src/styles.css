@@ -120,7 +120,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   background-color: hsl(var(--muted) / 0.7);
- padding: 14px 10px 110px 10px;
+  padding: 14px 10px 110px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -152,7 +152,7 @@
   line-height: 1.6;
 }
 
-/* Version téléphone : boutons à droite, marge de sécurité latérale pour ne jamais masquer le texte */
+/* Version téléphone : boutons en capsule basse avec dégagement suffisant */
 @media (max-width: 640px) {
   .home-paper-desk {
     padding: 10px 10px 110px 10px;
@@ -176,7 +176,7 @@
   }
   .home-command-bar,
   .home-subscribe-bar {
-    display: none !important; /* Remplacés par les boutons flottants sur le flanc droit */
+    display: none !important;
   }
 }
 
@@ -196,6 +196,7 @@
   z-index: 29;
   background: var(--card);
 }
+
 /* Coupure de page automatique (Saut entre page 1 et page 2) */
 .a4-page-break,
 .page-break {
