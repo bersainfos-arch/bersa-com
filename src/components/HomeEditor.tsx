@@ -352,6 +352,36 @@ export function HomeEditor() {
           </div>
         )}
 
+                {/* Historique des demandes de l'Assistant en haut dans la discussion */}
+        {history.length > 0 && (
+          <div className="no-print mx-auto my-1 max-w-[794px] rounded border border-border/70 bg-card/60 p-2 text-xs shadow-xs">
+            <div className="mb-1.5 flex items-center justify-between border-b border-border/40 pb-1">
+              <span className="font-semibold text-primary">
+                💬 Historique des demandes ({history.length})
+              </span>
+              <button
+                type="button"
+                onClick={() => setHistory([])}
+                className="text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+                title="Effacer l'historique"
+              >
+                Effacer
+              </button>
+            </div>
+            <div className="max-h-28 space-y-1 overflow-y-auto pr-1">
+              {history.map(item => (
+                <div key={item.id} className="flex items-start justify-between gap-2 rounded bg-muted/40 px-2 py-1 text-[11.5px]">
+                  <span className="truncate text-foreground font-medium flex-1">
+                    « {item.prompt} »
+                  </span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">
+                    {item.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
 
         {tab === "Insérer" && (
