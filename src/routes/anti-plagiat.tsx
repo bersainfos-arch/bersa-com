@@ -209,7 +209,7 @@ const isLongDocument = charCount > 70000;
       ];
 
       setMatches(generatedMatches);
-      setSelectedMatch(generatedMatches[0]);
+    setSelectedMatch(generatedMatches[0] ?? null);
 
       setSources([
         {
