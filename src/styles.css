@@ -155,7 +155,7 @@
 /* Version téléphone : boutons à droite, marge de sécurité latérale pour ne jamais masquer le texte */
 @media (max-width: 640px) {
   .home-paper-desk {
-    padding: 10px 58px 24px 8px; /* Dégage 58px à droite : le texte et la feuille ne sont jamais cachés */
+    padding: 10px 10px 110px 10px;
     height: calc(100dvh - 120px);
   }
   .home-ai-sheet,
