@@ -420,19 +420,14 @@ const isLongDocument = charCount > 70000;
               <span><strong>{wordCount.toLocaleString("fr-FR")}</strong> mots</span>
               <span>·</span>
               <span>~<strong>{estimatedPages}</strong> page(s) A4</span>
-              {isOverStandard && (
-                <span className="text-amber-600 font-medium">
-                  (Zone intermédiaire 60k-70k car.)
-                </span>
-              )}
-              {isPremiumRequired && (
-                <span className="text-primary font-medium">
-                  (Format long &gt; 70k car.)
-                </span>
-              )}
-            </div>
+{isLongDocument && (
+  <span className="text-primary font-medium">
+    (Format long &gt; 70 000 car.)
+  </span>
+)}
+      </div>
 
-           {canSubmit ? (
+        {canSubmit ? (
   <Button onClick={startAnalysis} disabled={analyzing} className="gap-2">
     <ShieldCheck className="h-4 w-4" />
     {analyzing ? `Vérification en cours (${progress}%)…` : "Lancer l'analyse d'intégrité"}
