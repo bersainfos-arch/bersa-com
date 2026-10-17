@@ -523,10 +523,13 @@ export function HomeEditor() {
           </div>
         </div>
 
-        {/* Boutons flottants persistants (mobile et ordinateur) style capsule, sans masquer la feuille */}
-               <div
-          className="no-print fixed right-4 z-40 flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 shadow-2xl backdrop-blur-md transition-all duration-150"
-          style={{ bottom: keyboardOffset > 0 ? `${keyboardOffset + 12}px` : "1.25rem" }}
+          {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
+        <div
+          className="no-print fixed right-3 sm:right-6 z-50 flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 shadow-2xl backdrop-blur-md transition-all duration-150 ease-out"
+          style={{
+            bottom: keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
+            transform: "translateZ(0)",
+          }}
         >
           <Button
             variant="ghost"
