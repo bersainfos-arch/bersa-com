@@ -142,6 +142,13 @@ export function HomeEditor() {
       <span className="font-semibold text-primary">
         Page 1 sur {totalPages} {totalPages > 1 && `(${Math.ceil(textLength / 5)} mots)`}
       </span>
+         {totalPages > 1 && (
+     <div className="no-print mx-auto w-full max-w-[794px] text-center text-[10px] text-muted-foreground">
+      {Array.from({ length: totalPages - 1 }, (_, i) => (
+       <div key={i} className="page-break my-6">— Page {i + 2} —</div>
+      ))}
+     </div>
+    )}
     </div>
    </div>
    <div className="no-print home-command-bar border-t bg-card px-2 py-2">
