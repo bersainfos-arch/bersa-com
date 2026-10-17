@@ -147,7 +147,6 @@ const isLongDocument = charCount > 70000;
     }
 
     setAnalyzing(true);
-    setProgress(15);
     setAnalyzed(false);
 
     const interval = setInterval(() => {
