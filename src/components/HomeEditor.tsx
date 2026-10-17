@@ -40,9 +40,10 @@ export function HomeEditor() {
   const [audioUrl, setAudioUrl] = useState("");
   const [transcribing, setTranscribing] = useState(false);
   const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
-  const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
-    // Historique des demandes posées à l'Assistant
-   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
+   const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
+  // Historique des demandes posées à l'Assistant
+  const [history, setHistory] = useState<Array<{ id: string; prompt: string; action: string; time: string }>>([]);
+  // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
