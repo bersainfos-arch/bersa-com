@@ -284,6 +284,54 @@ const isLongDocument = charCount > 70000;
       toast.error("Impossible de transférer le document.");
     }
   }
+  function downloadFullReport() {
+  const reportHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Rapport d'Intégrité - ${documentTitle}</title>
+  <style>
+    body { font-family: 'Times New Roman', serif; padding: 40px; color: #111; line-height: 1.6; }
+    h1 { color: #0f2a4a; font-size: 22px; border-bottom: 2px solid #0f2a4a; padding-bottom: 8px; }
+    .badge { background: #0f2a4a; color: #fff; padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; }
+    .stats { display: flex; gap: 20px; margin: 24px 0; }
+    .card { border: 1px solid #ccc; padding: 12px; border-radius: 6px; flex: 1; text-align: center; }
+    .score { font-size: 26px; font-weight: bold; }
+    .highlight { background-color: #fde68a; text-decoration: underline; font-weight: 500; }
+    .page-break { page-break-after: always; margin-top: 30px; border-top: 1px dashed #bbb; padding-top: 15px; }
+  </style>
+</head>
+<body>
+  <span class="badge">CERTIFICAT D'INTÉGRITÉ ACADÉMIQUE BERSA</span>
+  <p><strong>N° Rapport :</strong> ${reportId} — <strong>Date :</strong> ${analysisDate}</p>
+  <h1>${documentTitle}</h1>
+  <p><strong>Auteur :</strong> ${authorName}</p>
+
+  <div class="stats">
+    <div class="card"><p>Similitudes</p><div class="score">${grossSimilarity} %</div></div>
+    <div class="card"><p>Citations conformes</p><div class="score">${quoteRate} %</div></div>
+    <div class="card"><p>Originalité nette</p><div class="score">${originalityRate} %</div></div>
+  </div>
+  
+  <h2>Document intégral vérifié avec surlignage des similitudes</h2>
+  <div style="font-size: 14px; white-space: pre-wrap;">${
+    matches.reduce((acc, m) => acc.split(m.excerpt).join(`<span class="highlight">${m.excerpt}</span>`), text)
+  }</div>
+</body>
+</html>`;
+
+  const blob = new Blob([reportHtml], { type: "text/html;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Rapport_AntiPlagiat_${reportId || "BERSA"}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast.success("Rapport complet téléchargé avec succès !");
+}
+
 
   // Impression officielle du rapport
   function printReport() {
