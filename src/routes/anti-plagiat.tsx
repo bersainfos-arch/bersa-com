@@ -148,9 +148,9 @@ const isLongDocument = charCount > 70000;
       return;
     }
 
-    if (isPremiumRequired) {
-      toast.warning("Document supérieur à 70 000 caractères. Un forfait Premium est recommandé pour une vérification intégrale.");
-    }
+    if (isLongDocument) {
+  toast.info("Document volumineux (> 70 000 caractères) : analyse complète en cours…");
+}
 
     setAnalyzing(true);
     setAnalyzed(false);
