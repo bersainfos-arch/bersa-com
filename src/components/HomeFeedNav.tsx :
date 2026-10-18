@@ -1,1 +1,233 @@
+import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  Search,
+  Menu,
+  Home,
+  FileText,
+  GraduationCap,
+  BookOpen,
+  Briefcase,
+  PlusCircle,
+  MessageSquare,
+  Bell,
+  User,
+  Settings,
+  ShieldCheck,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
+import logo from "@/assets/bersa-logo.png.asset.json";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
+interface HomeFeedNavProps {
+  user: any;
+  userFullName: string;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  onOpenPublish: () => void;
+  onOpenMessages: (tab?: "network" | "chat" | "notifications") => void;
+  unreadCount?: number;
+  unreadMessagesCount?: number;
+  searchResults?: Array<{ id: string; title: string; category: string; link: string }>;
+}
+
+export function HomeFeedNav({
+  user,
+  userFullName,
+  searchQuery,
+  onSearchChange,
+  onOpenPublish,
+  onOpenMessages,
+  unreadCount = 3,
+  unreadMessagesCount = 2,
+  searchResults = [],
+}: HomeFeedNavProps) {
+  const navigate = useNavigate();
+  const [searchFocused, setSearchFocused] = useState(false);
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+
+  return (
+    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-xs">
+      {/* Rangée 1 : Logo, Recherche déroulante, Profil et Menu 3 traits */}
+      <div className="max-w-4xl mx-auto px-3 py-2 flex items-center justify-between gap-2">
+        {/* Menu 3 traits avec tous les libellés complets */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-foreground hover:bg-muted" aria-label="Menu principal">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-64 p-2 bg-popover shadow-xl border border-border">
+            <DropdownMenuLabel className="font-semibold text-xs tracking-wider uppercase text-muted-foreground px-2 py-1">
+              Tableau de bord BERSA
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate({ to: "/" })} className="gap-2.5 py-2 cursor-pointer">
+              <Home className="h-4 w-4 text-primary" />
+              <span>Accueil & Fil d'actualité</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/redaction" })} className="gap-2.5 py-2 cursor-pointer">
+              <FileText className="h-4 w-4 text-primary" />
+              <span>Rédaction académique</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/formations" })} className="gap-2.5 py-2 cursor-pointer">
+              <GraduationCap className="h-4 w-4 text-primary" />
+              <span>Formations certifiantes</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/bibliotheque" })} className="gap-2.5 py-2 cursor-pointer">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <span>Bibliothèque & Ouvrages</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/opportunites" })} className="gap-2.5 py-2 cursor-pointer">
+              <Briefcase className="h-4 w-4 text-primary" />
+              <span>Opportunités & Bourses</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onOpenMessages("network")} className="gap-2.5 py-2 cursor-pointer">
+              <User className="h-4 w-4 text-primary" />
+              <span>Mon Réseau & Connaissances</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onOpenMessages("chat")} className="gap-2.5 py-2 cursor-pointer">
+              <MessageSquare className="h-4 w-4 text-primary" />
+              <span>Messagerie privée</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onOpenMessages("notifications")} className="gap-2.5 py-2 cursor-pointer">
+              <Bell className="h-4 w-4 text-primary" />
+              <span>Centre de notifications</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate({ to: "/profil" })} className="gap-2.5 py-2 cursor-pointer">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span>Mon Profil</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate({ to: "/parametres" })} className="gap-2.5 py-2 cursor-pointer">
+              <Settings className="h-4 w-4 text-muted-foreground" />
+              <span>Paramètres & Taille du texte</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Logo officiel BERSA */}
+        <Link to="/" className="flex items-center gap-1.5 shrink-0">
+          <img src={logo} alt="Logo BERSA" className="h-7 w-auto object-contain" />
+          <span className="font-serif font-bold text-base text-primary hidden sm:inline">BERSA</span>
+        </Link>
+
+        {/* Barre de recherche avec résultats déroulants sous la barre */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+            placeholder="Rechercher formations, livres, collègues..."
+            className="pl-8 pr-3 h-8 text-xs bg-muted/60 border-transparent focus:border-primary focus:bg-background rounded-full transition-all"
+          />
+
+          {/* Menu déroulant des résultats de recherche sous la barre (style Facebook) */}
+          {searchFocused && searchQuery.trim().length > 1 && (
+            <div className="absolute top-10 left-0 right-0 bg-popover border border-border rounded-xl shadow-2xl p-2 z-50 max-h-72 overflow-y-auto">
+              <p className="text-[11px] font-semibold text-muted-foreground px-2 py-1">Résultats instantanés</p>
+              {searchResults.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-3 text-center">Aucun résultat trouvé pour "{searchQuery}"</p>
+              ) : (
+                searchResults.map((item) => (
+                  <button
+                    key={item.id}
+                    onMouseDown={() => navigate({ to: item.link as any })}
+                    className="w-full text-left px-2 py-2 hover:bg-muted rounded-lg text-xs flex items-center justify-between transition-colors"
+                  >
+                    <span className="font-medium text-foreground truncate pr-2">{item.title}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary shrink-0">{item.category}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Photo de profil réel de l'utilisateur */}
+        <button
+          onClick={() => navigate({ to: "/profil" })}
+          className="relative h-8 w-8 rounded-full overflow-hidden border border-border hover:ring-2 hover:ring-primary/40 transition-all shrink-0 bg-muted flex items-center justify-center"
+          title={userFullName}
+        >
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={userFullName} className="h-full w-full object-cover" />
+          ) : (
+            <span className="text-xs font-bold text-primary">
+              {userFullName.charAt(0).toUpperCase()}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Rangée 2 : Barre d'icônes seules (sans aucun texte dessous pour un affichage net sur mobile) */}
+      <div className="max-w-4xl mx-auto px-1 flex items-center justify-around border-t border-border/40 py-1">
+        {/* 1. Accueil */}
+        <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/" })} className="h-10 w-10 text-primary" title="Accueil">
+          <Home className="h-5 w-5" />
+        </Button>
+
+        {/* 2. Rédaction */}
+        <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/redaction" })} className="h-10 w-10 text-muted-foreground hover:text-foreground" title="Rédaction">
+          <FileText className="h-5 w-5" />
+        </Button>
+
+        {/* 3. Formation */}
+        <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/formations" })} className="h-10 w-10 text-muted-foreground hover:text-foreground" title="Formation">
+          <GraduationCap className="h-5 w-5" />
+        </Button>
+
+        {/* 4. Bibliothèque */}
+        <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/bibliotheque" })} className="h-10 w-10 text-muted-foreground hover:text-foreground" title="Bibliothèque">
+          <BookOpen className="h-5 w-5" />
+        </Button>
+
+        {/* 5. Opportunités */}
+        <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/opportunites" })} className="h-10 w-10 text-muted-foreground hover:text-foreground" title="Opportunités">
+          <Briefcase className="h-5 w-5" />
+        </Button>
+
+        {/* 6. Publier (bouton central mis en valeur) */}
+        <Button variant="ghost" size="icon" onClick={onOpenPublish} className="h-10 w-10 text-primary hover:bg-primary/10" title="Publier">
+          <PlusCircle className="h-5 w-5" />
+        </Button>
+
+        {/* 7. Message (avant notification, avec badge non-lus) */}
+        <div className="relative">
+          <Button variant="ghost" size="icon" onClick={() => onOpenMessages("chat")} className="h-10 w-10 text-muted-foreground hover:text-foreground" title="Messages">
+            <MessageSquare className="h-5 w-5" />
+          </Button>
+          {unreadMessagesCount > 0 && (
+            <span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none">
+              {unreadMessagesCount}
+            </span>
+          )}
+        </div>
+
+        {/* 8. Notifications */}
+        <div className="relative">
+          <Button variant="ghost" size="icon" onClick={() => onOpenMessages("notifications")} className="h-10 w-10 text-muted-foreground hover:text-foreground" title="Notifications">
+            <Bell className="h-5 w-5" />
+          </Button>
+          {unreadCount > 0 && (
+            <span className="absolute top-1 right-1 h-4 min-w-[16px] px-1 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
