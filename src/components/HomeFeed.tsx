@@ -450,4 +450,168 @@ export function HomeFeed() {
                   type="button"
                   onClick={() => toast.info("7 commentaires enregistrés")}
                   className="hover:text-blue-600 font-medium"
-    
+                >
+                  Commenter 7
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({ title: "Guide 2026 BERSA", url: window.location.href });
+                    } else {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("Lien copié dans le presse-papier");
+                    }
+                  }}
+                  className="hover:text-blue-600 font-medium"
+                >
+                  Partager
+                </button>
+              </div>
+
+              {/* Puces d'actions rapides sous la deuxième carte */}
+              <div className="mt-3 flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-1 pb-1">
+                {actionBadges.map((badge) => (
+                  <button
+                    key={badge.action}
+                    type="button"
+                    onClick={() => handleActionBadge(badge)}
+                    className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition"
+                  >
+                    {badge.label}
+                  </button>
+                ))}
+              </div>
+            </article>
+          </div>
+        </main>
+
+        {/* ============================================================ */}
+        {/* 4. CAPSULE FLOTTANTE INFÉRIEURE : ASSISTANT BERSA IA         */}
+        {/* ============================================================ */}
+        <div className="fixed inset-x-0 bottom-3 z-40 px-3 pointer-events-none">
+          <div className="mx-auto max-w-md pointer-events-auto">
+            <div className="rounded-2xl border border-slate-200/90 bg-white/95 p-2.5 shadow-2xl backdrop-blur-lg">
+              {/* Salutation personnalisée */}
+              <div className="mb-2 flex items-center justify-between px-1">
+                <span className="text-xs font-semibold text-slate-900">
+                  Salut {firstName} !
+                </span>
+                <span className="text-[11px] text-slate-500">
+                  Que voulez-vous que je fasse pour vous ?
+                </span>
+              </div>
+
+              {/* Champ d'action Assistant */}
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setPublishModalOpen(true)}
+                  className="h-9 w-9 shrink-0 rounded-xl text-slate-500 hover:bg-slate-100"
+                  aria-label="Ajouter une publication ou un document"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+
+                <div className="relative flex-1">
+                  <Input
+                    type="text"
+                    value={promptText}
+                    onChange={(e) => setPromptText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleLaunchAssistant();
+                      }
+                    }}
+                    placeholder="Posez votre question ou consigne…"
+                    className="h-9 rounded-xl border-slate-200 bg-slate-50 px-3 text-xs placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-primary"
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => toast.info("Enregistrement vocal prêt")}
+                  className="h-9 w-9 shrink-0 rounded-xl text-slate-500 hover:bg-slate-100"
+                  aria-label="Dictée vocale"
+                >
+                  <Mic className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={handleLaunchAssistant}
+                  className="h-9 w-9 shrink-0 rounded-full bg-[#1d4ed8] p-0 text-white shadow-md hover:bg-blue-700 transition"
+                  aria-label="Lancer l'assistant"
+                >
+                  <AudioWaveform className="h-4 w-4 animate-pulse" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Boîte de dialogue : Publier */}
+        <Dialog open={publishModalOpen} onOpenChange={setPublishModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base font-bold">
+                <Plus className="h-4 w-4 text-primary" /> Publier sur BERSA
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 pt-2 text-xs">
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-10"
+                onClick={() => {
+                  setPublishModalOpen(false);
+                  navigate({ to: "/bibliotheque" });
+                }}
+              >
+                <BookOpen className="h-4 w-4 text-emerald-600" /> Proposer un livre à la bibliothèque
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-10"
+                onClick={() => {
+                  setPublishModalOpen(false);
+                  navigate({ to: "/formations" });
+                }}
+              >
+                <GraduationCap className="h-4 w-4 text-blue-600" /> Proposer une formation d'auteur
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 h-10"
+                onClick={() => {
+                  setPublishModalOpen(false);
+                  navigate({ to: "/redaction" });
+                }}
+              >
+                <FileText className="h-4 w-4 text-purple-600" /> Rédiger un nouveau document A4
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Boîte de dialogue : Divertissement */}
+        <Dialog open={funModalOpen} onOpenChange={setFunModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base font-bold">
+                <Gamepad2 className="h-4 w-4 text-amber-500" /> Espace Détente & Culture
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-xs text-slate-600 leading-relaxed pt-2">
+              L'espace détente BERSA propose des quiz académiques, des énigmes littéraires et des pauses de lecture pour stimuler votre esprit entre deux séances de rédaction.
+            </p>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AuthGate>
+  );
+}
