@@ -13,10 +13,19 @@ import {
   Settings,
   ShieldAlert,
   MessageCircle,
+  Menu,
 } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +39,6 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { to: "/", label: "Assistant", icon: Bot, exact: true },
   { to: "/redaction", label: "Rédaction", icon: PenLine },
   { to: "/anti-plagiat", label: "Anti-plagiat", icon: ShieldAlert },
   { to: "/documents", label: "Documents", icon: FileText },
@@ -59,43 +67,53 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <AuthGate>
-      <div className="min-h-screen pb-20 md:pb-0">
-        {/* En-tête compact pour agrandir l'espace utile du papier A4 */}
+      <div className="min-h-screen">
+        {/* En-tête compact : menu à trois traits, logo, puis actions personnelles */}
         <header className="sticky top-0 z-30 bg-royal text-royal-foreground shadow-sm">
-          <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-1.5 md:gap-4 md:py-2">
-            {/* Logo BERSA en haut à gauche */}
-            <Link to="/" className="flex shrink-0 items-center gap-2">
-              <img src={logo.url} alt="Logo BERSA" className="h-8 w-8 rounded-lg shadow-sm" />
-              <div className="flex flex-col leading-tight">
-                <span className="font-display text-xl font-bold tracking-tight">BERSA</span>
-                <span className="font-display text-[10px] text-gold">Berceau du Savoir</span>
+          <div className="mx-auto flex h-11 max-w-7xl items-center gap-1.5 px-2 md:px-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-royal-foreground hover:bg-royal-foreground/10" aria-label="Ouvrir le menu des fonctionnalités">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" sideOffset={6} className="w-60 p-1.5">
+                <DropdownMenuLabel className="font-display text-base text-primary">Fonctionnalités</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link to="/" className="cursor-pointer gap-3 py-2"><Bot className="text-primary" /> Assistant</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {visibleTabs.map((tb) => (
+                  <DropdownMenuItem key={tb.to} asChild>
+                    <Link
+                      to={tb.to}
+                      className="cursor-pointer gap-3 py-2"
+                      activeProps={{ className: "bg-accent font-semibold text-accent-foreground" }}
+                    >
+                      <tb.icon className="text-primary" /> {tb.label}
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Link to="/" className="flex min-w-0 items-center gap-2">
+              <img src={logo.url} alt="Logo BERSA" className="h-7 w-7 shrink-0 rounded-md shadow-sm" />
+              <div className="flex min-w-0 flex-col leading-none">
+                <span className="font-display text-lg font-bold">BERSA</span>
+                <span className="truncate font-display text-[10px] text-gold">Berceau du Savoir</span>
               </div>
             </Link>
 
-            {/* Menu central ordonné */}
-            <nav className="hidden items-center gap-1 overflow-x-auto md:flex scrollbar-none">
-              {visibleTabs.map((tb) => (
-                <Link
-                  key={tb.to}
-                  to={tb.to}
-                  activeOptions={{ exact: tb.exact ?? false }}
-                  className="shrink-0 rounded-md px-2.5 py-1 text-xs font-medium opacity-85 transition hover:opacity-100"
-                  activeProps={{ className: "bg-gold text-gold-foreground opacity-100 font-semibold" }}
-                >
-                  {tb.label}
-                </Link>
-              ))}
-            </nav>
-
             {/* Bloc droit : Profil, Réglages, Contact, Langue */}
-            <div className="ml-auto flex items-center gap-1">
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-royal-foreground hover:bg-white/10">
+            <div className="ml-auto flex shrink-0 items-center gap-0.5">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-royal-foreground hover:bg-royal-foreground/10">
                 <Link to="/profil" aria-label="Mon profil" title="Mon profil">
                   <User className="h-4 w-4" />
                 </Link>
               </Button>
 
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-royal-foreground hover:bg-white/10">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-royal-foreground hover:bg-royal-foreground/10">
                 <Link to="/parametres" aria-label="Paramètres" title="Paramètres">
                   <Settings className="h-4 w-4" />
                 </Link>
@@ -114,22 +132,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main>{children}</main>
-
-        {/* Barre mobile inférieure avec ordre conservé */}
-        <nav className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t bg-card py-1 shadow-lg md:hidden scrollbar-none">
-          {visibleTabs.map((tb) => (
-            <Link
-              key={tb.to}
-              to={tb.to}
-              activeOptions={{ exact: tb.exact ?? false }}
-              className="flex min-w-[62px] flex-1 flex-col items-center gap-0.5 py-1 text-[9px] text-muted-foreground"
-              activeProps={{ className: "text-primary font-semibold" }}
-            >
-              <tb.icon className="h-4 w-4" />
-              <span className="truncate">{tb.label}</span>
-            </Link>
-          ))}
-        </nav>
       </div>
     </AuthGate>
   );

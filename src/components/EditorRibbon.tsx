@@ -57,7 +57,7 @@ export function EditorRibbon({
       type="button"
       variant={active ? "secondary" : "ghost"}
       size="sm"
-      className="h-8 px-2 text-xs gap-1"
+      className="h-7 gap-1 px-1.5 text-xs"
       title={label}
       onClick={onClick}
     >
@@ -209,11 +209,11 @@ export function EditorRibbon({
   return (
     <div className="no-print border-b bg-card text-foreground">
       {/* Barre supérieure des onglets Office */}
-      <div className="flex items-center overflow-x-auto bg-primary/95 text-primary-foreground px-1 py-0.5 gap-0.5 scrollbar-none">
+      <div className="flex items-center gap-0.5 overflow-x-auto bg-primary px-1 py-0.5 text-primary-foreground scrollbar-none">
         <Button
           size="sm"
           variant={tab === "Assistant" ? "secondary" : "ghost"}
-          className="h-7 px-3 text-xs font-semibold"
+          className="h-6 shrink-0 px-2.5 text-xs font-semibold"
           onClick={() => setTab("Assistant")}
         >
             <Sparkles className="h-3.5 w-3.5 mr-1" /> Assistant
@@ -226,7 +226,7 @@ export function EditorRibbon({
             key={m}
             size="sm"
             variant={activeMenu === m && tab !== "Assistant" ? "secondary" : "ghost"}
-            className="h-7 px-2.5 text-xs text-primary-foreground hover:bg-primary/80"
+            className="h-6 shrink-0 px-2 text-xs text-primary-foreground hover:bg-primary-foreground/15"
             onClick={() => {
               setActiveMenu(m);
               setTab("Mise en forme");
@@ -238,7 +238,7 @@ export function EditorRibbon({
       </div>
 
       {/* Ruban dynamique contextuel */}
-      <div className="p-1 flex flex-wrap items-center gap-1 border-b bg-background min-h-10 text-xs">
+      <div className="flex min-h-8 items-center gap-1 overflow-x-auto border-b bg-background px-1 py-0.5 text-xs scrollbar-none [&>div]:flex-nowrap [&>div]:shrink-0">
         {/* ONGLET FICHIER */}
         {activeMenu === "Fichier" && (
           <div className="flex flex-wrap items-center gap-1">
