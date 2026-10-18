@@ -362,7 +362,7 @@ export function HomeEditor() {
 
   return (
     <AppShell>
-      <section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl px-1 py-1 sm:px-4">
+      <section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl sm:px-3">
         <EditorRibbon
           editor={editor}
           tab={tab}
@@ -375,14 +375,13 @@ export function HomeEditor() {
         />
 
         {tab === "Assistant" && (
-          <div className="no-print flex items-center gap-1 overflow-x-auto border-b bg-card px-2 py-1 scrollbar-none" aria-label="Services de l’Assistant">
-            <span className="shrink-0 text-xs font-semibold text-muted-foreground">A4</span>
+          <div className="no-print flex items-center gap-0.5 overflow-x-auto border-b bg-card px-1 py-0.5 scrollbar-none" aria-label="Services de l’Assistant">
             {assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => (
               <Button
                 key={id}
                 size="sm"
                 variant="ghost"
-                className="h-7 shrink-0 px-2 text-xs"
+                className="h-6 shrink-0 rounded-full px-2.5 text-xs text-primary hover:bg-accent"
                 onMouseDown={e => e.preventDefault()}
                 disabled={busy || transcribing || recording}
                 onClick={() => { setAction("generate"); void run(id); }}
@@ -395,10 +394,10 @@ export function HomeEditor() {
 
                 {/* Historique des demandes de l'Assistant en haut dans la discussion */}
         {history.length > 0 && (
-          <div className="no-print mx-auto my-1 max-w-[794px] rounded border border-border/70 bg-card/60 p-2 text-xs shadow-xs">
+          <div className="no-print mx-auto my-1 max-w-[794px] rounded-md border bg-card px-2 py-1.5 text-xs">
             <div className="mb-1.5 flex items-center justify-between border-b border-border/40 pb-1">
               <span className="font-semibold text-primary">
-                💬 Historique des demandes ({history.length})
+                Historique des demandes ({history.length})
               </span>
               <button
                 type="button"
@@ -409,7 +408,7 @@ export function HomeEditor() {
                 Effacer
               </button>
             </div>
-            <div className="max-h-28 space-y-1 overflow-y-auto pr-1">
+            <div className="max-h-20 space-y-1 overflow-y-auto pr-1">
               {history.map(item => (
                 <div key={item.id} className="flex items-start justify-between gap-2 rounded bg-muted/40 px-2 py-1 text-[11.5px]">
                   <span className="truncate text-foreground font-medium flex-1">
@@ -507,7 +506,7 @@ export function HomeEditor() {
           )}
 
           {/* Pied de page numéroté automatique */}
-          <div className="no-print mx-auto mt-4 flex w-full max-w-[794px] items-center justify-between border-t border-border/40 px-3 pt-2 text-[11px] text-muted-foreground">
+          <div className="no-print mx-auto mt-1 flex w-full max-w-[794px] items-center justify-between px-2 text-[11px] text-muted-foreground">
             <span>{settings.format} · Marges {settings.margin}</span>
             <span className="font-semibold text-primary">
               Page 1 sur {totalPages} ({totalPages === 1 ? "1 feuille A4" : `${totalPages} feuilles A4`})

@@ -77,11 +77,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   };
   useEffect(() => {
     let active = true;
-    const restore = (user: { id: string; user_metadata: Record<string, unknown> } | null) => {
+    const restore = (user: { id: string; user_metadata?: Record<string, unknown> | null } | null) => {
       if (!active) return;
       userId.current = user?.id;
       const local = localStorage.getItem(languageStorageKey(user?.id));
-      void apply(preferredLanguage(user?.user_metadata['preferred_language'], local));
+      void apply(preferredLanguage(user?.user_metadata?.['preferred_language'], local));
     };
     void apply(preferredLanguage(undefined, localStorage.getItem(languageStorageKey())));
     void supabase.auth.getSession().then(({ data }) => restore(data.session?.user ?? null));
