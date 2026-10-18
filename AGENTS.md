@@ -12,6 +12,7 @@
 - Keep the home announcements slideshow in a browser-safe HomeNews component with category filters; only display supplied media to avoid inventing events.
 
 - Share the browser-safe HomeEditor between / and /app so both entry points show the same writing experience.
+- Keep secondary app navigation in AppShell's accessible dropdown and reserve space below the home paper viewport for the persistent commands, so navigation and commands never cover document text.
 - Keep opening phase timing in a pure module so the two-step signup transition can be tested without authentication.
 
 - Use Tiptap in the shared HomeEditor and a separate EditorRibbon; commands must operate on the current selection or edited document, and AI text enters as text nodes, never raw HTML.

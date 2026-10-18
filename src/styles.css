@@ -42,6 +42,10 @@
 :root {
   --radius: 0.5rem;
   --paper-ink: oklch(0.15 0 0);
+  --paper: oklch(1 0 0);
+  --paper-border: oklch(0.87 0.008 265);
+  --editor-desk: oklch(0.95 0.012 265);
+  --shadow-paper: 0 3px 14px oklch(0.22 0.03 265 / 0.1);
   --background: oklch(0.985 0.006 85);
   --foreground: oklch(0.22 0.08 265);
   --card: oklch(1 0 0);
@@ -351,4 +355,45 @@
 .a4-footnote-backlink {
   cursor: pointer;
   text-decoration: none;
+}
+
+/* Accueil compact : outils en haut, bureau défilant et commandes dégagées. */
+.home-editor {
+  height: calc(100dvh - 44px);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+.home-editor > :not(.home-paper-desk) { flex-shrink: 0; }
+.home-editor .home-paper-desk {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  gap: 4px;
+  padding: 8px 10px 24px;
+  background: var(--editor-desk);
+  scroll-padding-bottom: 24px;
+  overscroll-behavior: contain;
+}
+.home-editor .home-paper-content { flex-shrink: 0; }
+.home-editor .home-ai-sheet {
+  background: var(--paper) !important;
+  color: var(--paper-ink) !important;
+  border-color: var(--paper-border) !important;
+  box-shadow: var(--shadow-paper) !important;
+  margin-bottom: 0;
+}
+@media (max-width: 640px) {
+  .home-editor .home-paper-desk { padding: 6px 8px 20px; }
+  .home-editor .home-ai-sheet {
+    max-width: 100%;
+    min-height: 0;
+    aspect-ratio: 210 / 297;
+  }
+}
+@media print {
+  .home-editor { height: auto; display: block; padding: 0; }
+  .home-editor .home-paper-desk { display: block; overflow: visible; padding: 0; background: none; }
+  .home-editor .home-ai-sheet { aspect-ratio: auto; border: none !important; box-shadow: none !important; }
 }

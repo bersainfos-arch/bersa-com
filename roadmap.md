@@ -1,4 +1,5 @@
 # BERSA roadmap (reconstruction)
+- [x] Accueil compact, menu à trois traits et papier dégagé des commandes persistantes
 - [x] Paiement manuel livres : demande non payée, confirmation admin, contrôle d’accès et tests de signature 60 secondes
 - [ ] Vérification acheteur réelle avant/après : consentement de connexion refusé ; ne pas relancer sans accord
 - [x] Date de naissance privée à l’inscription
