@@ -1226,6 +1226,9 @@ export function HomeFeed() {
                   >
                     <GraduationCap className="h-3.5 w-3.5 text-blue-600" /> Formation
                   </Button>
+                  <Button type="button" variant="outline" size="sm" className="h-8 text-[11px] justify-start gap-1.5" onClick={() => { setPublishModalOpen(false); setFunModalOpen(true); }}>
+                    <Gamepad2 className="h-3.5 w-3.5 text-purple-600" /> Divertissement
+                  </Button>
                 </div>
               </div>
             </div>
