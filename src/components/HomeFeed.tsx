@@ -75,20 +75,20 @@ interface FeedPost {
   type: "user" | "course" | "book" | "opportunity";
   authorName: string;
   authorSubtitle: string;
-  authorAvatar?: string;
-  isVerified?: boolean;
+  authorAvatar?: string | undefined;
+  isVerified?: boolean | undefined;
   content: string;
-  title?: string;
-  mediaUrl?: string;
-  videoUrl?: string;
-  domain?: string;
-  tags?: string[];
-  linkTo?: string;
-  linkLabel?: string;
+  title?: string | undefined;
+  mediaUrl?: string | undefined;
+  videoUrl?: string | undefined;
+  domain?: string | undefined;
+  tags?: string[] | undefined;
+  linkTo?: string | undefined;
+  linkLabel?: string | undefined;
   likes: number;
   comments: PostComment[];
-  isLiked?: boolean;
-  isSaved?: boolean;
+  isLiked?: boolean | undefined;
+  isSaved?: boolean | undefined;
   date: string;
 }
 
@@ -98,10 +98,10 @@ export function HomeFeed() {
 
   // Profil réel connecté
   const userFirstName =
-    (user?.user_metadata?.first_name as string) ||
+    (user?.user_metadata?.["first_name"] as string) ||
     (user?.email ? user.email.split("@")[0] : "Auteur");
   const userFullName =
-    `${user?.user_metadata?.first_name || ""} ${user?.user_metadata?.last_name || ""}`.trim() ||
+    `${user?.user_metadata?.["first_name"] || ""} ${user?.user_metadata?.["last_name"] || ""}`.trim() ||
     user?.email?.split("@")[0] ||
     "Auteur BERSA";
 
@@ -578,7 +578,7 @@ export function HomeFeed() {
                 aria-label="Mon profil"
                 className="flex items-center justify-center h-8 w-8 rounded-full border border-slate-200 bg-blue-50 text-blue-800 font-bold text-xs"
               >
-                {userFirstName.charAt(0).toUpperCase()}
+                {(userFirstName ?? "A").charAt(0).toUpperCase()}
               </Link>
 
               <DropdownMenu>
@@ -758,14 +758,14 @@ export function HomeFeed() {
           <div className="mb-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-800 font-bold text-xs shrink-0">
-                {userFirstName.charAt(0).toUpperCase()}
+                {(userFirstName ?? "A").charAt(0).toUpperCase()}
               </div>
               <button
                 type="button"
                 onClick={() => setPublishModalOpen(true)}
                 className="flex-1 rounded-full bg-slate-100 px-3.5 py-2 text-left text-xs text-slate-500 hover:bg-slate-200/70 transition"
               >
-                Que souhaitez-vous partager, {userFirstName} ?
+                Que souhaitez-vous partager, {userFirstName ?? ""} ?
               </button>
             </div>
             <div className="mt-2.5 flex items-center justify-around border-t border-slate-100 pt-2 text-[11px] text-slate-600">
@@ -1304,10 +1304,10 @@ export function HomeFeed() {
                 <div className="rounded-xl bg-amber-50/70 border border-amber-200/60 p-4">
                   <Quote className="h-6 w-6 text-amber-500 mx-auto mb-2 opacity-80" />
                   <p className="font-serif italic text-sm text-slate-800 leading-relaxed">
-                    « {academicQuotes[quoteIndex].quote} »
+                    « {academicQuotes[quoteIndex]!.quote} »
                   </p>
                   <p className="mt-2 text-xs font-bold text-amber-900">
-                    — {academicQuotes[quoteIndex].author}
+                    — {academicQuotes[quoteIndex]!.author}
                   </p>
                 </div>
                 <Button
@@ -1327,10 +1327,10 @@ export function HomeFeed() {
             {funTab === "quiz" && (
               <div className="pt-3 space-y-3">
                 <p className="text-xs font-semibold text-slate-900">
-                  {quizQuestions[0].question}
+                  {quizQuestions[0]!.question}
                 </p>
                 <div className="space-y-1.5">
-                  {quizQuestions[0].options.map((opt, idx) => (
+                  {quizQuestions[0]!.options.map((opt, idx) => (
                     <button
                       key={idx}
                       type="button"
@@ -1338,7 +1338,7 @@ export function HomeFeed() {
                       className={`w-full rounded-lg border p-2.5 text-left text-xs transition ${
                         quizAnswered === null
                           ? "border-slate-200 bg-white hover:bg-slate-50"
-                          : idx === quizQuestions[0].correct
+                          : idx === quizQuestions[0]!.correct
                           ? "border-emerald-500 bg-emerald-50 font-semibold text-emerald-900"
                           : quizAnswered === idx
                           ? "border-rose-400 bg-rose-50 text-rose-800"
@@ -1351,7 +1351,7 @@ export function HomeFeed() {
                 </div>
                 {quizAnswered !== null && (
                   <p className="text-[11px] text-slate-600 bg-slate-100 p-2 rounded-lg">
-                    {quizQuestions[0].explanation}
+                    {quizQuestions[0]!.explanation}
                   </p>
                 )}
               </div>
