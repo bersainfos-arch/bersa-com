@@ -584,4 +584,401 @@ export function HomeFeed() {
       (p.domain && p.domain.toLowerCase().includes(q))
     );
   }).slice(0, 8);
-    
+      return (
+    <AuthGate>
+      <div className="min-h-screen bg-[#f3f5f9] text-slate-800 antialiased pb-28">
+        {/* ============================================================ */}
+        {/* 1. EN-TÊTE SUPÉRIEUR : LOGO, RECHERCHE DÉROULANTE ET MENU   */}
+        {/* ============================================================ */}
+        <header className="sticky top-0 z-40 bg-white/95 px-3 py-2 shadow-xs backdrop-blur-md border-b border-slate-100">
+          <div className="mx-auto flex max-w-xl items-center justify-between gap-2">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
+              <img
+                src={logo.url}
+                alt="Logo BERSA"
+                className="h-9 w-9 rounded-xl object-contain shadow-xs bg-white p-0.5 border border-slate-100"
+              />
+              <div className="flex flex-col leading-none">
+                <span className="font-serif text-lg font-black tracking-tight text-[#0f172a]">
+                  BERSA
+                </span>
+                <span className="text-[10px] font-medium text-slate-500">
+                  Berceau du Savoir
+                </span>
+              </div>
+            </Link>
+
+            {/* Barre de recherche déroulante instantanée */}
+            <div className="relative flex-1 max-w-[170px] sm:max-w-xs">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Rechercher..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocus(true)}
+                onBlur={() => setTimeout(() => setSearchFocus(false), 200)}
+                className="h-8 rounded-full border-slate-200 bg-slate-100/80 pl-8 pr-3 text-xs placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-primary"
+              />
+              {searchFocus && (
+                <div className="absolute left-0 top-10 z-50 w-[min(92vw,22rem)] max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                  {searchResults.length === 0 ? (
+                    <p className="px-2 py-3 text-xs text-slate-500">
+                      {searchQuery.trim() ? "Aucun résultat." : "Tapez pour rechercher..."}
+                    </p>
+                  ) : (
+                    searchResults.map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onMouseDown={() => {
+                          setSearchQuery("");
+                          if (r.linkTo) navigate({ to: r.linkTo as any });
+                        }}
+                        className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-100"
+                      >
+                        <Search className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-slate-900">
+                            {r.title || r.authorName}
+                          </span>
+                          <span className="block truncate text-[11px] text-slate-500">
+                            {r.authorSubtitle}
+                          </span>
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Vraie photo de profil & Menu 3 traits */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Link
+                to="/profil"
+                aria-label="Mon profil"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-slate-200 bg-blue-50 text-blue-800 font-bold text-xs overflow-hidden"
+              >
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userFullName} className="h-full w-full object-cover" />
+                ) : (
+                  (userFirstName ?? "A").charAt(0).toUpperCase()
+                )}
+              </Link>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-700 hover:bg-slate-100"
+                    aria-label="Tableau de bord et navigation"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64 p-1.5 shadow-xl">
+                  <DropdownMenuLabel className="text-xs font-bold text-primary px-2 py-1">
+                    Tableau de bord BERSA
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/redaction" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <FileText className="h-4 w-4 text-indigo-600 shrink-0" /> Atelier de Rédaction A4
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/anti-plagiat" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <ShieldAlert className="h-4 w-4 text-amber-600 shrink-0" /> Détecteur Anti-plagiat
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/formations" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <GraduationCap className="h-4 w-4 text-emerald-600 shrink-0" /> Formations & Cours
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/bibliotheque" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <BookOpen className="h-4 w-4 text-teal-600 shrink-0" /> Bibliothèque intelligente
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/opportunites" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <Briefcase className="h-4 w-4 text-rose-600 shrink-0" /> Opportunités & Financements
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => setFunModalOpen(true)}
+                    className="cursor-pointer gap-2.5 py-2 text-xs"
+                  >
+                    <Gamepad2 className="h-4 w-4 text-purple-600 shrink-0" /> Divertissement & Pause
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/documents" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <FileText className="h-4 w-4 text-cyan-600 shrink-0" /> Mes Documents enregistrés
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/abonnements" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <Crown className="h-4 w-4 text-amber-500 shrink-0" /> Formules d'Abonnement
+                    </Link>
+                  </DropdownMenuItem>
+
+                  {user?.email === "dieudonnedjoma@gmail.com" && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/gestion" className="cursor-pointer gap-2.5 py-2 text-xs font-semibold text-purple-700">
+                        <ShieldCheck className="h-4 w-4 text-purple-600 shrink-0" /> Administration BERSA
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profil" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <User className="h-4 w-4 text-slate-500 shrink-0" /> Mon Profil complet
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link to="/parametres" className="cursor-pointer gap-2.5 py-2 text-xs">
+                      <Settings className="h-4 w-4 text-slate-500 shrink-0" /> Paramètres & Langues
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </header>
+
+        {/* ============================================================ */}
+        {/* 2. LES 8 FONCTIONNALITÉS EN 2 RANGÉES (SANS TEXTE DESSOUS)   */}
+        {/* ============================================================ */}
+        <section className="bg-white border-b border-slate-200/80 shadow-2xs px-3 py-2.5">
+          <div className="mx-auto max-w-xl">
+            <div className="grid grid-cols-4 gap-2">
+              {/* Rangée 1 : Accueil, Rédaction, Formation, Bibliothèque */}
+              <Link
+                to="/"
+                title="Accueil"
+                aria-label="Accueil"
+                className="h-11 flex items-center justify-center rounded-xl bg-blue-50/80 border border-blue-200/70 text-[#1d4ed8] active:scale-95 transition"
+              >
+                <Home className="h-5 w-5 fill-[#1d4ed8]" />
+              </Link>
+
+              <Link
+                to="/redaction"
+                title="Atelier de Rédaction Word A4"
+                aria-label="Atelier de Rédaction Word A4"
+                className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition relative"
+              >
+                <FileText className="h-5 w-5 stroke-[1.9]" />
+                <Sparkles className="absolute top-2 right-2.5 h-2.5 w-2.5 text-amber-500" />
+              </Link>
+
+              <Link
+                to="/formations"
+                title="Formations & Cours"
+                aria-label="Formations & Cours"
+                className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <GraduationCap className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+
+              <Link
+                to="/bibliotheque"
+                title="Bibliothèque"
+                aria-label="Bibliothèque"
+                className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <BookOpen className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+
+              {/* Rangée 2 : Opportunités, Publier (+), Messages, Notifications */}
+              <Link
+                to="/opportunites"
+                title="Opportunités & Financements"
+                aria-label="Opportunités & Financements"
+                className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <Briefcase className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setPublishModalOpen(true)}
+                title="Créer une publication"
+                aria-label="Créer une publication"
+                className="h-11 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
+              >
+                <Plus className="h-5 w-5 stroke-[2.5]" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMsgTab("chat"); setMsgOpen(true); }}
+                title="Messages et discussions"
+                aria-label="Messages et discussions"
+                className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <MessageSquare className="h-5 w-5 stroke-[1.9]" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMsgTab("notifications"); setMsgOpen(true); }}
+                title="Notifications"
+                aria-label="Notifications"
+                className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <Bell className="h-5 w-5 stroke-[1.9]" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 3. ASSISTANT AGRANDI AU CENTRE & ACCÈS DIRECT WORD A4         */}
+        {/* ============================================================ */}
+        <main className="mx-auto max-w-xl px-3 pt-3">
+          <section className="mb-3.5 rounded-2xl border-2 border-primary/20 bg-linear-to-b from-blue-50/70 to-white p-3.5 shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-blue-100/80 mb-2.5 gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="h-8 w-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-xs shrink-0">
+                  <Sparkles className="h-4 w-4 text-amber-300" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-xs font-bold text-slate-900 leading-tight truncate">
+                    Assistant de Rédaction Académique
+                  </h2>
+                  <p className="text-[10px] text-slate-500 truncate">
+                    Plateforme de rédaction et d'excellence
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => navigate({ to: "/redaction" })}
+                className="h-8 text-[11px] font-bold bg-[#1d4ed8] hover:bg-blue-800 text-white rounded-lg px-2.5 gap-1 shadow-xs shrink-0"
+              >
+                <FileText className="h-3.5 w-3.5" /> Ouvrir l'Atelier Word A4
+              </Button>
+            </div>
+
+            {/* Puces d'actions rapides */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
+              {quickActions.map((act) => (
+                <button
+                  key={act.label}
+                  type="button"
+                  onClick={() => handleSendChatMessage(act.prompt)}
+                  className="shrink-0 rounded-full border border-blue-200/60 bg-white px-2.5 py-0.5 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:bg-blue-50 transition"
+                >
+                  {act.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Zone de saisie principale */}
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="text"
+                placeholder="Ex. Plan de mémoire en droit, thèse en santé, analyse..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                className="h-10 text-xs rounded-xl border-slate-200 bg-white shadow-xs focus-visible:ring-primary"
+              />
+              <Button
+                type="button"
+                onClick={() => handleSendChatMessage()}
+                className="h-10 px-3.5 shrink-0 rounded-xl bg-[#1d4ed8] hover:bg-blue-700 text-white font-medium text-xs gap-1 shadow-xs"
+              >
+                <Send className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </section>
+
+          {/* Boîte de publication style Facebook */}
+          <div className="mb-3.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-800 font-bold text-xs shrink-0 overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userFullName} className="h-full w-full object-cover" />
+                ) : (
+                  (userFirstName ?? "A").charAt(0).toUpperCase()
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPublishModalOpen(true)}
+                className="flex-1 rounded-full bg-slate-100 px-3.5 py-2 text-left text-xs text-slate-500 hover:bg-slate-200/70 transition truncate"
+              >
+                Que souhaitez-vous partager, {userFirstName ?? ""} ?
+              </button>
+            </div>
+          </div>
+
+          {/* Liste des publications */}
+          {loadingPosts ? (
+            <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              Chargement des publications en direct...
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="py-12 text-center text-slate-500 text-xs">
+              Aucune publication trouvée.
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {filteredPosts.map((post) => {
+                const isCommentsOpen = openCommentsPostId === post.id;
+                return (
+                  <article
+                    key={post.id}
+                    className="w-full max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-4 shadow-xs"
+                  >
+                    {/* En-tête profil */}
+                    <div className="flex items-center justify-between pb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-700 text-xs border border-slate-200 shrink-0">
+                          {post.authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-xs text-slate-900 truncate">
+                              {post.authorName}
+                            </span>
+                            {post.isVerified && (
+                              <CheckCircle2 className="h-3.5 w-3.5 fill-[#1d4ed8] text-white shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500 truncate">{post.authorSubtitle}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0">{post.date}</span>
+                    </div>
+
+                    {/* Image couverture 16:9 sans débordement (style Facebook) */}
+                    {post.mediaUrl && (
+                      <div className="mb-2.5 w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-100">
+                        <img
+                          src={post.mediaUrl}
+                          alt={post.title || "Illustration"}
+                          className="w-full max-h-72 object-cover aspect-video"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
+                    {/* Titre et Texte avec 2 lignes max et bouton Voir plus */}
+                    <div className="text-xs leadin
