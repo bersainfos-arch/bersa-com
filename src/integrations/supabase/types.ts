@@ -231,6 +231,106 @@ export type Database = {
         }
         Relationships: []
       }
+      community_post_comments: {
+        Row: {
+          author_name: string
+          comment_text: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          author_name: string
+          comment_text: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          comment_text?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_name: string
+          author_subtitle: string | null
+          content: string
+          created_at: string
+          id: string
+          media_url: string | null
+          post_type: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          author_name: string
+          author_subtitle?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          media_url?: string | null
+          post_type?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          author_name?: string
+          author_subtitle?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          media_url?: string | null
+          post_type?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       course_enrollments: {
         Row: {
           amount: number
