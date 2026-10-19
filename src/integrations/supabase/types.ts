@@ -233,38 +233,33 @@ export type Database = {
       }
       community_post_comments: {
         Row: {
-          author_name: string
-          comment_text: string
+          content: string
           created_at: string
           id: string
           post_id: string
+          user_avatar: string | null
           user_id: string
+          user_name: string
         }
         Insert: {
-          author_name: string
-          comment_text: string
+          content: string
           created_at?: string
           id?: string
           post_id: string
+          user_avatar?: string | null
           user_id: string
+          user_name: string
         }
         Update: {
-          author_name?: string
-          comment_text?: string
+          content?: string
           created_at?: string
           id?: string
           post_id?: string
+          user_avatar?: string | null
           user_id?: string
+          user_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "community_post_comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       community_post_likes: {
         Row: {
@@ -285,49 +280,50 @@ export type Database = {
           post_id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "community_post_likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "community_posts"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       community_posts: {
         Row: {
+          author_avatar: string | null
+          author_id: string | null
           author_name: string
-          author_subtitle: string | null
+          author_role: string | null
+          category: string | null
           content: string
           created_at: string
           id: string
+          media_type: string | null
           media_url: string | null
-          post_type: string
-          user_id: string
-          video_url: string | null
+          updated_at: string
+          views_count: number | null
         }
         Insert: {
+          author_avatar?: string | null
+          author_id?: string | null
           author_name: string
-          author_subtitle?: string | null
+          author_role?: string | null
+          category?: string | null
           content: string
           created_at?: string
-          id?: string
+          id: string
+          media_type?: string | null
           media_url?: string | null
-          post_type?: string
-          user_id: string
-          video_url?: string | null
+          updated_at?: string
+          views_count?: number | null
         }
         Update: {
+          author_avatar?: string | null
+          author_id?: string | null
           author_name?: string
-          author_subtitle?: string | null
+          author_role?: string | null
+          category?: string | null
           content?: string
           created_at?: string
           id?: string
+          media_type?: string | null
           media_url?: string | null
-          post_type?: string
-          user_id?: string
-          video_url?: string | null
+          updated_at?: string
+          views_count?: number | null
         }
         Relationships: []
       }
