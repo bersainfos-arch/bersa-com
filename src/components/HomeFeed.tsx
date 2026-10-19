@@ -981,7 +981,23 @@ export function HomeFeed() {
                     )}
 
                     {/* Titre et Texte avec 2 lignes max et bouton Voir plus */}
-                    <div className="text-xs leadin
+                      <div className="text-xs leading-relaxed text-slate-800">
+                      {post.title && (
+                        <h3 className="font-bold text-slate-900 mb-1 text-sm">{post.title}</h3>
+                      )}
+                      <p className={expanded[post.id] ? "" : "line-clamp-2"}>{post.content}</p>
+                      {post.content && post.content.length > 120 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpanded((prev) => ({ ...prev, [post.id]: !prev[post.id] }))
+                          }
+                          className="mt-1 text-[11px] font-semibold text-[#1d4ed8] hover:underline block"
+                        >
+                          {expanded[post.id] ? "Voir moins" : "Voir plus..."}
+                        </button>
+                      )}
+                    </div>
                     {/* Barre d'interactions Facebook */}
                     <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs text-slate-600">
                       <button
