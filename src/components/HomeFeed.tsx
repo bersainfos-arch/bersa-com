@@ -186,20 +186,49 @@ export function HomeFeed() {
 
   // Chargement des données réelles depuis Supabase
   useEffect(() => {
-    async function loadRealData() {
+        async function loadRealData() {
       setLoadingPosts(true);
       try {
         const initialPosts: FeedPost[] = [];
 
-        // 1. Livres récents
+        // 1. Publications communautaires partagées dans la base de données
+        const { data: dbPosts } = await supabase
+          .from("community_posts" as any)
+          .select("id, author_name, author_subtitle, content, media_url, video_url, post_type, created_at, user_id")
+          .order("created_at", { ascending: false })
+          .limit(15);
+
+        if (dbPosts && dbPosts.length > 0) {
+          dbPosts.forEach((dp: any) => {
+            initialPosts.push({
+              id: dp.id,
+              type: "user",
+              authorName: dp.author_name || "Membre BERSA",
+              authorSubtitle: dp.author_subtitle || "Communauté BERSA",
+              isVerified: dp.author_name?.includes("Djoma"),
+              content: dp.content,
+              mediaUrl: dp.media_url || undefined,
+              videoUrl: dp.video_url || undefined,
+              likes: 0,
+              comments: [],
+              date: new Date(dp.created_at).toLocaleDateString("fr-FR"),
+            });
+          });
+        }
+
+        // 2. Livres récents avec vraie couverture
         const { data: books } = await supabase
           .from("books")
-          .select("id, title, subtitle, author, summary, domain, price_usd, currency, created_at")
+          .select("id, title, subtitle, author, summary, domain, cover_path, created_at")
           .order("created_at", { ascending: false })
           .limit(3);
 
         if (books && books.length > 0) {
           books.forEach((b) => {
+            const coverUrl = b.cover_path
+              ? supabase.storage.from("covers").getPublicUrl(b.cover_path).data?.publicUrl
+              : undefined;
+
             initialPosts.push({
               id: `book-${b.id}`,
               type: "book",
@@ -208,8 +237,9 @@ export function HomeFeed() {
               isVerified: true,
               title: b.title,
               content: b.summary || b.subtitle || "Consultez cet ouvrage dans la bibliothèque BERSA.",
+              mediaUrl: coverUrl,
               domain: b.domain,
-              tags: ["#Bibliothèque", "#Recherche", `#${b.domain?.replace(/\s+/g, "") || "Livre"}`],
+              tags: ["#Bibliothèque", "#Recherche"],
               linkTo: "/bibliotheque",
               linkLabel: "Consulter l'ouvrage",
               likes: 12,
@@ -219,15 +249,19 @@ export function HomeFeed() {
           });
         }
 
-        // 2. Formations récentes
+        // 3. Formations récentes avec vraie affiche
         const { data: courses } = await supabase
           .from("courses")
-          .select("id, title, description, domain, price, currency, created_at")
+          .select("id, title, description, domain, cover_path, created_at")
           .order("created_at", { ascending: false })
           .limit(3);
 
         if (courses && courses.length > 0) {
           courses.forEach((c) => {
+            const courseCover = c.cover_path
+              ? supabase.storage.from("courses").getPublicUrl(c.cover_path).data?.publicUrl
+              : undefined;
+
             initialPosts.push({
               id: `course-${c.id}`,
               type: "course",
@@ -236,8 +270,9 @@ export function HomeFeed() {
               isVerified: true,
               title: c.title,
               content: c.description || "Formation ouverte aux inscriptions avec délivrance d'attestation.",
+              mediaUrl: courseCover,
               domain: c.domain,
-              tags: ["#Formation", "#Certificat", `#${c.domain?.replace(/\s+/g, "") || "Apprentissage"}`],
+              tags: ["#Formation", "#Certificat"],
               linkTo: "/formations",
               linkLabel: "Rejoindre la formation",
               likes: 24,
@@ -246,35 +281,13 @@ export function HomeFeed() {
             });
           });
         }
-
-        // 3. Opportunités récentes
-        const { data: opps } = await supabase
-          .from("opportunities")
-          .select("id, title, organisation, description, domain, kind, deadline, created_at")
-          .order("created_at", { ascending: false })
-          .limit(3);
-
-        if (opps && opps.length > 0) {
-          opps.forEach((o) => {
-            initialPosts.push({
-              id: `opp-${o.id}`,
-              type: "opportunity",
-              authorName: o.organisation || "BERSA Opportunités",
-              authorSubtitle: `Appel à candidatures • ${o.kind || "Bourse"}`,
-              isVerified: true,
-              title: o.title,
-              content: o.description || "Nouvelle opportunité de recherche et de financement disponible.",
-              domain: o.domain,
-              tags: ["#Opportunité", "#Financement", "#Candidature"],
-              linkTo: "/opportunites",
-              linkLabel: "Postuler",
-              likes: 19,
-              comments: [],
-              date: o.deadline ? `Clôture : ${o.deadline}` : "Ouvert",
-            });
-          });
+        setPosts(initialPosts);
+      } catch (err) {
+        console.error("Erreur chargement données:", err);
+      } finally {
+        setLoadingPosts(false);
+      }
         }
-
         // Publication d'accueil par défaut si la base est encore vierge
         if (initialPosts.length === 0) {
           initialPosts.push({
