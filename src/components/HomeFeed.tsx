@@ -847,83 +847,60 @@ export function HomeFeed() {
                 const isCommentsOpen = openCommentsPostId === post.id;
                 return (
                   <article
-                    key={post.id}
-                    className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-xs transition hover:shadow-md"
-                  >
-                    {/* En-tête profil réel */}
-                    <div className="flex items-center justify-between pb-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-700 text-sm border border-slate-200 shrink-0">
-                          {post.authorName.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-xs sm:text-sm text-slate-900">
-                              {post.authorName}
-                            </span>
-                            {post.isVerified && (
-                              <CheckCircle2 className="h-3.5 w-3.5 fill-[#1d4ed8] text-white" />
-                            )}
-                          </div>
-                          <p className="text-[11px] text-slate-500">{post.authorSubtitle}</p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] text-slate-400">{post.date}</span>
-                    </div>
+  key={post.id}
+  className="w-full max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-4 shadow-xs"
+>
+  {/* En-tête profil */}
+  <div className="flex items-center justify-between pb-2">
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-700 text-xs border border-slate-200 shrink-0">
+        {post.authorName.charAt(0).toUpperCase()}
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1">
+          <span className="font-semibold text-xs text-slate-900 truncate">
+            {post.authorName}
+          </span>
+          {post.isVerified && (
+            <CheckCircle2 className="h-3.5 w-3.5 fill-[#1d4ed8] text-white shrink-0" />
+          )}
+        </div>
+        <p className="text-[10px] text-slate-500 truncate">{post.authorSubtitle}</p>
+      </div>
+    </div>
+    <span className="text-[10px] text-slate-400 shrink-0">{post.date}</span>
+  </div>
 
-                    {/* Média image ou vidéo */}
-                    {post.mediaUrl && (
-                      <div className="mb-2.5 overflow-hidden rounded-xl bg-slate-100">
-                        <img
-                          src={post.mediaUrl}
-                          alt="Illustration"
-                          className="aspect-[4/3] w-full object-cover"
-                        />
-                      </div>
-                    )}
-                    {post.videoUrl && (
-                      <div className="mb-2.5 overflow-hidden rounded-xl bg-black p-2 text-center">
-                        <a
-                          href={post.videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-blue-400 underline"
-                        >
-                          Regarder la vidéo : {post.videoUrl}
-                        </a>
-                      </div>
-                    )}
+  {/* Image de l'ouvrage ou formation adaptée à l'écran (style Facebook) */}
+  {post.mediaUrl && (
+    <div className="mb-2.5 w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-100">
+      <img
+        src={post.mediaUrl}
+        alt={post.title || "Illustration"}
+        className="w-full max-h-72 object-cover aspect-video"
+        loading="lazy"
+      />
+    </div>
+  )}
 
-                    {/* Corps du texte */}
-                    <div className="text-xs leading-relaxed text-slate-700">
-                      {post.title && (
-                        <p className="font-semibold text-slate-900 pb-1">{post.title}</p>
-                      )}
-                      <p className={`whitespace-pre-line ${expanded[post.id] ? "" : "line-clamp-2"}`}>{post.content}</p>
-                      {post.content.length > 120 && (
-                        <button type="button" onClick={() => setExpanded((x) => ({ ...x, [post.id]: !x[post.id] }))} className="mt-0.5 text-[11px] font-semibold text-slate-500 hover:underline">
-                          {expanded[post.id] ? "Voir moins" : "Voir plus"}
-                        </button>
-                      )}
-                      {post.tags && (
-                        <p className="mt-1.5 font-semibold text-[#1d4ed8]">
-                          {post.tags.join(" ")}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Bouton d'action directe vers le service */}
-                    {post.linkTo && (
-                      <div className="mt-2.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate({ to: post.linkTo as any })}
-                          className="h-7 text-[11px] gap-1 text-primary border-primary/30 hover:bg-primary/5"
-                        >
-                          {post.linkLabel || "Voir les détails"} <ArrowRight className="h-3 w-3" />
-                        </Button>
-                      </div>
+  {/* Titre et Texte avec 2 lignes max et bouton Voir plus */}
+  <div className="text-xs leading-relaxed text-slate-700 break-words">
+    {post.title && (
+      <p className="font-bold text-slate-900 pb-1 text-sm">{post.title}</p>
+    )}
+    <p className={`whitespace-pre-line ${expanded[post.id] ? "" : "line-clamp-2"}`}>
+      {post.content}
+    </p>
+    {post.content.length > 90 && (
+      <button
+        type="button"
+        onClick={() => setExpanded((x) => ({ ...x, [post.id]: !x[post.id] }))}
+        className="mt-1 text-[11px] font-bold text-primary hover:underline"
+      >
+        {expanded[post.id] ? "Voir moins" : "Voir plus"}
+      </button>
+    )}
+  </div>
                     )}
 
                     {/* Barre d'interactions Facebook */}
