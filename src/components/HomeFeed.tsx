@@ -33,7 +33,10 @@ import {
   Quote,
   ShieldAlert,
   ArrowRight,
+  MessageSquare,
+  Bell,
 } from "lucide-react";
+import { HomeMessagesModal } from "@/components/HomeMessagesModal";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { useAuth } from "@/hooks/use-auth";
@@ -72,20 +75,20 @@ interface FeedPost {
   type: "user" | "course" | "book" | "opportunity";
   authorName: string;
   authorSubtitle: string;
-  authorAvatar?: string;
-  isVerified?: boolean;
+  authorAvatar?: string | undefined;
+  isVerified?: boolean | undefined;
   content: string;
-  title?: string;
-  mediaUrl?: string;
-  videoUrl?: string;
-  domain?: string;
-  tags?: string[];
-  linkTo?: string;
-  linkLabel?: string;
+  title?: string | undefined;
+  mediaUrl?: string | undefined;
+  videoUrl?: string | undefined;
+  domain?: string | undefined;
+  tags?: string[] | undefined;
+  linkTo?: string | undefined;
+  linkLabel?: string | undefined;
   likes: number;
   comments: PostComment[];
-  isLiked?: boolean;
-  isSaved?: boolean;
+  isLiked?: boolean | undefined;
+  isSaved?: boolean | undefined;
   date: string;
 }
 
@@ -95,10 +98,10 @@ export function HomeFeed() {
 
   // Profil réel connecté
   const userFirstName =
-    (user?.user_metadata?.first_name as string) ||
+    (user?.user_metadata?.["first_name"] as string) ||
     (user?.email ? user.email.split("@")[0] : "Auteur");
   const userFullName =
-    `${user?.user_metadata?.first_name || ""} ${user?.user_metadata?.last_name || ""}`.trim() ||
+    `${user?.user_metadata?.["first_name"] || ""} ${user?.user_metadata?.["last_name"] || ""}`.trim() ||
     user?.email?.split("@")[0] ||
     "Auteur BERSA";
 
@@ -126,11 +129,15 @@ export function HomeFeed() {
     {
       role: "assistant",
       content:
-        "Bonjour ! Je suis BERSA IA. Comment puis-je vous accompagner aujourd'hui dans vos recherches, votre rédaction académique ou vos cours ?",
+        "Bonjour ! Je suis l’Assistant BERSA. Comment puis-je vous accompagner aujourd'hui dans vos recherches, votre rédaction académique ou vos cours ?",
       time: "Maintenant",
     },
   ]);
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [msgOpen, setMsgOpen] = useState(false);
+  const [msgTab, setMsgTab] = useState<"network" | "chat" | "notifications">("chat");
+  const [searchFocus, setSearchFocus] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   // Modale Divertissement
   const [funModalOpen, setFunModalOpen] = useState(false);
@@ -496,7 +503,8 @@ export function HomeFeed() {
   };
 
   // Filtrage des publications
-  const filteredPosts = posts.filter((p) => {
+  const filteredPosts = posts;
+  const searchResults = posts.filter((p) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -505,7 +513,7 @@ export function HomeFeed() {
       (p.title && p.title.toLowerCase().includes(q)) ||
       (p.domain && p.domain.toLowerCase().includes(q))
     );
-  });
+  }).slice(0, 8);
 
   return (
     <AuthGate>
@@ -540,8 +548,27 @@ export function HomeFeed() {
                 placeholder="Recherche formations, livres..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocus(true)}
+                onBlur={() => setTimeout(() => setSearchFocus(false), 200)}
                 className="h-8 rounded-full border-slate-200 bg-slate-100/80 pl-8 pr-3 text-xs placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-primary"
               />
+              {searchFocus && (
+                <div className="absolute left-0 top-10 z-50 w-[min(92vw,22rem)] max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                  {searchResults.length === 0 ? (
+                    <p className="px-2 py-3 text-xs text-slate-500">{searchQuery.trim() ? "Aucun résultat." : "Tapez pour rechercher formations, livres, opportunités…"}</p>
+                  ) : (
+                    searchResults.map((r) => (
+                      <button key={r.id} type="button" onMouseDown={() => { setSearchQuery(""); if (r.linkTo) navigate({ to: r.linkTo as any }); }} className="flex w-full items-start gap-2 rounded-lg px-2 py-2 text-left hover:bg-slate-100">
+                        <Search className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-slate-900">{r.title || r.authorName}</span>
+                          <span className="block truncate text-[11px] text-slate-500">{r.authorSubtitle}</span>
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Profil utilisateur & Menu à trois traits (Ancien tableau de bord complet) */}
@@ -551,7 +578,7 @@ export function HomeFeed() {
                 aria-label="Mon profil"
                 className="flex items-center justify-center h-8 w-8 rounded-full border border-slate-200 bg-blue-50 text-blue-800 font-bold text-xs"
               >
-                {userFirstName.charAt(0).toUpperCase()}
+                {(userFirstName ?? "A").charAt(0).toUpperCase()}
               </Link>
 
               <DropdownMenu>
@@ -659,7 +686,7 @@ export function HomeFeed() {
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-1 overflow-x-auto no-scrollbar">
             <Link
               to="/"
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1d4ed8] transition"
+              className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1d4ed8] transition"
             >
               <Home className="h-5 w-5 fill-[#1d4ed8]" />
               <span className="text-[10px] font-semibold">Accueil</span>
@@ -667,7 +694,7 @@ export function HomeFeed() {
 
             <Link
               to="/redaction"
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1e40af] hover:text-[#1d4ed8] transition"
+              className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition"
             >
               <div className="relative">
                 <FileText className="h-5 w-5 stroke-[1.8]" />
@@ -678,7 +705,7 @@ export function HomeFeed() {
 
             <Link
               to="/formations"
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1e40af] hover:text-[#1d4ed8] transition"
+              className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition"
             >
               <GraduationCap className="h-5 w-5 stroke-[1.8]" />
               <span className="text-[10px] font-medium text-slate-600">Formation</span>
@@ -686,7 +713,7 @@ export function HomeFeed() {
 
             <Link
               to="/bibliotheque"
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1e40af] hover:text-[#1d4ed8] transition"
+              className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition"
             >
               <BookOpen className="h-5 w-5 stroke-[1.8]" />
               <span className="text-[10px] font-medium text-slate-600">Bibliothèque</span>
@@ -694,7 +721,7 @@ export function HomeFeed() {
 
             <Link
               to="/opportunites"
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1e40af] hover:text-[#1d4ed8] transition"
+              className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition"
             >
               <Briefcase className="h-5 w-5 stroke-[1.8]" />
               <span className="text-[10px] font-medium text-slate-600">Opportunités</span>
@@ -703,7 +730,7 @@ export function HomeFeed() {
             <button
               type="button"
               onClick={() => setPublishModalOpen(true)}
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1e40af] hover:text-[#1d4ed8] transition"
+              className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition"
             >
               <div className="flex h-5 w-5 items-center justify-center rounded-full border-[1.8px] border-[#1e40af]">
                 <Plus className="h-3.5 w-3.5 stroke-[2.2]" />
@@ -711,14 +738,15 @@ export function HomeFeed() {
               <span className="text-[10px] font-medium text-slate-600">Publier</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setFunModalOpen(true)}
-              className="flex flex-col items-center gap-1 min-w-[50px] text-[#1e40af] hover:text-[#1d4ed8] transition"
-            >
-              <Gamepad2 className="h-5 w-5 stroke-[1.8]" />
-              <span className="text-[10px] font-medium text-slate-600">Divertissement</span>
+            <button type="button" onClick={() => { setMsgTab("chat"); setMsgOpen(true); }} className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition">
+              <MessageSquare className="h-5 w-5 stroke-[1.8]" />
+              <span className="text-[10px] font-medium text-slate-600">Messages</span>
             </button>
+            <button type="button" onClick={() => { setMsgTab("notifications"); setMsgOpen(true); }} className="flex flex-col items-center gap-1 min-w-[56px] shrink-0 px-0.5 text-[#1e40af] hover:text-[#1d4ed8] transition">
+              <Bell className="h-5 w-5 stroke-[1.8]" />
+              <span className="text-[10px] font-medium text-slate-600">Notifications</span>
+            </button>
+
           </div>
         </nav>
 
@@ -730,14 +758,14 @@ export function HomeFeed() {
           <div className="mb-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-800 font-bold text-xs shrink-0">
-                {userFirstName.charAt(0).toUpperCase()}
+                {(userFirstName ?? "A").charAt(0).toUpperCase()}
               </div>
               <button
                 type="button"
                 onClick={() => setPublishModalOpen(true)}
                 className="flex-1 rounded-full bg-slate-100 px-3.5 py-2 text-left text-xs text-slate-500 hover:bg-slate-200/70 transition"
               >
-                Que souhaitez-vous partager, {userFirstName} ?
+                Que souhaitez-vous partager, {userFirstName ?? ""} ?
               </button>
             </div>
             <div className="mt-2.5 flex items-center justify-around border-t border-slate-100 pt-2 text-[11px] text-slate-600">
@@ -771,9 +799,6 @@ export function HomeFeed() {
             </div>
           </div>
 
-          <h2 className="py-1.5 text-center font-serif text-lg font-bold text-slate-800">
-            Publications
-          </h2>
 
           {/* Liste des cartes du flux */}
           {loadingPosts ? (
@@ -821,7 +846,7 @@ export function HomeFeed() {
                         <img
                           src={post.mediaUrl}
                           alt="Illustration"
-                          className="max-h-60 w-full object-cover"
+                          className="aspect-[4/3] w-full object-cover"
                         />
                       </div>
                     )}
@@ -843,7 +868,12 @@ export function HomeFeed() {
                       {post.title && (
                         <p className="font-semibold text-slate-900 pb-1">{post.title}</p>
                       )}
-                      <p className="whitespace-pre-line">{post.content}</p>
+                      <p className={`whitespace-pre-line ${expanded[post.id] ? "" : "line-clamp-2"}`}>{post.content}</p>
+                      {post.content.length > 120 && (
+                        <button type="button" onClick={() => setExpanded((x) => ({ ...x, [post.id]: !x[post.id] }))} className="mt-0.5 text-[11px] font-semibold text-slate-500 hover:underline">
+                          {expanded[post.id] ? "Voir moins" : "Voir plus"}
+                        </button>
+                      )}
                       {post.tags && (
                         <p className="mt-1.5 font-semibold text-[#1d4ed8]">
                           {post.tags.join(" ")}
@@ -971,16 +1001,6 @@ export function HomeFeed() {
         <div className="fixed inset-x-0 bottom-3 z-40 px-3 pointer-events-none">
           <div className="mx-auto max-w-md pointer-events-auto">
             <div className="rounded-2xl border border-slate-200/90 bg-white/95 p-2.5 shadow-2xl backdrop-blur-lg">
-              {/* Salutation personnalisée */}
-              <div className="mb-2 flex items-center justify-between px-1">
-                <span className="text-xs font-semibold text-slate-900">
-                  Salut {userFirstName} !
-                </span>
-                <span className="text-[11px] text-slate-500">
-                  Que voulez-vous que je fasse pour vous ?
-                </span>
-              </div>
-
               {/* Barre de saisie rapide de prompt */}
               <div className="flex items-center gap-1.5">
                 <Button
@@ -1002,7 +1022,7 @@ export function HomeFeed() {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleSendChatMessage();
                     }}
-                    placeholder="Posez votre question à BERSA IA…"
+                    placeholder="Posez votre question à l’Assistant…"
                     className="h-9 rounded-xl border-slate-200 bg-slate-50 px-3 text-xs placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-primary"
                   />
                 </div>
@@ -1034,16 +1054,18 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 5. MODALE CHATGPT INTERACTIF (NOUVEAU CHAT BERSA IA)          */}
         {/* ============================================================ */}
+        <HomeMessagesModal key={msgTab + String(msgOpen)} open={msgOpen} onOpenChange={setMsgOpen} initialTab={msgTab} />
+
         <Dialog open={chatOpen} onOpenChange={setChatOpen}>
           <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-4">
             <DialogHeader className="border-b border-slate-100 pb-2">
               <DialogTitle className="flex items-center justify-between text-base font-bold text-slate-900">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-amber-500" />
-                  <span>Assistant BERSA IA</span>
+                  <span>Assistant</span>
                 </div>
                 <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  En ligne (Gratuit)
+                  En ligne
                 </span>
               </DialogTitle>
             </DialogHeader>
@@ -1107,7 +1129,7 @@ export function HomeFeed() {
               {isAiThinking && (
                 <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200/50 w-fit">
                   <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                  BERSA IA réfléchit et rédige…
+                  L’Assistant réfléchit et rédige…
                 </div>
               )}
             </div>
@@ -1204,6 +1226,9 @@ export function HomeFeed() {
                   >
                     <GraduationCap className="h-3.5 w-3.5 text-blue-600" /> Formation
                   </Button>
+                  <Button type="button" variant="outline" size="sm" className="h-8 text-[11px] justify-start gap-1.5" onClick={() => { setPublishModalOpen(false); setFunModalOpen(true); }}>
+                    <Gamepad2 className="h-3.5 w-3.5 text-purple-600" /> Divertissement
+                  </Button>
                 </div>
               </div>
             </div>
@@ -1279,10 +1304,10 @@ export function HomeFeed() {
                 <div className="rounded-xl bg-amber-50/70 border border-amber-200/60 p-4">
                   <Quote className="h-6 w-6 text-amber-500 mx-auto mb-2 opacity-80" />
                   <p className="font-serif italic text-sm text-slate-800 leading-relaxed">
-                    « {academicQuotes[quoteIndex].quote} »
+                    « {academicQuotes[quoteIndex]!.quote} »
                   </p>
                   <p className="mt-2 text-xs font-bold text-amber-900">
-                    — {academicQuotes[quoteIndex].author}
+                    — {academicQuotes[quoteIndex]!.author}
                   </p>
                 </div>
                 <Button
@@ -1302,10 +1327,10 @@ export function HomeFeed() {
             {funTab === "quiz" && (
               <div className="pt-3 space-y-3">
                 <p className="text-xs font-semibold text-slate-900">
-                  {quizQuestions[0].question}
+                  {quizQuestions[0]!.question}
                 </p>
                 <div className="space-y-1.5">
-                  {quizQuestions[0].options.map((opt, idx) => (
+                  {quizQuestions[0]!.options.map((opt, idx) => (
                     <button
                       key={idx}
                       type="button"
@@ -1313,7 +1338,7 @@ export function HomeFeed() {
                       className={`w-full rounded-lg border p-2.5 text-left text-xs transition ${
                         quizAnswered === null
                           ? "border-slate-200 bg-white hover:bg-slate-50"
-                          : idx === quizQuestions[0].correct
+                          : idx === quizQuestions[0]!.correct
                           ? "border-emerald-500 bg-emerald-50 font-semibold text-emerald-900"
                           : quizAnswered === idx
                           ? "border-rose-400 bg-rose-50 text-rose-800"
@@ -1326,7 +1351,7 @@ export function HomeFeed() {
                 </div>
                 {quizAnswered !== null && (
                   <p className="text-[11px] text-slate-600 bg-slate-100 p-2 rounded-lg">
-                    {quizQuestions[0].explanation}
+                    {quizQuestions[0]!.explanation}
                   </p>
                 )}
               </div>
