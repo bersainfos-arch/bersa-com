@@ -602,16 +602,20 @@ export function HomeFeed() {
               )}
             </div>
 
-            {/* Profil utilisateur & Menu à trois traits (Ancien tableau de bord complet) */}
+            {/* Profil utilisateur & Menu du tableau de bord */}
             <div className="flex items-center gap-1.5 shrink-0">
               <Link
                 to="/profil"
                 aria-label="Mon profil"
-                className="flex items-center justify-center h-8 w-8 rounded-full border border-slate-200 bg-blue-50 text-blue-800 font-bold text-xs"
+                className="flex items-center justify-center h-8 w-8 rounded-full border border-slate-200 bg-blue-50 text-blue-800 font-bold text-xs overflow-hidden"
               >
-                {(userFirstName ?? "A").charAt(0).toUpperCase()}
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userFullName} className="h-full w-full object-cover" />
+                ) : (
+                  (userFirstName ?? "A").charAt(0).toUpperCase()
+                )}
               </Link>
-
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
