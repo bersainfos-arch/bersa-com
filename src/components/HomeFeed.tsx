@@ -404,42 +404,60 @@ export function HomeFeed() {
   };
 
   // Création d'une nouvelle publication style Facebook
-  const handleCreateNewPost = () => {
+    const handleCreateNewPost = async () => {
     if (!newPostText.trim()) {
       toast.error("Veuillez saisir un texte pour votre publication");
       return;
     }
 
+    if (!user) {
+      toast.error("Connectez-vous pour publier");
+      return;
+    }
+
     setIsSubmittingPost(true);
-    const created: FeedPost = {
-      id: `post-${Date.now()}`,
-      type: "user",
-      authorName: userFullName,
-      authorSubtitle: "Berceau du Savoir • Publication directe",
-      isVerified: user?.email === "dieudonnedjoma@gmail.com",
-      content: newPostText.trim(),
-      mediaUrl: newPostMediaUrl.trim() || undefined,
-      videoUrl: newPostVideoUrl.trim() || undefined,
-      tags: ["#Communauté", "#BERSA"],
-      likes: 1,
-      isLiked: true,
-      comments: [],
-      date: "À l'instant",
-    };
+    try {
+      const { data, error } = await supabase
+        .from("community_posts" as any)
+        .insert({
+          user_id: user.id,
+          author_name: userFullName,
+          author_subtitle: "Berceau du Savoir • Publication directe",
+          content: newPostText.trim(),
+          media_url: newPostMediaUrl.trim() || null,
+          video_url: newPostVideoUrl.trim() || null,
+          post_type: postType,
+        })
+        .select()
+        .single();
 
-    const updated = [created, ...posts];
-    setPosts(updated);
+      if (error) throw error;
 
-    // Persistance locale
-    const localOnly = updated.filter((p) => p.id.startsWith("post-"));
-    localStorage.setItem("bersa_community_posts", JSON.stringify(localOnly));
+      const created: FeedPost = {
+        id: (data as any)?.id || `post-${Date.now()}`,
+        type: "user",
+        authorName: userFullName,
+        authorSubtitle: "Berceau du Savoir • Publication directe",
+        isVerified: user?.email === "dieudonnedjoma@gmail.com",
+        content: newPostText.trim(),
+        mediaUrl: newPostMediaUrl.trim() || undefined,
+        videoUrl: newPostVideoUrl.trim() || undefined,
+        likes: 0,
+        comments: [],
+        date: "À l'instant",
+      };
 
-    setIsSubmittingPost(false);
-    setPublishModalOpen(false);
-    setNewPostText("");
-    setNewPostMediaUrl("");
-    setNewPostVideoUrl("");
-    toast.success("Votre publication est en ligne !");
+      setPosts((prev) => [created, ...prev]);
+      setPublishModalOpen(false);
+      setNewPostText("");
+      setNewPostMediaUrl("");
+      setNewPostVideoUrl("");
+      toast.success("Votre publication est en ligne pour tous les membres !");
+    } catch (err: any) {
+      toast.error("Impossible d'enregistrer la publication : " + (err.message || "erreur"));
+    } finally {
+      setIsSubmittingPost(false);
+    }
   };
 
   // Envoi d'un message dans le Chat IA façon ChatGPT
