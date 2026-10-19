@@ -1006,58 +1006,44 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 4. CAPSULE FLOTTANTE ASSISTANT IA (FAÇON CHATGPT)             */}
         {/* ============================================================ */}
-        <div className="fixed inset-x-0 bottom-3 z-40 px-3 pointer-events-none">
-          <div className="mx-auto max-w-md pointer-events-auto">
-            <div className="rounded-2xl border border-slate-200/90 bg-white/95 p-2.5 shadow-2xl backdrop-blur-lg">
-              {/* Barre de saisie rapide de prompt */}
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setPublishModalOpen(true)}
-                  className="h-9 w-9 shrink-0 rounded-xl text-slate-500 hover:bg-slate-100"
-                  aria-label="Publier"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
+        <div className="fixed bottom-0 left-0 right-0 z-40 p-2 sm:p-3 pointer-events-none">
+  <div className="mx-auto max-w-xl pointer-events-auto">
+    <div className="rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur-md">
+      {/* Bouton direct vers l'Atelier Word A4 */}
+      <div className="flex items-center justify-between pb-1.5 px-1 border-b border-slate-100 mb-1.5">
+        <span className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Assistant de Rédaction
+        </span>
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/redaction" })}
+          className="text-[11px] font-bold text-[#1d4ed8] hover:underline flex items-center gap-1"
+        >
+          <FileText className="h-3 w-3" /> Ouvrir l'Atelier Word A4 →
+        </button>
+      </div>
 
-                <div className="relative flex-1">
-                  <Input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSendChatMessage();
-                    }}
-                    placeholder="Posez votre question à l’Assistant…"
-                    className="h-9 rounded-xl border-slate-200 bg-slate-50 px-3 text-xs placeholder:text-slate-400 focus-visible:bg-white focus-visible:ring-1 focus-visible:ring-primary"
-                  />
-                </div>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => toast.info("Micro prêt : dictez votre question")}
-                  className="h-9 w-9 shrink-0 rounded-xl text-slate-500 hover:bg-slate-100"
-                  aria-label="Dictée vocale"
-                >
-                  <Mic className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  type="button"
-                  onClick={() => handleSendChatMessage()}
-                  className="h-9 w-9 shrink-0 rounded-full bg-[#1d4ed8] p-0 text-white shadow-md hover:bg-blue-700 transition flex items-center justify-center"
-                  aria-label="Envoyer"
-                >
-                  <AudioWaveform className="h-4 w-4 animate-pulse" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Saisie élargie */}
+      <div className="flex items-center gap-1.5">
+        <Input
+          type="text"
+          placeholder="Posez votre question ou demandez un plan de thèse…"
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+          className="h-10 text-xs rounded-xl border-slate-200 bg-slate-50 focus-visible:bg-white"
+        />
+        <Button
+          type="button"
+          onClick={() => handleSendChatMessage()}
+          className="h-10 px-3 shrink-0 rounded-xl bg-[#1d4ed8] hover:bg-blue-700 text-white font-medium text-xs gap-1 shadow-sm"
+        >
+          <Send className="h-3.5 w-3.5" /> Envoyer
+        </Button>
+      </div>
+    </div>
+  </div>
+</div>
 
         {/* ============================================================ */}
         {/* 5. MODALE CHATGPT INTERACTIF (NOUVEAU CHAT BERSA IA)          */}
