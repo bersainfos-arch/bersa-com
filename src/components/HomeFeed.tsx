@@ -1118,7 +1118,7 @@ export function HomeFeed() {
   <div className="mx-auto max-w-xl pointer-events-auto">
     <div className="rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur-md">
       {/* Bouton direct vers l'Atelier Word A4 */}
-      <div className="flex items-center justify-between pb-1.5 px-1 border-b border-slate-100 mb-1.5">
+      <div className="flex items-center justify-between pb-1.7 px-1 border-b border-slate-100 mb-1.5">
         <span className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Assistant de Rédaction
         </span>
