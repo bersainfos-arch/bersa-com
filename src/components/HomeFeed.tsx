@@ -982,3 +982,400 @@ export function HomeFeed() {
 
                     {/* Titre et Texte avec 2 lignes max et bouton Voir plus */}
                     <div className="text-xs leadin
+                    {/* Barre d'interactions Facebook */}
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs text-slate-600">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleLike(post.id)}
+                        className={`flex items-center gap-1.5 transition font-medium ${
+                          post.isLiked ? "text-red-600" : "hover:text-red-600"
+                        }`}
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${
+                            post.isLiked ? "fill-red-500 text-red-500" : "text-slate-500"
+                          }`}
+                        />
+                        <span>Aimer {post.likes}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenCommentsPostId(isCommentsOpen ? null : post.id)
+                        }
+                        className="flex items-center gap-1.5 hover:text-[#1d4ed8] transition font-medium"
+                      >
+                        <MessageCircle className="h-4 w-4 text-slate-500" />
+                        <span>Commenter {post.comments.length}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSharePost(post)}
+                        className="flex items-center gap-1.5 hover:text-[#1d4ed8] transition font-medium"
+                      >
+                        <Share2 className="h-4 w-4 text-slate-500" />
+                        <span>Partager</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSave(post.id)}
+                        className={`flex items-center gap-1.5 transition font-medium ${
+                          post.isSaved ? "text-amber-600" : "hover:text-amber-600"
+                        }`}
+                      >
+                        <Bookmark
+                          className={`h-4 w-4 ${
+                            post.isSaved ? "fill-amber-500 text-amber-500" : "text-slate-500"
+                          }`}
+                        />
+                        <span>Enregistrer</span>
+                      </button>
+                    </div>
+
+                    {/* Commentaires */}
+                    {isCommentsOpen && (
+                      <div className="mt-3 border-t border-slate-100 pt-2.5 space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            placeholder="Écrivez un commentaire..."
+                            value={commentInput}
+                            onChange={(e) => setCommentInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleAddComment(post.id);
+                            }}
+                            className="h-8 text-xs bg-slate-50 rounded-full"
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => handleAddComment(post.id)}
+                            className="h-8 rounded-full px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Send className="h-3 w-3" />
+                          </Button>
+                        </div>
+
+                        {post.comments.length > 0 && (
+                          <div className="space-y-1.5 pt-1">
+                            {post.comments.map((comm) => (
+                              <div
+                                key={comm.id}
+                                className="rounded-xl bg-slate-50 p-2 text-xs text-slate-700"
+                              >
+                                <span className="font-semibold text-slate-900 block">
+                                  {comm.authorName}
+                                </span>
+                                <p>{comm.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </main>
+
+        {/* ============================================================ */}
+        {/* 4. MODALE MESSAGES / NOTIFICATIONS                            */}
+        {/* ============================================================ */}
+        <HomeMessagesModal
+          key={msgTab + String(msgOpen)}
+          open={msgOpen}
+          onOpenChange={setMsgOpen}
+          initialTab={msgTab}
+        />
+
+        {/* ============================================================ */}
+        {/* 5. MODALE CHAT ASSISTANT ACADÉMIQUE                           */}
+        {/* ============================================================ */}
+        <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+          <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-4">
+            <DialogHeader className="border-b border-slate-100 pb-2">
+              <DialogTitle className="flex items-center justify-between text-base font-bold text-slate-900">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-amber-500" />
+                  <span>Assistant BERSA</span>
+                </div>
+                <span className="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  En ligne
+                </span>
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Conversation */}
+            <div className="flex-1 overflow-y-auto space-y-3 py-2 pr-1 min-h-[220px]">
+              {chatMessages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`flex flex-col ${
+                    msg.role === "user" ? "items-end" : "items-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-2xs ${
+                      msg.role === "user"
+                        ? "bg-blue-600 text-white rounded-br-xs"
+                        : "bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200/60"
+                    }`}
+                  >
+                    <p className="whitespace-pre-line">{msg.content}</p>
+                  </div>
+
+                  {msg.role === "assistant" && (
+                    <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 pl-1">
+                      <button
+                        type="button"
+                        onClick={() => copyAiText(msg.content)}
+                        className="hover:text-blue-600 flex items-center gap-0.5"
+                      >
+                        <Copy className="h-3 w-3" /> Copier
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => sendToA4Editor(msg.content)}
+                        className="hover:text-emerald-600 flex items-center gap-0.5 font-medium"
+                      >
+                        <FileText className="h-3 w-3" /> Insérer dans l'Atelier A4
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {isAiThinking && (
+                <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200/50 w-fit">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  L'Assistant réfléchit et rédige...
+                </div>
+              )}
+            </div>
+
+            {/* Saisie */}
+            <div className="border-t border-slate-100 pt-2 flex gap-2">
+              <Input
+                type="text"
+                placeholder="Posez votre question académique..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSendChatMessage();
+                }}
+                className="h-9 text-xs rounded-xl"
+              />
+              <Button
+                type="button"
+                onClick={() => handleSendChatMessage()}
+                disabled={isAiThinking}
+                className="h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============================================================ */}
+        {/* 6. MODALE DE PUBLICATION FACEBOOK-STYLE                       */}
+        {/* ============================================================ */}
+        <Dialog open={publishModalOpen} onOpenChange={setPublishModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
+                <Plus className="h-4 w-4 text-primary" /> Créer une publication
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-3 pt-2">
+              <Textarea
+                rows={4}
+                placeholder={`Partagez vos idées de recherche, une question ou une actualité, ${userFirstName}...`}
+                value={newPostText}
+                onChange={(e) => setNewPostText(e.target.value)}
+                className="text-xs"
+              />
+
+              <div className="space-y-2">
+                <Input
+                  type="url"
+                  placeholder="Lien d'une image (optionnel)"
+                  value={newPostMediaUrl}
+                  onChange={(e) => setNewPostMediaUrl(e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <Input
+                  type="url"
+                  placeholder="Lien d'une vidéo YouTube ou MP4 (optionnel)"
+                  value={newPostVideoUrl}
+                  onChange={(e) => setNewPostVideoUrl(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+
+              <div className="border-t border-slate-100 pt-2">
+                <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
+                  Publier dans les services officiels :
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-[11px] justify-start gap-1.5"
+                    onClick={() => {
+                      setPublishModalOpen(false);
+                      navigate({ to: "/bibliotheque" });
+                    }}
+                  >
+                    <BookOpen className="h-3.5 w-3.5 text-emerald-600" /> Livre
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-[11px] justify-start gap-1.5"
+                    onClick={() => {
+                      setPublishModalOpen(false);
+                      navigate({ to: "/formations" });
+                    }}
+                  >
+                    <GraduationCap className="h-3.5 w-3.5 text-blue-600" /> Formation
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                onClick={handleCreateNewPost}
+                disabled={isSubmittingPost}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white h-9 text-xs font-semibold"
+              >
+                {isSubmittingPost ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Publier maintenant"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============================================================ */}
+        {/* 7. MODALE DIVERTISSEMENT & DÉTENTE INTELLECTUELLE             */}
+        {/* ============================================================ */}
+        <Dialog open={funModalOpen} onOpenChange={setFunModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
+                <Gamepad2 className="h-5 w-5 text-amber-500" /> Espace Détente & Culture
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="flex border-b border-slate-100 text-xs">
+              <button
+                type="button"
+                onClick={() => setFunTab("quote")}
+                className={`flex-1 py-2 font-medium border-b-2 ${
+                  funTab === "quote"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Citation
+              </button>
+              <button
+                type="button"
+                onClick={() => setFunTab("quiz")}
+                className={`flex-1 py-2 font-medium border-b-2 ${
+                  funTab === "quiz"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Quiz Savoir
+              </button>
+              <button
+                type="button"
+                onClick={() => setFunTab("breath")}
+                className={`flex-1 py-2 font-medium border-b-2 ${
+                  funTab === "breath"
+                    ? "border-blue-600 text-blue-600"
+                    : "border-transparent text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                Pause Respiration
+              </button>
+            </div>
+
+            {funTab === "quote" && (
+              <div className="pt-4 text-center space-y-3">
+                <blockquote className="italic text-sm text-slate-700">
+                  "{academicQuotes[0].quote}"
+                </blockquote>
+                <p className="text-xs font-semibold text-primary">
+                  — {academicQuotes[0].author}
+                </p>
+              </div>
+            )}
+
+            {funTab === "quiz" && (
+              <div className="pt-3 space-y-3">
+                <p className="text-xs font-semibold text-slate-900">
+                  {quizQuestions[0].question}
+                </p>
+                <div className="space-y-1.5">
+                  {quizQuestions[0].options.map((opt, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setQuizAnswered(idx)}
+                      className={`w-full rounded-lg border p-2.5 text-left text-xs transition ${
+                        quizAnswered === null
+                          ? "border-slate-200 bg-white hover:bg-slate-50"
+                          : idx === quizQuestions[0].correct
+                          ? "border-emerald-500 bg-emerald-50 font-semibold text-emerald-900"
+                          : quizAnswered === idx
+                          ? "border-rose-400 bg-rose-50 text-rose-800"
+                          : "border-slate-200 opacity-60"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {quizAnswered !== null && (
+                  <p className="text-[11px] text-slate-600 bg-slate-100 p-2 rounded-lg">
+                    {quizQuestions[0].explanation}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {funTab === "breath" && (
+              <div className="pt-4 text-center space-y-3 pb-2">
+                <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 border-4 border-blue-200 animate-pulse">
+                  <Coffee className="h-8 w-8 text-blue-600" />
+                </div>
+                <p className="text-xs font-semibold text-slate-800">
+                  Inspirez 4 secondes… Bloquez 4 secondes… Expirez 4 secondes.
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Une pause de 60 secondes permet d'éclaircir la pensée et de fluidifier l'écriture.
+                </p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AuthGate>
+  );
+  }
