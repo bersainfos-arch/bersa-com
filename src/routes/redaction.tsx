@@ -110,7 +110,7 @@ function RedactionPage() {
   return (
     <AppShell>
       <PageHeader
-        title={lang === "fr" ? "Rédaction & Documents professionnels" : "Writing & Professional Documents"}
+        title={lang === "fr" ? "Mon atelier de rédaction" : "My Writing Workshop"}
         subtitle={
           lang === "fr"
             ? "Plus de 50 modèles académiques, juridiques et professionnels prêts à être rédigés avec rigueur."
