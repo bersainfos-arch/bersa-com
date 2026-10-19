@@ -803,34 +803,138 @@ export function HomeFeed() {
               <button
                 type="button"
                 onClick={() => {
-                  setPostType("photo");
-                  setPublishModalOpen(true);
-                }}
-                className="flex items-center gap-1 hover:text-blue-600 font-medium"
+        {/* ============================================================ */}
+        {/* 2. LES 8 FONCTIONNALITÉS EN 2 RANGÉES (SANS TEXTE DESSOUS)   */}
+        {/* ============================================================ */}
+        <section className="bg-white border-b border-slate-200/80 shadow-2xs px-3 py-2">
+          <div className="mx-auto max-w-xl">
+            <div className="grid grid-cols-4 gap-2">
+              {/* Rangée 1 : Accueil, Rédaction, Formation, Bibliothèque */}
+              <Link
+                to="/"
+                title="Accueil"
+                aria-label="Accueil"
+                className="h-10 flex items-center justify-center rounded-xl bg-blue-50/80 border border-blue-200/70 text-[#1d4ed8] active:scale-95 transition"
               >
-                <ImageIcon className="h-4 w-4 text-emerald-600" /> Photo
-              </button>
+                <Home className="h-5 w-5 fill-[#1d4ed8]" />
+              </Link>
+
+              <Link
+                to="/redaction"
+                title="Atelier de Rédaction Word A4"
+                aria-label="Atelier de Rédaction Word A4"
+                className="h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition relative"
+              >
+                <FileText className="h-5 w-5 stroke-[1.9]" />
+                <Sparkles className="absolute top-2 right-2.5 h-2.5 w-2.5 text-amber-500" />
+              </Link>
+
+              <Link
+                to="/formations"
+                title="Formations & Cours"
+                aria-label="Formations & Cours"
+                className="h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <GraduationCap className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+
+              <Link
+                to="/bibliotheque"
+                title="Bibliothèque"
+                aria-label="Bibliothèque"
+                className="h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <BookOpen className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+
+              {/* Rangée 2 : Opportunités, Publier (+), Messages, Notifications */}
+              <Link
+                to="/opportunites"
+                title="Opportunités & Financements"
+                aria-label="Opportunités & Financements"
+                className="h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <Briefcase className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+
               <button
                 type="button"
-                onClick={() => {
-                  setPostType("video");
-                  setPublishModalOpen(true);
-                }}
-                className="flex items-center gap-1 hover:text-blue-600 font-medium"
+                onClick={() => setPublishModalOpen(true)}
+                title="Créer une publication"
+                aria-label="Créer une publication"
+                className="h-10 flex items-center justify-center rounded-xl bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:scale-95 transition"
               >
-                <Video className="h-4 w-4 text-rose-600" /> Vidéo
+                <Plus className="h-5 w-5 stroke-[2.5]" />
               </button>
+
               <button
                 type="button"
-                onClick={() => navigate({ to: "/formations" })}
-                className="flex items-center gap-1 hover:text-blue-600 font-medium"
+                onClick={() => { setMsgTab("chat"); setMsgOpen(true); }}
+                title="Messages et discussions"
+                aria-label="Messages et discussions"
+                className="h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
               >
-                <GraduationCap className="h-4 w-4 text-blue-600" /> Formation
+                <MessageSquare className="h-5 w-5 stroke-[1.9]" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setMsgTab("notifications"); setMsgOpen(true); }}
+                title="Notifications"
+                aria-label="Notifications"
+                className="h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 active:scale-95 transition"
+              >
+                <Bell className="h-5 w-5 stroke-[1.9]" />
               </button>
             </div>
           </div>
+        </section>
 
+        {/* ============================================================ */}
+        {/* 3. ASSISTANT AGRANDI AU CENTRE & ACCÈS DIRECT WORD A4         */}
+        {/* ============================================================ */}
+        <main className="mx-auto max-w-xl px-3 pt-3">
+          <section className="mb-3.5 rounded-2xl border-2 border-primary/20 bg-linear-to-b from-blue-50/70 to-white p-3.5 shadow-sm">
+            <div className="flex items-center justify-between pb-2 border-b border-blue-100/80 mb-2.5">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-lg bg-primary text-white flex items-center justify-center shadow-xs">
+                  <Sparkles className="h-4 w-4 text-amber-300" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-bold text-slate-900 leading-tight">
+                    Assistant de Rédaction Académique
+                  </h2>
+                  <p className="text-[10px] text-slate-500">Plateforme de rédaction et de recherche</p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => navigate({ to: "/redaction" })}
+                className="h-7 text-[11px] font-bold bg-[#1d4ed8] hover:bg-blue-800 text-white rounded-lg px-2.5 gap-1 shadow-xs"
+              >
+                <FileText className="h-3.5 w-3.5" /> Ouvrir l'Atelier Word A4
+              </Button>
+            </div>
 
+            {/* Zone de saisie principale */}
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="text"
+                placeholder="Ex. Plan de mémoire en droit, thèse en santé publique, analyse..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                className="h-10 text-xs rounded-xl border-slate-200 bg-white shadow-xs focus-visible:ring-primary"
+              />
+              <Button
+                type="button"
+                onClick={() => handleSendChatMessage()}
+                className="h-10 px-3.5 shrink-0 rounded-xl bg-[#1d4ed8] hover:bg-blue-700 text-white font-medium text-xs gap-1 shadow-xs"
+              >
+                <Send className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </section>
           {/* Liste des cartes du flux */}
           {loadingPosts ? (
             <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
