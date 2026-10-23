@@ -1,1 +1,414 @@
+/* BERSA — Atelier Word A4 Mobile Styles */
+.bersa-word-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
 
+/* 1. BANDEAU SUPÉRIEUR BLEU ROI */
+.bw-top-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #172554 100%);
+  color: #ffffff;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.bw-btn-icon {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  padding: 0.35rem;
+  border-radius: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.bw-btn-icon:hover, .bw-btn-icon:active {
+  background: rgba(255,255,255,0.15);
+}
+.bw-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.bw-brand-badge {
+  background: #d97706;
+  color: #ffffff;
+  font-weight: 800;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.bw-brand-text strong {
+  display: block;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+.bw-brand-text small {
+  display: block;
+  font-size: 0.65rem;
+  opacity: 0.85;
+}
+.bw-doc-title-box {
+  flex: 1;
+  min-width: 0;
+  max-width: 280px;
+}
+.bw-doc-title-input {
+  width: 100%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ffffff;
+  border-radius: 0.375rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  outline: none;
+}
+.bw-doc-title-input:focus {
+  background: rgba(255,255,255,0.22);
+  border-color: #f59e0b;
+}
+.bw-save-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  margin-top: 0.15rem;
+  opacity: 0.85;
+}
+
+/* MENU DÉROULANT 3 POINTS */
+.bw-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0.75rem;
+  margin-top: 0.25rem;
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25);
+  border: 1px solid #e2e8f0;
+  padding: 0.35rem 0;
+  min-width: 220px;
+  z-index: 50;
+}
+.bw-dropdown-menu button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.bw-dropdown-menu button:hover, .bw-dropdown-menu button:active {
+  background: #f1f5f9;
+  color: #1e3a8a;
+}
+.bw-menu-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0.3rem 0;
+}
+
+/* 2. RUBAN À ONGLETS */
+.bw-tabs-bar {
+  background: #ffffff;
+  border-bottom: 1px solid #cbd5e1;
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.bw-tabs-bar::-webkit-scrollbar { display: none; }
+.bw-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bw-tab-btn.active {
+  color: #1e3a8a;
+  border-bottom-color: #1e3a8a;
+  background: #eff6ff;
+}
+
+/* OUTILS DU RUBAN */
+.bw-tools-ribbon {
+  background: #f8fafc;
+  border-bottom: 1px solid #cbd5e1;
+  padding: 0.4rem 0.5rem;
+  overflow-x: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  scrollbar-width: none;
+}
+.bw-tools-ribbon::-webkit-scrollbar { display: none; }
+.bw-tool-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-right: 1px solid #cbd5e1;
+  padding-right: 0.35rem;
+  margin-right: 0.2rem;
+  flex-shrink: 0;
+}
+.bw-tool-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+.bw-tool-btn.active {
+  background: #1e3a8a;
+  color: #ffffff;
+  border-color: #1e3a8a;
+}
+.bw-select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  border-radius: 0.375rem;
+  padding: 0.3rem 0.4rem;
+  font-size: 0.75rem;
+  outline: none;
+}
+
+/* 3. FEUILLE A4 CENTRÉE ET ALONGEABLE */
+.bw-workspace-area {
+  flex: 1;
+  padding: 1rem 0.5rem 6.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+.bw-a4-sheet {
+  background: #ffffff;
+  width: 100%;
+  max-width: 794px;
+  min-height: 1123px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #cbd5e1;
+  padding: 2.5cm 2cm;
+  box-sizing: border-box;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 13pt;
+  line-height: 1.6;
+  color: #0f172a;
+  transition: transform 0.2s;
+  transform-origin: top center;
+}
+@media (max-width: 640px) {
+  .bw-a4-sheet {
+    padding: 1.25rem 1rem !important;
+    min-height: 85vh;
+    border-radius: 0.5rem;
+  }
+}
+.bw-a4-sheet.landscape {
+  max-width: 1123px;
+  min-height: 794px;
+}
+.bw-editor-content {
+  outline: none;
+  min-height: 500px;
+}
+.bw-editor-content p { margin: 0 0 0.75em 0; }
+.bw-editor-content h1 { font-size: 1.8em; font-weight: bold; margin: 1em 0 0.5em; }
+.bw-editor-content h2 { font-size: 1.4em; font-weight: bold; margin: 0.9em 0 0.4em; }
+.bw-editor-content h3 { font-size: 1.2em; font-weight: bold; margin: 0.8em 0 0.3em; }
+
+/* 4. BARRE FIXE INFÉRIEURE (5 BOUTONS) */
+.bw-bottom-toolbar {
+  position: fixed;
+  bottom: 2rem;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border-top: 1px solid #cbd5e1;
+  padding: 0.4rem 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
+  z-index: 35;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+}
+.bw-bottom-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.15rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  color: #1e3a8a;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.bw-bottom-btn span {
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
+}
+.bw-bottom-btn:active { background: #eff6ff; }
+.bw-bottom-btn.regenerate {
+  background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%);
+  color: #ffffff;
+  border-color: #0d9488;
+  box-shadow: 0 2px 6px rgba(13,148,136,0.3);
+}
+
+/* 5. BARRE D'ÉTAT INFÉRIEURE */
+.bw-status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2rem;
+  background: #1e293b;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  z-index: 36;
+}
+.bw-zoom-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.bw-zoom-ctrl button {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #ffffff;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* 6. MODALE IA & RÉGÉNÉRER */
+.bw-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 1rem;
+}
+.bw-modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.bw-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.bw-modal-header h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.bw-result-box {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0.75rem 0;
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+.bw-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.bw-btn-primary {
+  background: #1e3a8a;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bw-btn-secondary {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  }
