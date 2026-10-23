@@ -35,19 +35,19 @@ interface FeedPost {
   type: "book" | "course" | "opportunity" | "user" | "welcome";
   authorName: string;
   authorSubtitle: string;
-  isVerified?: boolean;
-  title?: string;
-  domain?: string;
-  price?: string;
+  isVerified?: boolean | undefined;
+  title?: string | undefined;
+  domain?: string | undefined;
+  price?: string | undefined;
   content: string;
-  mediaUrl?: string;
-  videoUrl?: string;
+  mediaUrl?: string | undefined;
+  videoUrl?: string | undefined;
   likes: number;
-  isLiked?: boolean;
+  isLiked?: boolean | undefined;
   comments: PostComment[];
-  isSaved?: boolean;
+  isSaved?: boolean | undefined;
   date: string;
-  linkTo?: string;
+  linkTo?: string | undefined;
 }
 
 export function HomeFeed() {
