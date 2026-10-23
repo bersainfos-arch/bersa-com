@@ -850,65 +850,6 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 3. ASSISTANT AGRANDI AU CENTRE & ACCÈS DIRECT WORD A4         */}
         {/* ============================================================ */}
-        <main className="mx-auto max-w-xl px-3 pt-3">
-          <section className="mb-3.5 rounded-2xl border-2 border-primary/20 bg-linear-to-b from-blue-50/70 to-white p-3.5 shadow-sm">
-            <div className="flex items-center justify-between pb-2 border-b border-blue-100/80 mb-2.5 gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="h-8 w-8 rounded-lg bg-primary text-white flex items-center justify-center shadow-xs shrink-0">
-                  <Sparkles className="h-4 w-4 text-amber-300" />
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-xs font-bold text-slate-900 leading-tight truncate">
-                    Assistant de Rédaction Académique
-                  </h2>
-                  <p className="text-[10px] text-slate-500 truncate">
-                    Plateforme de rédaction et d'excellence
-                  </p>
-                </div>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => navigate({ to: "/redaction" })}
-                className="h-8 text-[11px] font-bold bg-[#1d4ed8] hover:bg-blue-800 text-white rounded-lg px-2.5 gap-1 shadow-xs shrink-0"
-              >
-                <FileText className="h-3.5 w-3.5" /> Ouvrir l'Atelier Word A4
-              </Button>
-            </div>
-
-            {/* Puces d'actions rapides */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2">
-              {quickActions.map((act) => (
-                <button
-                  key={act.label}
-                  type="button"
-                  onClick={() => handleSendChatMessage(act.prompt)}
-                  className="shrink-0 rounded-full border border-blue-200/60 bg-white px-2.5 py-0.5 text-[10px] font-medium text-slate-700 hover:border-blue-500 hover:bg-blue-50 transition"
-                >
-                  {act.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Zone de saisie principale */}
-            <div className="flex items-center gap-1.5">
-              <Input
-                type="text"
-                placeholder="Ex. Plan de mémoire en droit, thèse en santé, analyse..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
-                className="h-10 text-xs rounded-xl border-slate-200 bg-white shadow-xs focus-visible:ring-primary"
-              />
-              <Button
-                type="button"
-                onClick={() => handleSendChatMessage()}
-                className="h-10 px-3.5 shrink-0 rounded-xl bg-[#1d4ed8] hover:bg-blue-700 text-white font-medium text-xs gap-1 shadow-xs"
-              >
-                <Send className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </section>
-
           {/* Boîte de publication style Facebook */}
           <div className="mb-3.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
             <div className="flex items-center gap-2.5">
