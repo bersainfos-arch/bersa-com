@@ -18,7 +18,7 @@ describe("export Word réel", () => {
   it("le fichier se relit comme un document Word avec titre, gras, liste et tableau", async () => {
     const bytes = buildDocxBytes(doc);
     const { value } = await mammoth.convertToHtml({ buffer: Buffer.from(bytes) });
-    expect(value).toContain("<h1>Mémoire de fin d&#39;études</h1>");
+    expect(value).toContain("<h1>Mémoire de fin d'études</h1>");
     expect(value).toContain("<strong>Texte en gras</strong>");
     expect(value).toContain("<li>Point A</li>");
     expect(value).toContain("<td><p>Cellule</p></td>");
