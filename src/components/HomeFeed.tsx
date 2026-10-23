@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+loimport { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Search,
@@ -1358,7 +1358,7 @@ export function HomeFeed() {
                       className={`w-full rounded-lg border p-2.5 text-left text-xs transition ${
                         quizAnswered === null
                           ? "border-slate-200 bg-white hover:bg-slate-50"
-                          : idx === quizQuestions[0]?.correct.
+                          : idx === quizQuestions[0]?.correct
                           ? "border-emerald-500 bg-emerald-50 font-semibold text-emerald-900"
                           : quizAnswered === idx
                           ? "border-rose-400 bg-rose-50 text-rose-800"
