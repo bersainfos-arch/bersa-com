@@ -1,4 +1,4 @@
-loimport { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Search,
