@@ -224,3 +224,204 @@ export function HomeFeed() {
     }
     void loadFeed();
   }, [user]);                                         
+  const handleToggleLike = async (postId: string) => {
+    if (!user) {
+      toast.error("Veuillez vous connecter pour aimer cette publication");
+      return;
+    }
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const isLiked = !p.isLiked;
+          return {
+            ...p,
+            isLiked,
+            likes: isLiked ? p.likes + 1 : Math.max(0, p.likes - 1),
+          };
+        }
+        return p;
+      })
+    );
+    if (!postId.startsWith("book-") && !postId.startsWith("course-") && !postId.startsWith("opp-") && !postId.startsWith("post-welcome")) {
+      try {
+        const post = posts.find((p) => p.id === postId);
+        const willLike = !post?.isLiked;
+        if (willLike) {
+          await (supabase.from("community_post_likes" as any) as any).insert({ post_id: postId, user_id: user.id });
+        } else {
+          await (supabase.from("community_post_likes" as any) as any).delete().eq("post_id", postId).eq("user_id", user.id);
+        }
+      } catch (e) {
+        console.error("Erreur like:", e);
+      }
+    }
+  };
+
+  const handleToggleSave = (postId: string) => {
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const isSaved = !p.isSaved;
+          toast.success(isSaved ? "Enregistré dans vos favoris" : "Retiré de vos favoris");
+          return { ...p, isSaved };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleSharePost = (post: FeedPost) => {
+    if (navigator.share) {
+      navigator.share({
+        title: post.title || post.authorName,
+        text: post.content,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(`${post.title ? post.title + " : " : ""}${window.location.href}`);
+      toast.success("Lien copié dans le presse-papier");
+    }
+  };
+
+  const handleAddComment = async (postId: string) => {
+    if (!commentInput.trim()) return;
+    if (!user) {
+      toast.error("Connectez-vous pour commenter");
+      return;
+    }
+    const commentText = commentInput.trim();
+    const newComment: PostComment = {
+      id: `comm-${Date.now()}`,
+      authorName: userFullName,
+      text: commentText,
+      time: "À l'instant",
+    };
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, comments: [newComment, ...p.comments] } : p))
+    );
+    setCommentInput("");
+    if (!postId.startsWith("book-") && !postId.startsWith("course-") && !postId.startsWith("opp-") && !postId.startsWith("post-welcome")) {
+      try {
+        await (supabase.from("community_post_comments" as any) as any).insert({
+          post_id: postId,
+          user_id: user.id,
+          user_name: userFullName,
+          content: commentText,
+        });
+        toast.success("Commentaire publié");
+      } catch (e: any) {
+        toast.error("Erreur lors de l'envoi : " + (e.message || "erreur"));
+      }
+    } else {
+      toast.success("Commentaire publié");
+    }
+  };
+
+  const handleCreateNewPost = async () => {
+    if (!newPostText.trim()) {
+      toast.error("Veuillez saisir votre texte");
+      return;
+    }
+    if (!user) {
+      toast.error("Connectez-vous pour publier");
+      return;
+    }
+    setIsSubmittingPost(true);
+    try {
+      const { data, error } = await (supabase.from("community_posts" as any) as any)
+        .insert({
+          user_id: user.id,
+          author_name: userFullName,
+          author_subtitle: "Berceau du Savoir • Membre actif",
+          content: newPostText.trim(),
+          media_url: newPostMediaUrl.trim() || null,
+          video_url: newPostVideoUrl.trim() || null,
+          post_type: postType,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      const created: FeedPost = {
+        id: (data as any)?.id || `post-${Date.now()}`,
+        type: "user",
+        authorName: userFullName,
+        authorSubtitle: "Berceau du Savoir • Publication directe",
+        isVerified: user?.email === "dieudonnedjoma@gmail.com",
+        content: newPostText.trim(),
+        mediaUrl: newPostMediaUrl.trim() || undefined,
+        videoUrl: newPostVideoUrl.trim() || undefined,
+        likes: 0,
+        comments: [],
+        date: "À l'instant",
+      };
+      setPosts((prev) => [created, ...prev]);
+      setPublishModalOpen(false);
+      setNewPostText("");
+      setNewPostMediaUrl("");
+      setNewPostVideoUrl("");
+      toast.success("Votre publication est en ligne pour toute la communauté !");
+    } catch (err: any) {
+      toast.error("Erreur de publication : " + (err.message || ""));
+    } finally {
+      setIsSubmittingPost(false);
+    }
+  };
+
+  const handleSendChatMessage = async (textToSend?: string) => {
+    const query = (textToSend || chatInput).trim();
+    if (!query) return;
+    const userMsg = { role: "user" as const, content: query, time: "Maintenant" };
+    const newHistory = [...chatMessages, userMsg];
+    setChatMessages(newHistory);
+    setChatInput("");
+    setChatOpen(true);
+    setIsAiThinking(true);
+    try {
+      const response = await askAssistant({
+        data: { messages: newHistory.map((m) => ({ role: m.role, content: m.content })) },
+      });
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: response.reply, time: "À l'instant" },
+      ]);
+    } catch (err: any) {
+      toast.error("L'Assistant BERSA est momentanément indisponible.");
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Désolé, une difficulté réseau est survenue. Vous pouvez continuer à rédiger directement dans l'Atelier Word A4.",
+          time: "Erreur",
+        },
+      ]);
+    } finally {
+      setIsAiThinking(false);
+    }
+  };
+
+  const quickActions = [
+    { label: "📑 Plan de mémoire", prompt: "Propose-moi un plan de recherche scientifique et académique rigoureux en 3 parties sur ce thème :" },
+    { label: "✍️ Reformuler", prompt: "Reformule ce texte dans un style universitaire élégant, fluide et rigoureux :" },
+    { label: "⚖️ Analyse juridique", prompt: "Analyse juridiquement la situation suivante avec visa des textes applicables :" },
+    { label: "🔍 Sources & Bibliographie", prompt: "Donne-moi les références bibliographiques et sources scientifiques majeures pour :" },
+    { label: "✏️ Correction & Syntaxe", prompt: "Corrige rigoureusement l'orthographe, la syntaxe et la ponctuation de cet extrait :" },
+    { label: "📖 Normes APA 7", prompt: "Mets en forme ces références selon les normes bibliographiques académiques APA 7e édition :" },
+  ];
+
+  const sendToA4Editor = (text: string) => {
+    localStorage.setItem("bersa-editor-import", text);
+    toast.success("Texte envoyé dans l'Atelier Word A4");
+    navigate({ to: "/redaction" });
+  };
+
+  const searchResults = posts.filter((p) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      p.authorName.toLowerCase().includes(q) ||
+      p.content.toLowerCase().includes(q) ||
+      (p.title && p.title.toLowerCase().includes(q)) ||
+      (p.domain && p.domain.toLowerCase().includes(q))
+    );
+  }).slice(0, 8);
+                                          
