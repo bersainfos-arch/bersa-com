@@ -1332,7 +1332,7 @@ export function HomeFeed() {
               </button>
             </div>
 
-            {funTab === "quote" && (
+            {funTab === "quote" && academicQuotes[0] && (
               <div className="pt-4 text-center space-y-3">
                 <blockquote className="italic text-sm text-slate-700">
                   "{academicQuotes[0].quote}"
@@ -1343,7 +1343,7 @@ export function HomeFeed() {
               </div>
             )}
 
-            {funTab === "quiz" && (
+            {funTab === "quiz" && quizQuestions[0] && (
               <div className="pt-3 space-y-3">
                 <p className="text-xs font-semibold text-slate-900">
                   {quizQuestions[0].question}
