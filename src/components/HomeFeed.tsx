@@ -1097,6 +1097,64 @@ export function HomeFeed() {
               })}
             </div>
           )}
+                    {/* ASSISTANT BERSA STYLE CHATGPT ÉTENDU EN BAS DU FIL */}
+          <section className="mt-6 mb-8 rounded-3xl border-2 border-blue-600/30 bg-gradient-to-b from-blue-50/80 via-white to-slate-50 p-4 sm:p-5 shadow-lg">
+            <div className="flex items-center justify-between pb-3 border-b border-blue-100 gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-10 w-10 rounded-2xl bg-[#1d4ed8] text-white flex items-center justify-center shadow-md shrink-0">
+                  <Sparkles className="h-5 w-5 text-amber-300 animate-pulse" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-extrabold text-slate-900 leading-tight truncate">
+                    Assistant de Rédaction Académique
+                  </h2>
+                  <p className="text-[11px] text-blue-700 font-medium truncate">
+                    IA Berceau du Savoir • Style ChatGPT Mobile
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => navigate({ to: "/redaction" })}
+                className="h-9 text-xs font-bold bg-[#1d4ed8] hover:bg-blue-800 text-white rounded-xl px-3 gap-1.5 shadow-sm shrink-0"
+              >
+                <FileText className="h-4 w-4" /> Atelier Word A4
+              </Button>
+            </div>
+
+            {/* Suggestions rapides */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-3">
+              {quickActions.map((act) => (
+                <button
+                  key={act.label}
+                  type="button"
+                  onClick={() => handleSendChatMessage(act.prompt)}
+                  className="shrink-0 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-medium text-slate-700 hover:border-blue-500 hover:bg-blue-50 transition shadow-2xs"
+                >
+                  {act.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Zone de saisie large ChatGPT */}
+            <div className="flex items-center gap-2 pt-1">
+              <Input
+                type="text"
+                placeholder="Posez une question, demandez un plan de mémoire, une analyse..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                className="h-12 text-xs sm:text-sm rounded-2xl border-slate-300 bg-white shadow-inner focus-visible:ring-blue-600"
+              />
+              <Button
+                type="button"
+                onClick={() => handleSendChatMessage()}
+                className="h-12 w-12 shrink-0 rounded-2xl bg-[#1d4ed8] hover:bg-blue-700 text-white shadow-md flex items-center justify-center"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </section>
         </main>
 
         {/* ============================================================ */}
