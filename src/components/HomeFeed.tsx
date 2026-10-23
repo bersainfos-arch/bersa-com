@@ -669,4 +669,294 @@ export function HomeFeed() {
             </div>
           </div>
         </section>
-                      
+                 {/* ============================================================ */}
+        {/* 4. LES 8 FONCTIONNALITÉS EN 2 RANGÉES (ACCÈS RAPIDE)          */}
+        {/* ============================================================ */}
+        <section className="bg-white border-b border-slate-200/80 px-3 py-2.5 shadow-2xs">
+          <div className="mx-auto max-w-xl">
+            <div className="grid grid-cols-4 gap-2">
+              <Link to="/" title="Accueil" aria-label="Accueil" className="h-11 flex items-center justify-center rounded-xl bg-blue-50 border border-blue-200 text-[#1d4ed8]">
+                <Home className="h-5 w-5 fill-[#1d4ed8]" />
+              </Link>
+              <Link to="/redaction" title="Atelier Word A4" aria-label="Atelier Word A4" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 relative">
+                <FileText className="h-5 w-5 stroke-[1.9]" />
+                <Sparkles className="absolute top-2 right-2.5 h-2.5 w-2.5 text-amber-500" />
+              </Link>
+              <Link to="/formations" title="Formations" aria-label="Formations" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
+                <GraduationCap className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+              <Link to="/bibliotheque" title="Bibliothèque" aria-label="Bibliothèque" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
+                <BookOpen className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+              <Link to="/opportunites" title="Opportunités" aria-label="Opportunités" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
+                <Briefcase className="h-5 w-5 stroke-[1.9]" />
+              </Link>
+              <button type="button" onClick={() => setPublishModalOpen(true)} title="Publier" aria-label="Publier" className="h-11 flex items-center justify-center rounded-xl bg-[#0a192f] text-white shadow-xs hover:bg-blue-700">
+                <Plus className="h-5 w-5 stroke-[2.5]" />
+              </button>
+              <button type="button" onClick={() => { setMsgTab("chat"); setMsgOpen(true); }} title="Messages" aria-label="Messages" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
+                <MessageSquare className="h-5 w-5 stroke-[1.9]" />
+              </button>
+              <button type="button" onClick={() => { setMsgTab("notifications"); setMsgOpen(true); }} title="Notifications" aria-label="Notifications" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
+                <Bell className="h-5 w-5 stroke-[1.9]" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ============================================================ */}
+        {/* 5. FLUX DE PUBLICATIONS, LIVRES & FORMATIONS                  */}
+        {/* ============================================================ */}
+        <main className="mx-auto max-w-xl px-3 pt-3">
+          {/* Boîte de publication style Facebook */}
+          <div className="mb-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-900 font-bold text-xs shrink-0 overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userFullName} className="h-full w-full object-cover" />
+                ) : (
+                  (userFirstName ?? "A").charAt(0).toUpperCase()
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPublishModalOpen(true)}
+                className="flex-1 rounded-full bg-slate-100 px-3.5 py-2 text-left text-xs text-slate-500 hover:bg-slate-200/70 transition truncate"
+              >
+                Partager une recherche ou un article, {userFirstName ?? ""} ?
+              </button>
+            </div>
+          </div>
+
+          {/* Liste des publications */}
+          {loadingPosts ? (
+            <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              Chargement des publications et ouvrages...
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="py-12 text-center text-slate-500 text-xs">
+              Aucune publication pour le moment.
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {posts.map((post) => {
+                const isCommentsOpen = openCommentsPostId === post.id;
+                return (
+                  <article key={post.id} className="w-full overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-xs">
+                    {/* Profil de l'auteur */}
+                    <div className="flex items-center justify-between pb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-900 text-xs border border-blue-200 shrink-0">
+                          {post.authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-xs text-slate-900 truncate">
+                              {post.authorName}
+                            </span>
+                            {post.isVerified && (
+                              <CheckCircle2 className="h-3.5 w-3.5 fill-[#1d4ed8] text-white shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500 truncate">{post.authorSubtitle}</p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0">{post.date}</span>
+                    </div>
+
+                    {/* Image 16:9 proportionnée sans débordement */}
+                    {post.mediaUrl && (
+                      <div className="mb-2.5 w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-100">
+                        <img
+                          src={post.mediaUrl}
+                          alt={post.title || "Illustration"}
+                          className="w-full max-h-72 object-cover aspect-video"
+                          loading="lazy"
+                        />
+                      </div>
+                    )}
+
+                    {/* Titre et Texte avec 2 lignes max et bouton Voir plus */}
+                    <div className="text-xs leading-relaxed text-slate-800">
+                      {post.title && (
+                        <h3 className="font-bold text-slate-900 mb-1 text-sm">{post.title}</h3>
+                      )}
+                      <p className={expanded[post.id] ? "" : "line-clamp-2"}>{post.content}</p>
+                      {post.content && post.content.length > 120 && (
+                        <button
+                          type="button"
+                          onClick={() => setExpanded((prev) => ({ ...prev, [post.id]: !prev[post.id] }))}
+                          className="mt-1 text-[11px] font-semibold text-[#1d4ed8] hover:underline block"
+                        >
+                          {expanded[post.id] ? "Voir moins" : "Voir plus..."}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Lien direct pour livre/formation */}
+                    {post.linkTo && (
+                      <div className="mt-3">
+                        <Link
+                          to={post.linkTo as any}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1d4ed8] hover:underline bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200"
+                        >
+                          Consulter ce contenu <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Interactions : Like, Commentaire, Partage */}
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-xs text-slate-600">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleLike(post.id)}
+                        className={`flex items-center gap-1.5 transition font-medium ${
+                          post.isLiked ? "text-red-600" : "hover:text-red-600"
+                        }`}
+                      >
+                        <Heart className={`h-4 w-4 ${post.isLiked ? "fill-red-600 text-red-600" : ""}`} />
+                        <span>{post.likes}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOpenCommentsPostId(isCommentsOpen ? null : post.id)}
+                        className="flex items-center gap-1.5 hover:text-blue-600 transition font-medium"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        <span>{post.comments.length}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSave(post.id)}
+                        className={`hover:text-amber-600 transition ${post.isSaved ? "text-amber-600" : ""}`}
+                      >
+                        <Bookmark className={`h-4 w-4 ${post.isSaved ? "fill-amber-600" : ""}`} />
+                      </button>
+                      <button type="button" onClick={() => handleSharePost(post)} className="hover:text-slate-900 transition">
+                        <Share2 className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* Zone de commentaires */}
+                    {isCommentsOpen && (
+                      <div className="mt-3 border-t border-slate-100 pt-3 space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Écrire un commentaire..."
+                            value={commentInput}
+                            onChange={(e) => setCommentInput(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleAddComment(post.id)}
+                            className="h-8 text-xs"
+                          />
+                          <Button size="sm" onClick={() => handleAddComment(post.id)} className="h-8 text-xs bg-[#0a192f] text-white">
+                            Envoyer
+                          </Button>
+                        </div>
+                        <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                          {post.comments.map((comm) => (
+                            <div key={comm.id} className="rounded-lg bg-slate-50 p-2 text-xs">
+                              <span className="font-semibold text-slate-900 block">{comm.authorName}</span>
+                              <p className="text-slate-700">{comm.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </main>
+
+        {/* Modales : Messages, Chat Assistant, Publication */}
+        <HomeMessagesModal key={msgTab + String(msgOpen)} open={msgOpen} onOpenChange={setMsgOpen} initialTab={msgTab} />
+
+        <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+          <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col p-4">
+            <DialogHeader className="border-b border-slate-100 pb-2">
+              <DialogTitle className="flex items-center justify-between text-base font-bold text-slate-900">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-amber-500" />
+                  <span>Assistant BERSA</span>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/redaction" })} className="text-xs gap-1 border-blue-300 text-blue-900">
+                  <FileText className="h-3.5 w-3.5" /> Ouvrir Word A4
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto space-y-3 py-3 pr-1 max-h-[55vh]">
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                  <div className={`rounded-2xl px-3.5 py-2.5 max-w-[85%] text-xs leading-relaxed ${
+                    msg.role === "user" ? "bg-[#0a192f] text-white" : "bg-slate-100 text-slate-900 border border-slate-200"
+                  }`}>
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === "assistant" && msg.content.length > 80 && (
+                      <div className="mt-2.5 flex items-center gap-2 border-t border-slate-200/80 pt-1.5">
+                        <button type="button" onClick={() => sendToA4Editor(msg.content)} className="text-[11px] font-bold text-[#1d4ed8] hover:underline flex items-center gap-1">
+                          <PenTool className="h-3 w-3" /> Transférer dans l'Atelier Word A4
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {isAiThinking && (
+                <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200/50 w-fit">
+                  <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                  L'Assistant réfléchit et rédige...
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+              <Input
+                placeholder="Votre message à l'assistant..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                className="text-xs"
+              />
+              <Button onClick={() => handleSendChatMessage()} className="bg-[#0a192f] text-white h-9 px-3">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modale de publication directe */}
+        <Dialog open={publishModalOpen} onOpenChange={setPublishModalOpen}>
+          <DialogContent className="sm:max-w-md p-4">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-slate-900">
+                Créer une publication académique
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3 pt-2">
+              <Textarea
+                placeholder="Partagez une réflexion, une découverte scientifique ou une annonce..."
+                value={newPostText}
+                onChange={(e) => setNewPostText(e.target.value)}
+                rows={4}
+                className="text-xs"
+              />
+              <Input
+                placeholder="Lien de l'image (optionnel)"
+                value={newPostMediaUrl}
+                onChange={(e) => setNewPostMediaUrl(e.target.value)}
+                className="text-xs"
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" size="sm" onClick={() => setPublishModalOpen(false)}>Annuler</Button>
+                <Button size="sm" onClick={handleCreateNewPost} disabled={isSubmittingPost} className="bg-[#0a192f] text-white">
+                  {isSubmittingPost ? "Publication..." : "Publier"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AuthGate>
+  );
+                }                      
