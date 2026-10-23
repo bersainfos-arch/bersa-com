@@ -74,55 +74,71 @@ export function EditorRibbon({
     }
   };
 
-  const handleOpenFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOpenFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    if (file.name.endsWith(".txt") || file.name.endsWith(".html")) {
-      reader.onload = () => {
-        editor?.commands.setContent(String(reader.result));
-        toast.success(`Fichier ${file.name} ouvert.`);
-      };
-      reader.readAsText(file);
-    } else {
-      toast.info("Importation DOCX/ODT : le texte brut sera extrait.");
-      reader.onload = () => {
-        editor?.commands.setContent(`<p>${String(reader.result)}</p>`);
-      };
-      reader.readAsText(file);
-    }
     e.target.value = "";
+    if (!file || !editor) return;
+    try {
+      const name = file.name.toLowerCase();
+      if (name.endsWith(".docx")) {
+        const mammoth = await import("mammoth");
+        const { value } = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+        editor.commands.setContent(value || "<p></p>");
+      } else if (name.endsWith(".html") || name.endsWith(".htm")) {
+        editor.commands.setContent(await file.text());
+      } else {
+        const text = await file.text();
+        editor.commands.setContent({ type: "doc", content: text.split(/\r?\n/).map(l => ({ type: "paragraph", ...(l ? { content: [{ type: "text", text: l }] } : {}) })) });
+      }
+      toast.success(`Fichier ${file.name} ouvert.`);
+    } catch {
+      toast.error("Impossible d'ouvrir ce fichier. Formats acceptés : .docx, .txt, .html.");
+    }
   };
 
-  const exportAs = (format: "html" | "txt" | "docx") => {
-    if (!editor) return;
-    let mime = "text/plain";
-    let ext = "txt";
-    let content: BlobPart = editor.getText();
-
-    if (format === "html") {
-      mime = "text/html";
-      ext = "html";
-      content = `<!doctype html><html><head><meta charset="utf-8"><title>Document BERSA</title><style>body{font-family:'Times New Roman',serif;padding:2cm;}</style></head><body>${editor.getHTML()}</body></html>`;
-    } else if (format === "docx") {
-      mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-      ext = "docx";
-      // Conteneur HTML interprétable par Word
-      content = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>BERSA Export</title>
-        <style>@page{size:21cm 29.7cm;margin:2.5cm;}body{font-family:'Times New Roman',serif;font-size:13pt;line-height:1.6;}</style>
-        </head><body>${editor.getHTML()}</body></html>`;
-    }
-
-    const blob = new Blob([content], { type: mime });
+  const download = (blob: Blob, ext: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `document-bersa.${ext}`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast.success(`Export ${ext.toUpperCase()} téléchargé.`);
+  };
+
+  const exportAs = async (format: "html" | "txt" | "docx") => {
+    if (!editor) return;
+    if (format === "docx") {
+      const { buildDocx } = await import("@/lib/docx-export");
+      const marginCm = settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5;
+      const blob = await buildDocx(editor.getJSON() as any, {
+        marginCm,
+        lineSpacing: Number(settings.lineSpacing) || 1.6,
+        landscape: settings.orientation === "Paysage",
+        headerText: settings.headerText,
+        footerText: settings.footerText,
+        pageNumbers: true,
+      });
+      return download(blob, "docx");
+    }
+    if (format === "html") {
+      return download(new Blob([`<!doctype html><html><head><meta charset="utf-8"><title>Document BERSA</title><style>body{font-family:'Times New Roman',serif;padding:2cm;}</style></head><body>${editor.getHTML()}</body></html>`], { type: "text/html" }), "html");
+    }
+    download(new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" }), "txt");
+  };
+
+  const shareDocx = async () => {
+    if (!editor) return;
+    const { buildDocx } = await import("@/lib/docx-export");
+    const blob = await buildDocx(editor.getJSON() as any, { headerText: settings.headerText, footerText: settings.footerText });
+    const file = new File([blob], "document-bersa.docx", { type: blob.type });
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: "Document BERSA" }); } catch { /* annulé */ }
+    } else {
+      download(blob, "docx");
+    }
   };
 
   const handleShare = async () => {
