@@ -850,6 +850,7 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 3. ASSISTANT AGRANDI AU CENTRE & ACCÈS DIRECT WORD A4         */}
         {/* ============================================================ */}
+        <main className="mx-auto max-w-xl px-3 pt-3">
           {/* Boîte de publication style Facebook */}
           <div className="mb-3.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs">
             <div className="flex items-center gap-2.5">
