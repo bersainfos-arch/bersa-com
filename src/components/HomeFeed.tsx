@@ -66,22 +66,22 @@ interface FeedPost {
   type: "user" | "course" | "book" | "opportunity";
   authorName: string;
   authorSubtitle: string;
-  authorAvatar?: string;
-  isVerified?: boolean;
+    authorAvatar?: string | undefined;
+  isVerified?: boolean | undefined;
   content: string;
-  title?: string;
-  mediaUrl?: string;
-  videoUrl?: string;
-  domain?: string;
-  tags?: string[];
-  linkTo?: string;
-  linkLabel?: string;
+  title?: string | undefined;
+  mediaUrl?: string | undefined;
+  videoUrl?: string | undefined;
+  domain?: string | undefined;
+  tags?: string[] | undefined;
+  linkTo?: string | undefined;
+  linkLabel?: string | undefined;
   likes: number;
   comments: PostComment[];
-  isLiked?: boolean;
-  isSaved?: boolean;
+  isLiked?: boolean | undefined;
+  isSaved?: boolean | undefined;
   date: string;
-}
+  }
 
 export function HomeFeed() {
   const { user } = useAuth();
