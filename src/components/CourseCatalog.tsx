@@ -21,7 +21,90 @@ export function CourseCatalog() {
   async function enroll(c:Course, method?:string, reference?:string) { setBusy(true); const {error}=await supabase.from("course_enrollments").insert({course_id:c.id,amount:c.price,currency:c.currency,payment_method:method??null,payment_reference:reference??null}); setBusy(false); if(error) { toast.error(error.message); return; } setChoice(null); toast.success(c.price===0?"Inscription gratuite confirmée.":"Paiement en attente de validation."); await load(); }
  async function download(c:Course) { try { const {data,error}=await supabase.from("course_resources").select("file_path").eq("course_id",c.id).single(); if(error||!data) throw error??new Error("Accès indisponible"); const url=await signedCommunity(data.file_path); window.open(url,"_blank","noopener"); } catch(err){toast.error(err instanceof Error?err.message:"Téléchargement indisponible.");} }
  const published=rows.filter(c=>c.status==="published");
- return <><PublicationSlideshow label="Dernières formations" items={published.map(c=>({id:c.id,title:c.title,subtitle:`${c.domain} · ${c.price} ${c.currency}`,image:images[c.id],created_at:c.created_at}))}/><div className="mx-auto max-w-6xl px-4 py-6"><div className="flex flex-wrap gap-3"><Input aria-label="Rechercher une formation" placeholder="Rechercher une formation…" value={query} onChange={e=>setQuery(e.target.value)} className="max-w-md"/><Button onClick={()=>setPublish(true)}>Publier une formation</Button></div><div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{published.filter(c=>`${c.title} ${c.domain}`.toLowerCase().includes(query.toLowerCase())).map(c=>{const en=enrollments.find(e=>e.course_id===c.id);const access=en&&courseAccess(en.status);return <article key={c.id} className="rounded-lg border bg-card p-4">{images[c.id]&&<img src={images[c.id]} alt={c.title} className="mb-3 h-44 w-full object-contain"/>}<p className="text-xs text-muted-foreground">{c.domain}</p><h2 className="text-2xl">{c.title}</h2><p className="my-2 whitespace-pre-wrap text-sm">{c.description}</p><p className="font-semibold text-primary">{c.price===0?"Gratuit":`${c.price} ${c.currency}`}</p>{access||c.user_id===user?.id?<div className="mt-3 space-y-2"><Button onClick={()=>void download(c)}>Suivre / Télécharger</Button>{access&&<label className="block text-xs">Progression : {en.progress}%<input aria-label={`Progression ${c.title}`} type="range" min="0" max="100" step="10" value={en.progress} onChange={async e=>{const value=Number(e.target.value);const r=await supabase.from("course_enrollments").update({progress:value}).eq("id",en.id);if(r.error) toast.error(r.error.message);else setEnrollments(old=>old.map(x=>x.id===en.id?{...x,progress:value}:x));}} className="w-full"/></label>}</div>:en?<p className="mt-3 text-xs">{en.status==="pending"?"Paiement en vérification":"Inscription refusée"}</p>:<Button className="mt-3" disabled={busy} onClick={()=>c.price===0?void enroll(c):setChoice(c)}>S’inscrire</Button>}</article>})}</div>{!published.length&&<p className="py-10 text-center text-muted-foreground">Aucune formation publiée pour le moment.</p>}<h2 className="mt-8 text-2xl">Mes publications</h2>{rows.filter(c=>c.user_id===user?.id).map(c=><p key={c.id} className="border-b py-2 text-sm">{c.title} · {c.status==="pending"?"En attente":c.status==="published"?"Publié":"Refusé"}</p>)}</div>
- <Dialog open={publish} onOpenChange={setPublish}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>Publier une formation</DialogTitle></DialogHeader><form onSubmit={submit} className="space-y-3"><Input name="title" aria-label="Titre de la formation" placeholder="Titre" required maxLength={200}/><Input name="domain" aria-label="Domaine" placeholder="Domaine" required/><Textarea name="description" aria-label="Présentation et exigences" placeholder="Présentation, programme et exigences de l’auteur" required maxLength={10000}/><div className="flex gap-2"><Input name="price" aria-label="Prix" type="number" min="0" step="0.01" defaultValue="0" required/><select name="currency" aria-label="Devise" className="rounded border bg-background px-2">{currencies.map(c=><option key={c}>{c}</option>)}</select></div><label className="block text-sm">Support à suivre et télécharger (20 Mo)<Input name="file" type="file" required/></label><label className="block text-sm">Affiche facultative<Input name="cover" type="file" accept="image/png,image/jpeg,image/webp"/></label><Button disabled={busy}>Soumettre pour vérification</Button></form></DialogContent></Dialog>
- <Dialog open={!!choice} onOpenChange={open=>{if(!open)setChoice(null);}}><DialogContent><DialogHeader><DialogTitle>{choice?.title}</DialogTitle></DialogHeader>{choice&&<form className="space-y-3" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);void enroll(choice,String(f.get("method")),String(f.get("reference")));}}><p>{choice.price} {choice.currency}</p><p className="text-sm">L’accès sera ouvert après vérification de la réception du prix.</p>{["USD","CDF"].includes(choice.currency)?<><p className="text-sm">M-Pesa : {MOBILE_MONEY.mpesa} · Airtel Money : {MOBILE_MONEY.airtel}</p><select name="method" className="rounded border bg-background p-2"><option>M-Pesa</option><option>Airtel Money</option></select><Input name="reference" aria-label="Référence de paiement" placeholder="Référence de paiement" required maxLength={80}/><Button disabled={busy}>Envoyer la demande</Button></>:<p className="text-sm">Contactez bersainfos@gmail.com pour obtenir un moyen de paiement dans cette devise avant de vous inscrire.</p>}</form>}</DialogContent></Dialog></>;
-}
+ <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {published
+    .filter((c) => `${c.title} ${c.domain}`.toLowerCase().includes(query.toLowerCase()))
+    .map((c) => {
+      const en = enrollments.find((e) => e.course_id === c.id);
+      const access = en && courseAccess(en.status);
+
+      return (
+        <article
+          key={c.id}
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+        >
+          {/* Affiche 16:9 propre, avec couverture par défaut si vide */}
+          <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-[#0a192f] to-[#1e3a8a]">
+            {images[c.id] ? (
+              <img
+                src={images[c.id]}
+                alt={c.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-white">
+                <span className="text-2xl">🎓</span>
+                <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-300">
+                  Formation BERSA
+                </span>
+                <span className="line-clamp-2 px-2 text-xs font-medium text-slate-200">
+                  {c.domain}
+                </span>
+              </div>
+            )}
+            <span className="absolute bottom-2 right-2 rounded-md bg-black/75 px-2 py-0.5 text-xs font-bold text-amber-400 backdrop-blur-xs">
+              {c.price === 0 ? "Gratuit" : `${c.price} ${c.currency}`}
+            </span>
+          </div>
+
+          <div className="p-4">
+            <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-800">
+              {c.domain}
+            </span>
+            <h2 className="mt-2 line-clamp-2 text-base font-bold text-slate-900 leading-snug">
+              {c.title}
+            </h2>
+            <p className="mt-1 line-clamp-2 text-xs text-slate-600 leading-relaxed">
+              {c.description}
+            </p>
+
+            {/* Boutons d'action adaptés mobile */}
+            <div className="mt-4 flex flex-col gap-2">
+              {access || c.user_id === user?.id ? (
+                <>
+                  <Button
+                    className="w-full bg-[#0a192f] text-white hover:bg-[#1e3a8a]"
+                    onClick={() => void download(c)}
+                  >
+                    Suivre / Télécharger
+                  </Button>
+                  <a
+                    href="/redaction"
+                    className="inline-flex w-full items-center justify-center rounded-md border border-amber-500 bg-amber-50 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100"
+                  >
+                    ✍️ Pratiquer dans l'Atelier Word A4
+                  </a>
+                </>
+              ) : en ? (
+                <p className="text-center text-xs font-medium text-amber-700">
+                  {en.status === "pending"
+                    ? "Paiement en cours de vérification"
+                    : "Inscription refusée"}
+                </p>
+              ) : (
+                <Button
+                  className="w-full bg-[#0a192f] text-white hover:bg-[#1e3a8a]"
+                  disabled={busy}
+                  onClick={() =>
+                    c.price === 0 ? void enroll(c) : setChoice(c)
+                  }
+                >
+                  S’inscrire à la formation
+                </Button>
+              )}
+            </div>
+          </div>
+        </article>
+      );
+    })}
+</div>
