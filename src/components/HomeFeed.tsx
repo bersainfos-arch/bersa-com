@@ -133,7 +133,7 @@ export function HomeFeed() {
           isVerified: true,
           title: "Bienvenue dans le Studio de Rédaction BERSA",
           content:
-            "Transformez vos idées en résultats académiques et scientifiques d'excellence. Utilisez l'Atelier Word A4 avec Times New Roman 13pt et générez des documents parfaits avec notre Assistant IA.",
+            "Transformez vos idées en résultats académiques et scientifiques d'excellence. Utilisez notre atelier de rédaction et rédigez des documents parfaits avec notre Assistant.",
           likes: 42,
           isLiked: userLikesSet.has("post-welcome"),
           comments: commentsByPost["post-welcome"] || [],
