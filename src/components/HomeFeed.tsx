@@ -583,18 +583,18 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 2. BANNIÈRE ROYALE : OBJECTIF PRINCIPAL DE RÉDACTION          */}
         {/* ============================================================ */}
-        <section className="bg-gradient-to-br from-[#0a192f] via-[#102a43] to-[#1e3a8a] text-white px-3.5 py-5 border-b border-amber-500/30 shadow-md">
+                <section className="bg-gradient-to-br from-[#0a192f] via-[#102a43] to-[#1e3a8a] text-white px-3.5 py-5 border-b border-amber-500/30 shadow-md">
           <div className="mx-auto max-w-xl">
             <div className="flex items-center gap-2 mb-1.5">
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-400/30">
-                <Sparkles className="h-3 w-3" /> Plateforme Universitaire & Juridique
+                <Sparkles className="h-3 w-3" /> Plateforme Universelle de Rédaction & Savoir
               </span>
             </div>
             <h1 className="font-serif text-xl sm:text-2xl font-black leading-tight tracking-tight text-white">
               Studio de Rédaction & d'Intelligence Artificielle
             </h1>
             <p className="mt-1 text-xs text-slate-200 leading-relaxed font-sans">
-              Le berceau du savoir, au service de votre plume. Rédigez vos thèses, mémoires, articles scientifiques et plaidoiries avec notre éditeur Word A4 aux normes académiques.
+              Le berceau du savoir, au service de votre plume. Rédigez vos mémoires, thèses, livres, rapports d'activité, projets professionnels, articles scientifiques et correspondances avec notre éditeur Word A4 aux normes internationales.
             </p>
 
             {/* Boutons d'Action Clés */}
