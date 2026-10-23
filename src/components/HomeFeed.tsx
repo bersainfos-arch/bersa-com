@@ -248,7 +248,7 @@ export function HomeFeed() {
           }
         }
 
-        // 2. Livres récents avec vraie couverture
+        // 2. Livres récents avec vraie couverture bien mesurée convenable à l'écran du téléphone ou ordinateur 
         const { data: books } = await supabase
           .from("books")
           .select("id, title, subtitle, author, summary, domain, cover_path, created_at")
@@ -279,10 +279,10 @@ export function HomeFeed() {
           });
         }
 
-        // 3. Formations avec véritable affiche
+         // 3. Formations avec véritable affiche
         const { data: courses } = await supabase
           .from("courses")
-          .select("id, title, description, instructor_name, domain, cover_path, created_at")
+          .select("id, title, description, domain, cover_path, created_at")
           .order("created_at", { ascending: false })
           .limit(4);
 
@@ -295,7 +295,7 @@ export function HomeFeed() {
             loadedPosts.push({
               id: `course-${c.id}`,
               type: "course",
-              authorName: c.instructor_name || "Formateur BERSA",
+              authorName: "Formateur BERSA",
               authorSubtitle: `Formation certifiante • ${c.domain || "Académique"}`,
               isVerified: true,
               title: c.title,
@@ -308,7 +308,8 @@ export function HomeFeed() {
               date: "Formation",
             });
           });
-        }
+              }
+        
 
         if (loadedPosts.length === 0) {
           loadedPosts.push({
