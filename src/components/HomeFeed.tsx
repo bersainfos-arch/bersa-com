@@ -90,13 +90,13 @@ export function HomeFeed() {
   const [commentInput, setCommentInput] = useState("");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const userMeta = user?.user_metadata || {};
-  const userFirstName = userMeta.first_name || user?.email?.split("@")[0] || "Auteur";
+    const userMeta = (user?.user_metadata ?? {}) as Record<string, string | undefined>;
+  const userFirstName = userMeta["first_name"] || user?.email?.split("@")[0] || "Auteur";
   const userFullName =
-    `${userMeta.first_name || ""} ${userMeta.last_name || ""}`.trim() ||
+    `${userMeta["first_name"] || ""} ${userMeta["last_name"] || ""}`.trim() ||
     user?.email?.split("@")[0] ||
     "Auteur BERSA";
-  const avatarUrl = userMeta.avatar_url || userMeta.picture;
+  const avatarUrl = userMeta["avatar_url"] || userMeta["picture"];
 
   useEffect(() => {
     async function loadFeed() {
@@ -116,7 +116,7 @@ export function HomeFeed() {
         const commentsByPost: Record<string, PostComment[]> = {};
         (commentsRes?.data || []).forEach((c: any) => {
           if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-          commentsByPost[c.post_id].push({
+          commentsByPost[c.post_id]?.push({
             id: c.id,
             authorName: c.user_name || "Membre BERSA",
             text: c.content,
