@@ -1,7 +1,7 @@
 // Real Office Open XML (.docx) writer: builds WordprocessingML from Tiptap JSON
 // and packs it in a ZIP archive (stored entries, CRC32) without external deps.
 
-export type JNode = { type: string; attrs?: Record<string, any>; content?: JNode[]; text?: string; marks?: { type: string; attrs?: Record<string, any> }[] };
+export type JNode = { type: string; attrs?: any; content?: JNode[]; text?: string; marks?: { type: string; attrs?: any }[] };
 export type DocxOptions = { marginCm?: number; lineSpacing?: number; landscape?: boolean; headerText?: string; footerText?: string; pageNumbers?: boolean; title?: string };
 type Img = { id: string; name: string; data: Uint8Array; ext: string; w: number; h: number };
 
@@ -12,7 +12,7 @@ let CRC: Uint32Array | null = null;
 export function crc32(data: Uint8Array) {
   if (!CRC) { CRC = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; CRC[n] = c >>> 0; } }
   let c = 0xffffffff;
-  for (let i = 0; i < data.length; i++) c = CRC[(c ^ data[i]) & 0xff] ^ (c >>> 8);
+  for (let i = 0; i < data.length; i++) c = CRC[(c ^ data[i]!) & 0xff]! ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
 
@@ -42,7 +42,9 @@ export function zip(files: { name: string; data: Uint8Array }[]): Uint8Array {
   return out;
 }
 
-const hex = (c?: string) => { if (!c) return ""; const m = c.trim().match(/^#?([0-9a-f]{6})$/i) || c.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i); if (!m) { const r = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); return r ? [r[1], r[2], r[3]].map(n => Number(n).toString(16).padStart(2, "0")).join("").toUpperCase() : ""; } return (m.length === 4 ? m[1] + m[1] + m[2] + m[2] + m[3] + m[3] : m[1]).toUpperCase(); };
+const hex = (c?: string): string => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = (a: any, i: number) => String(a[i]); if (!c) return ""; const m = c.trim().match(/^#?([0-9a-f]{6})$/i) || c.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i); if (!m) { const r = c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); return r ? [g(r,1), g(r,2), g(r,3)].map(n => Number(n).toString(16).padStart(2, "0")).join("").toUpperCase() : ""; } return (m.length === 4 ? g(m,1) + g(m,1) + g(m,2) + g(m,2) + g(m,3) + g(m,3) : g(m,1)).toUpperCase(); };
 const ptSize = (s?: string) => { if (!s) return 0; const n = parseFloat(s); if (!n) return 0; return Math.round((s.endsWith("px") ? n * 0.75 : n) * 2); };
 
 function runs(nodes: JNode[] = []): string {
@@ -77,7 +79,7 @@ function para(n: JNode, extra = "", style = ""): string {
   return `<w:p>${pPr ? `<w:pPr>${pPr}</w:pPr>` : ""}${runs(n.content)}</w:p>`;
 }
 
-function blocks(nodes: JNode[] = [], ctx: { imgs: Img[]; list?: { num: number; lvl: number } ; widthTwips: number }): string {
+function blocks(nodes: JNode[] = [], ctx: { imgs: Img[]; list?: { num: number; lvl: number } | undefined; widthTwips: number }): string {
   return nodes.map(n => {
     switch (n.type) {
       case "paragraph": return para(n, ctx.list ? `<w:numPr><w:ilvl w:val="${ctx.list.lvl}"/><w:numId w:val="${ctx.list.num}"/></w:numPr>` : "");
