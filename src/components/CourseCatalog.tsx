@@ -107,4 +107,11 @@ export function CourseCatalog() {
         </article>
       );
     })}
-</div>
+          </div>
+        </article>
+      );
+    })}
+    </div>
+    </div>
+  );
+}
