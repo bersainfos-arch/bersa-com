@@ -259,14 +259,15 @@ export function EditorRibbon({
         {activeMenu === "Fichier" && (
           <div className="flex flex-wrap items-center gap-1">
             {btn(<FilePlus className="h-4 w-4" />, "Nouveau", handleNewDoc)}
-            <input type="file" ref={fileInputRef} className="hidden" accept=".txt,.html,.docx,.odt" onChange={handleOpenFile} />
+            <input type="file" ref={fileInputRef} className="hidden" accept=".txt,.html,.htm,.docx" onChange={handleOpenFile} />
             {btn(<FolderOpen className="h-4 w-4" />, "Ouvrir", () => fileInputRef.current?.click())}
             {btn(<Save className="h-4 w-4" />, "Enregistrer", save)}
-            {btn(<Download className="h-4 w-4" />, "DOCX", () => exportAs("docx"))}
-            {btn(<Download className="h-4 w-4" />, "HTML", () => exportAs("html"))}
-            {btn(<Download className="h-4 w-4" />, "Texte (.txt)", () => exportAs("txt"))}
+            {btn(<Download className="h-4 w-4" />, "Word (.docx)", () => void exportAs("docx"))}
+            {btn(<Download className="h-4 w-4" />, "HTML", () => void exportAs("html"))}
+            {btn(<Download className="h-4 w-4" />, "Texte (.txt)", () => void exportAs("txt"))}
             {btn(<Printer className="h-4 w-4" />, "Imprimer / PDF", () => window.print())}
             {btn(<Share2 className="h-4 w-4" />, "Partager / WhatsApp", handleShare)}
+            {btn(<Share2 className="h-4 w-4" />, "Partager le .docx", () => void shareDocx())}
           </div>
         )}
 
