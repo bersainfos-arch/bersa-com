@@ -9,7 +9,7 @@ import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import Highlight from "@tiptap/extension-highlight";
 import { toast } from "sonner";
-import { Send, Loader2, Mic, Square, Trash2, X, FileAudio } from "lucide-react";
+import { Send, Loader2, Mic, Square, Trash2, X, FileAudio, Paperclip, RotateCcw } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { EditorRibbon, type PageSettings } from "@/components/EditorRibbon";
@@ -41,6 +41,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [transcribing, setTranscribing] = useState(false);
   const recorder = useRef<Awaited<ReturnType<typeof recordWav>> | null>(null);
    const [footnotes, setFootnotes] = useState<FootnoteItem[]>([]);
+    const [promptInput, setPromptInput] = useState("");
+  const [lastPrompt, setLastPrompt] = useState("");
   // Historique des demandes posées à l'Assistant
   const [history, setHistory] = useState<Array<{ id: string; prompt: string; action: string; time: string }>>([]);
   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
