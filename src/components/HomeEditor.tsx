@@ -517,88 +517,120 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
           {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
-                <div
-          className={`no-print home-editor-commands flex items-center gap-2 border border-border/80 bg-card/95 p-1.5 shadow-soft ${embedded ? "" : "fixed right-3 sm:right-6 z-50 rounded-full backdrop-blur-md transition-all duration-150 ease-out"}`}
+          {/* Espace de commande style Lovable / Assistant : carte avec champ en haut et boutons en bas */}
+        <div
+          className={`no-print home-editor-commands border border-border/80 bg-card/98 p-2.5 shadow-lg backdrop-blur-md transition-all duration-150 ease-out ${
+            embedded
+              ? "mx-auto w-full max-w-[794px] rounded-2xl mb-2"
+              : "fixed left-3 right-3 sm:left-auto sm:right-6 sm:w-[560px] z-50 rounded-2xl"
+          }`}
           style={{
             bottom: embedded ? undefined : keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
             transform: "translateZ(0)",
           }}
         >
-          {/* Champ de consigne rapide */}
-          <input
-            type="text"
+          {/* Zone de saisie supérieure auto-agrandissante */}
+          <textarea
             value={promptInput}
-            onChange={(e) => setPromptInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !busy && void run()}
-            placeholder="Écrivez votre consigne ou texte..."
-            className="h-9 w-44 sm:w-60 rounded-full bg-slate-100 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary"
+            onChange={(e) => {
+              setPromptInput(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !busy) {
+                e.preventDefault();
+                void run();
+              }
+            }}
+            placeholder="Écrivez votre consigne ou texte à rédiger..."
+            rows={1}
+            className="w-full resize-none bg-transparent px-2 py-1 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[38px] max-h-28"
           />
 
-          {/* Micro consigne audio */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-full hover:bg-muted"
-            title="Consigne audio"
-            onClick={() => void toggleRecord()}
-            disabled={transcribing || busy}
-          >
-            {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
-          </Button>
+          {/* Rangée inférieure : document TOUJOURS au coin gauche, actions à droite */}
+          <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/40 mt-1">
+            {/* COIN GAUCHE : Bouton pour ajouter les documents */}
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 rounded-full border-border/70 hover:bg-muted text-primary shrink-0 shadow-sm"
+                title="Ajouter un document (Word, PDF, texte, image)"
+                aria-label="Ajouter un document"
+                onClick={() => fileInput.current?.click()}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              {files.length > 0 && (
+                <span className="text-[10px] text-muted-foreground font-semibold">
+                  {files.length} doc{files.length > 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
 
-          {/* Bouton Fichiers à droite (Word, PDF, TXT, images) */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-full hover:bg-muted text-primary"
-            title="Ajouter un document (Word, PDF, texte, image)"
-            onClick={() => fileInput.current?.click()}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
+            {/* COIN DROIT : Micro, Régénération, Envoyer, Quota */}
+            <div className="flex items-center gap-1.5">
+              {/* Micro consigne vocale */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-muted shrink-0"
+                title="Consigne audio"
+                onClick={() => void toggleRecord()}
+                disabled={transcribing || busy}
+              >
+                {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
+              </Button>
 
-          {/* Bouton rond de régénération style ChatGPT / Lovable (icône seule sans texte) */}
-          {lastPrompt && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-full text-slate-600 hover:bg-slate-100 active:scale-95 transition"
-              onClick={() => void run(action, true)}
-              disabled={busy}
-              title="Régénérer"
-              aria-label="Régénérer"
-            >
-              <RotateCcw className={`h-4 w-4 ${busy ? "animate-spin text-primary" : ""}`} />
-            </Button>
-          )}
+              {/* Bouton de régénération rond (icône seule sans texte) */}
+              {lastPrompt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-slate-600 hover:bg-slate-100 active:scale-95 transition shrink-0"
+                  onClick={() => void run(action, true)}
+                  disabled={busy}
+                  title="Régénérer"
+                  aria-label="Régénérer"
+                >
+                  <RotateCcw className={`h-4 w-4 ${busy ? "animate-spin text-primary" : ""}`} />
+                </Button>
+              )}
 
-          {/* Bouton Envoyer */}
-          <Button
-            size="sm"
-            className="h-9 rounded-full px-3.5 font-medium shadow-md gap-1.5 bg-[#0a192f] text-white hover:bg-[#1e3a8a]"
-            onClick={() => void run()}
-            disabled={busy || recording || transcribing}
-            aria-label="Envoyer"
-          >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            <span className="hidden sm:inline">{busy ? "Rédaction…" : "Envoyer"}</span>
-          </Button>
+              {/* Bouton Envoyer */}
+              <Button
+                size="sm"
+                className="h-8 rounded-full px-3 text-xs font-medium shadow-md gap-1.5 bg-[#0a192f] text-white hover:bg-[#1e3a8a] shrink-0"
+                onClick={() => void run()}
+                disabled={busy || recording || transcribing}
+                aria-label="Envoyer"
+              >
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                <span className="hidden sm:inline">{busy ? "Rédaction…" : "Envoyer"}</span>
+              </Button>
 
-          <div className="h-6 w-[1px] bg-border/80" />
+              <div className="h-5 w-[1px] bg-border/60 mx-0.5" />
 
-          <Link
-            to="/abonnements"
-            className="flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors"
-            title={quota ? `${remaining} conversations restantes sur ${quota.limit}` : "Formules d'abonnement"}
-          >
-            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-bold">
-              {remaining !== null ? `${remaining}` : "0"}
-            </span>
-            <span className="hidden md:inline">Abonnement</span>
-          </Link>
+              {/* Compteur de quota */}
+              <Link
+                to="/abonnements"
+                className="flex h-8 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors shrink-0"
+                title={quota ? `${remaining} conversations restantes sur ${quota.limit}` : "Formules d'abonnement"}
+              >
+                <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold">
+                  {remaining !== null ? `${remaining}` : "0"}
+                </span>
+              </Link>
+            </div>
+          </div>
         </div>
+    
+
+
 
         {audioUrl && (
           <div className="mt-2 flex flex-wrap items-center gap-2">
