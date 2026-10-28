@@ -174,25 +174,30 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }
   };
 
-  async function run(chosen = action) {
+    async function run(chosen = action, isRegenerate = false) {
     if (!editor || busy) return;
     const { from, to } = editor.state.selection;
     const selected = editor.state.doc.textBetween(from, to, "\n");
-    const text = writingTarget(editor.getText(), { from, to, text: selected }).trim();
-    if (!text) { toast.error("Écrivez votre demande sur le papier."); return; }
+    const rawText = isRegenerate
+      ? lastPrompt
+      : (promptInput.trim() || writingTarget(editor.getText(), { from, to, text: selected }).trim());
+    const text = rawText.trim();
+    if (!text) { toast.error("Écrivez votre consigne sur le papier ou dans le champ."); return; }
     if (files.some(file => file.type === "other")) { toast.info("Les pièces jointes non analysables ne sont pas transmises à l’Assistant."); }
     setBusy(true); setError(""); editor.setEditable(false);
+    setLastPrompt(text);
+    setPromptInput("");
     try {
       const { data } = await supabase.auth.getSession();
       if (!data.session) throw new Error("Connectez-vous pour rédiger.");
-            setHistory(prev => [
+      setHistory(prev => [
         {
           id: String(Date.now()),
           prompt: text.length > 120 ? text.slice(0, 120) + "…" : text,
           action: chosen,
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
-        ...prev.slice(0, 9), // conserve les 10 dernières demandes
+        ...prev.slice(0, 9),
       ]);
       const response = await fetch("/api/writer", {
         method: "POST",
@@ -204,11 +209,18 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       const original = editor.getJSON();
       let reply = "", failure = "", lastPaint = 0;
       const replaceSelection = from !== to && selected.trim();
+      const hasContent = editor.getText().trim().length > 0;
       const paint = () => {
         if (!reply) return;
         editor.commands.setContent(original);
-        if (replaceSelection) editor.chain().setTextSelection({ from, to }).insertContent(paragraphs(reply)).run();
-        else editor.commands.setContent(paragraphs(reply));
+        if (replaceSelection) {
+          editor.chain().setTextSelection({ from, to }).insertContent(paragraphs(reply)).run();
+        } else if (hasContent) {
+          // Allonge le papier en continu sans mention Chapitre
+          editor.chain().focus("end").insertContent(paragraphs("\n\n" + reply)).run();
+        } else {
+          editor.commands.setContent(paragraphs(reply));
+        }
       };
       const parser = createParser({
         onEvent(event) {
@@ -242,19 +254,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       editor.setEditable(settings.viewMode !== "lecture");
     }
   }
-
-  async function addFiles(list: FileList | null) {
-    if (!list) return;
-    for (const file of Array.from(list).slice(0, Math.max(0, 3 - files.length))) {
-      try {
-        const attachment = await readAttachment(file);
-        setFiles(previous => [...previous, attachment]);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Fichier illisible.");
-      }
-    }
-  }
-
   async function save() {
     if (!editor) return;
     const title = prompt("Titre du document", "Texte assisté");
