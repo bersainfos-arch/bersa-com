@@ -517,7 +517,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
           {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
-        "h-9 rounded-full px-3.5 font-medium shadow-md gap-1.5 bg-[#0a192f] text-white hover:bg-[#1e3a8a]"
                 <div
           className={`no-print home-editor-commands flex items-center gap-2 border border-border/80 bg-card/95 p-1.5 shadow-soft ${embedded ? "" : "fixed right-3 sm:right-6 z-50 rounded-full backdrop-blur-md transition-all duration-150 ease-out"}`}
           style={{
