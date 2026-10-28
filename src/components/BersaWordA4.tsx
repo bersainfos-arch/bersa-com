@@ -327,7 +327,7 @@ export function BersaWordA4({
                 <Download size={15} /> Exporter HTML
               </button>
               <div className="bw-menu-divider" />
-              <button type="button" onClick={() => { if (navigator.share) { navigator.share({ title, text: editor?.getText() }); } else { navigator.clipboard.writeText(editor?.getText() || ""); setNotice("Texte copié."); } setMenuOpen(false); }}>
+              <button type="button" onClick={() => { if (navigator.share) { navigator.share({ title, text: editor?.getText() ?? "" }); } else { navigator.clipboard.writeText(editor?.getText() || ""); setNotice("Texte copié."); } setMenuOpen(false); }}>
                 <Share2 size={15} /> Partager le texte
               </button>
             </div>
