@@ -58,6 +58,7 @@ export function BersaWordA4({
   const saveTimeoutRef = useRef<any>(null);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Underline,

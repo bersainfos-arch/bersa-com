@@ -584,45 +584,6 @@ export function HomeFeed() {
           </div>
         </header>
 
-        {/* ============================================================ */}
-        {/* 2. BANNIÈRE ROYALE : OBJECTIF PRINCIPAL DE RÉDACTION          */}
-        {/* ============================================================ */}
-                <section className="bg-gradient-to-br from-[#0a192f] via-[#102a43] to-[#1e3a8a] text-white px-3.5 py-5 border-b border-amber-500/30 shadow-md">
-          <div className="mx-auto max-w-xl">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-400/30">
-                <Sparkles className="h-3 w-3" /> Plateforme Universelle de Rédaction & Savoir
-              </span>
-            </div>
-            <h1 className="font-serif text-xl sm:text-2xl font-black leading-tight tracking-tight text-white">
-              Studio de Rédaction & d'Intelligence Artificielle
-            </h1>
-            <p className="mt-1 text-xs text-slate-200 leading-relaxed font-sans">
-              Le berceau du savoir, au service de votre plume. Rédigez vos mémoires, thèses, livres, rapports d'activité, projets professionnels, articles scientifiques et correspondances avec notre éditeur Word A4 aux normes internationales.
-            </p>
-
-            {/* Boutons d'Action Clés */}
-            <div className="mt-4 flex flex-col sm:flex-row gap-2.5">
-              <Link
-                to="/redaction"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-xs sm:text-sm font-bold text-slate-950 shadow-md hover:bg-amber-400 active:scale-98 transition"
-              >
-                <PenTool className="h-4 w-4" /> Ouvrir l'Atelier Word A4
-              </Link>
-              <button
-                type="button"
-                onClick={() => setChatOpen(true)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-xs sm:text-sm font-bold text-white border border-white/20 hover:bg-white/20 active:scale-98 transition backdrop-blur-xs"
-              >
-                <Sparkles className="h-4 w-4 text-amber-300" /> Discuter avec l'Assistant IA
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ============================================================ */}
-        {/* 3. ASSISTANT CHATGPT EN PREMIÈRE LIGNE (DIRECTEMENT VISIBLE)  */}
-        {/* ============================================================ */}
         <section className="home-writing-stage" aria-label="Mon atelier de rédaction">
           <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-2">
             <h1 className="font-display text-lg font-bold text-primary">Mon atelier de rédaction</h1>
@@ -645,91 +606,6 @@ export function HomeFeed() {
             </Button>
           ))}
         </nav>
-        <section className="hidden">
-          <div className="mx-auto max-w-xl">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 text-blue-900">
-                  <Sparkles className="h-4 w-4 text-[#1d4ed8]" />
-                </div>
-                <span className="text-xs font-bold text-slate-900">
-                  Assistant BERSA en direct
-                </span>
-              </div>
-              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                ● En ligne
-              </span>
-            </div>
-
-            {/* Raccourcis de requêtes académiques */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 mb-2">
-              {quickActions.map((act) => (
-                <button
-                  key={act.label}
-                  type="button"
-                  onClick={() => handleSendChatMessage(act.prompt)}
-                  className="shrink-0 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:border-blue-500 hover:bg-blue-50 transition"
-                >
-                  {act.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Champ de saisie direct ChatGPT */}
-            <div className="flex items-center gap-2">
-              <Input
-                type="text"
-                placeholder="Posez votre question, demandez un plan, une reformulation..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
-                className="h-11 text-xs rounded-xl border-slate-300 bg-slate-50/70 focus-visible:bg-white focus-visible:ring-[#1d4ed8]"
-              />
-              <Button
-                type="button"
-                onClick={() => handleSendChatMessage()}
-                className="h-11 w-11 shrink-0 rounded-xl bg-[#0a192f] hover:bg-[#1d4ed8] text-white shadow-sm flex items-center justify-center"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </section>
-                 {/* ============================================================ */}
-        {/* 4. LES 8 FONCTIONNALITÉS EN 2 RANGÉES (ACCÈS RAPIDE)          */}
-        {/* ============================================================ */}
-        <section className="bg-white border-b border-slate-200/80 px-3 py-2.5 shadow-2xs">
-          <div className="mx-auto max-w-xl">
-            <div className="grid grid-cols-4 gap-2">
-              <Link to="/" title="Accueil" aria-label="Accueil" className="h-11 flex items-center justify-center rounded-xl bg-blue-50 border border-blue-200 text-[#1d4ed8]">
-                <Home className="h-5 w-5 fill-[#1d4ed8]" />
-              </Link>
-              <Link to="/redaction" title="Atelier Word A4" aria-label="Atelier Word A4" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50 relative">
-                <FileText className="h-5 w-5 stroke-[1.9]" />
-                <Sparkles className="absolute top-2 right-2.5 h-2.5 w-2.5 text-amber-500" />
-              </Link>
-              <Link to="/formations" title="Formations" aria-label="Formations" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
-                <GraduationCap className="h-5 w-5 stroke-[1.9]" />
-              </Link>
-              <Link to="/bibliotheque" title="Bibliothèque" aria-label="Bibliothèque" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
-                <BookOpen className="h-5 w-5 stroke-[1.9]" />
-              </Link>
-              <Link to="/opportunites" title="Opportunités" aria-label="Opportunités" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
-                <Briefcase className="h-5 w-5 stroke-[1.9]" />
-              </Link>
-              <button type="button" onClick={() => setPublishModalOpen(true)} title="Publier" aria-label="Publier" className="h-11 flex items-center justify-center rounded-xl bg-[#0a192f] text-white shadow-xs hover:bg-blue-700">
-                <Plus className="h-5 w-5 stroke-[2.5]" />
-              </button>
-              <button type="button" onClick={() => { setMsgTab("chat"); setMsgOpen(true); }} title="Messages" aria-label="Messages" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
-                <MessageSquare className="h-5 w-5 stroke-[1.9]" />
-              </button>
-              <button type="button" onClick={() => { setMsgTab("notifications"); setMsgOpen(true); }} title="Notifications" aria-label="Notifications" className="h-11 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-[#1e40af] hover:bg-blue-50">
-                <Bell className="h-5 w-5 stroke-[1.9]" />
-              </button>
-            </div>
-          </div>
-        </section>
-
         {/* ============================================================ */}
         {/* 5. FLUX DE PUBLICATIONS, LIVRES & FORMATIONS                  */}
         {/* ============================================================ */}

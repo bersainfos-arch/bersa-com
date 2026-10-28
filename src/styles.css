@@ -401,7 +401,6 @@
 /* Three home regions: existing header, writing workspace, fixed navigation. */
 .home-writing-layout { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
 .home-writing-layout > header { position: relative; }
-.home-writing-layout > section:first-of-type { display: none; }
 .home-writing-stage { min-width: 0; background: var(--editor-desk); }
 .home-editor.home-editor-embedded {
   height: max(56dvh, calc(100dvh - 164px));

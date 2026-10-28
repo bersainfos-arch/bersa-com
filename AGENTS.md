@@ -11,7 +11,8 @@
 
 - Keep the home announcements slideshow in a browser-safe HomeNews component with category filters; only display supplied media to avoid inventing events.
 
-- Share the browser-safe HomeEditor between / and /app so both entry points show the same writing experience.
+- Embed the browser-safe HomeEditor without AppShell on the home feed; keep the feed header and fixed navigation outside it so document commands cannot overlap navigation.
+- Sanitize technology branding only in static interface copy and metadata through the translation layer; never rewrite user documents, messages, request payloads, or internal identifiers.
 - Keep secondary app navigation in AppShell's accessible dropdown and reserve space below the home paper viewport for the persistent commands, so navigation and commands never cover document text.
 - Keep opening phase timing in a pure module so the two-step signup transition can be tested without authentication.
 

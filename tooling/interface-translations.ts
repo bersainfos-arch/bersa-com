@@ -39,7 +39,8 @@ export function interfaceTranslations(): Plugin {
         },
         StringLiteral(path) {
           const property = path.parentPath;
-          if (property.isObjectProperty() && types.isIdentifier(property.node.key) && ["title", "content", "label", "role"].includes(property.node.key.name)) {
+          const isMetadata = property.isObjectProperty() && types.isIdentifier(property.node.key, { name: "content" }) && property.parentPath.isObjectExpression() && property.parentPath.node.properties.some(p => types.isObjectProperty(p) && types.isIdentifier(p.key) && ["name", "property"].includes(p.key.name) && types.isStringLiteral(p.value) && /^(?:description|og:|twitter:)/.test(p.value.value));
+          if (property.isObjectProperty() && types.isIdentifier(property.node.key) && (["title", "label", "role"].includes(property.node.key.name) || isMetadata)) {
             // Static metadata and built-in labels only, not prompts or payload values.
             const cleaned = interfaceCopy(path.node.value);
             if (cleaned !== path.node.value) { path.node.value = cleaned; changed = true; }

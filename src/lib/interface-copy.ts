@@ -5,6 +5,8 @@ export function interfaceCopy(value: string): string {
     .replace(/intelligence artificielle/gi, "rédaction")
     .replace(/\(IA\)/g, "")
     .replace(/\b(?:IA|AI)\b/g, "")
+    .replace(/\bKI(?=[-\s])/g, "")
+    .replace(/(?:الذكاء الاصطناعي|ذكاء اصطناعي|mayele ya masini)/gi, "")
     .replace(/\bl['’](?=\s*BERSA)/g, "")
     .replace(/\bl['’](?=\s*(?:en|atteinte))/g, "l’Assistant ")
     .replace(/\bde l['’](?=\s*(?:$|:))/g, "de l’Assistant")
