@@ -388,8 +388,9 @@
   .home-editor .home-paper-desk { padding: 6px 8px 20px; }
   .home-editor .home-ai-sheet {
     max-width: 100%;
-    min-height: 0;
-    aspect-ratio: 210 / 297;
+    min-height: 780px;
+    height: auto !important;
+    aspect-ratio: auto !important;
   }
 }
 @media print {
