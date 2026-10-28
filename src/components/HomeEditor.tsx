@@ -523,29 +523,68 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             transform: "translateZ(0)",
           }}
         >
+                    {/* Champ de consigne rapide */}
+          <input
+            type="text"
+            value={promptInput}
+            onChange={(e) => setPromptInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && !busy && void run()}
+            placeholder="Écrivez votre consigne ou texte..."
+            className="h-9 w-44 sm:w-60 rounded-full bg-slate-100 px-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+
+          {/* Micro consigne audio */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-10 w-10 rounded-full hover:bg-muted"
-            aria-label={recording ? "Arrêter l’enregistrement" : "Enregistrer une consigne audio"}
-            title={recording ? "Arrêter l’enregistrement" : "Consigne audio"}
+            className="h-9 w-9 rounded-full hover:bg-muted"
+            title="Consigne audio"
             onClick={() => void toggleRecord()}
             disabled={transcribing || busy}
           >
             {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
           </Button>
 
+          {/* Bouton Fichiers à droite (Word, PDF, TXT, images) */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 rounded-full hover:bg-muted text-primary"
+            title="Ajouter un document (Word, PDF, texte, image)"
+            onClick={() => fileInput.current?.click()}
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          {/* Bouton rond de régénération épuré style ChatGPT / Lovable (sans texte) */}
+          {lastPrompt && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-full text-slate-600 hover:bg-slate-100 active:scale-95 transition"
+              onClick={() => void run(action, true)}
+              disabled={busy}
+              title="Régénérer"
+              aria-label="Régénérer"
+            >
+              <RotateCcw className={`h-4 w-4 ${busy ? "animate-spin text-primary" : ""}`} />
+            </Button>
+          )}
+
+          {/* Bouton Envoyer */}
           <Button
             size="sm"
-            className="h-10 rounded-full px-4 font-medium shadow-md gap-2"
+            className="h-9 rounded-full px-3.5 font-medium shadow-md gap-1.5 bg-[#0a192f] text-white hover:bg-[#1e3a8a]"
             onClick={() => void run()}
             disabled={busy || recording || transcribing}
-            aria-label="Envoyer la commande"
+            aria-label="Envoyer"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            <span className={embedded ? "" : "hidden sm:inline"}>{busy ? "Rédaction…" : "Envoyer"}</span>
+            <span className="hidden sm:inline">{busy ? "Rédaction…" : "Envoyer"}</span>
           </Button>
-
+            {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
+          </Button>
           <div className="h-6 w-[1px] bg-border/80" />
 
           <Link
