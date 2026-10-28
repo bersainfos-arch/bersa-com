@@ -244,7 +244,7 @@ export function BersaWordA4({
       });
       setAiResult(res?.reply || "Aucune réponse générée.");
     } catch (e: any) {
-      setAiResult("Erreur IA : " + (e?.message || "Vérifiez votre connexion."));
+      setAiResult("Assistant indisponible : " + (e?.message || "Vérifiez votre connexion."));
     } finally {
       setAiBusy(false);
     }
@@ -454,7 +454,7 @@ export function BersaWordA4({
           <Mic size={18} /><span>Dictée</span>
         </button>
         <button type="button" className="bw-bottom-btn" onClick={() => handleOpenAi("assistant")}>
-          <Sparkles size={18} /><span>IA BERSA</span>
+          <Sparkles size={18} /><span>Assistant</span>
         </button>
         <button type="button" className="bw-bottom-btn regenerate" onClick={() => handleOpenAi("regenerate")}>
           <RefreshCw size={18} /><span>Régénérer</span>
@@ -491,12 +491,12 @@ export function BersaWordA4({
             <div className="bw-modal-header">
               <h3>
                 {aiMode === "regenerate" ? <RefreshCw size={17} /> : <Sparkles size={17} />}
-                {aiMode === "regenerate" ? "Régénérer le texte" : "IA BERSA — Assistant"}
+                {aiMode === "regenerate" ? "Régénérer le texte" : "Assistant BERSA"}
               </h3>
               <button type="button" onClick={() => setShowAiModal(false)} style={{ background: "transparent", border: "none", cursor: "pointer" }}><X size={18} /></button>
             </div>
             <p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0.25rem 0 0.5rem" }}>
-              {aiMode === "regenerate" ? "Choisissez l'action. Le texte original ne sera modifié qu'après votre validation." : "Enrichissez ou développez votre document avec l'IA BERSA."}
+              {aiMode === "regenerate" ? "Choisissez l'action. Le texte original ne sera modifié qu'après votre validation." : "Enrichissez ou développez votre document avec l’Assistant BERSA."}
             </p>
             <label style={{ fontSize: "0.75rem", fontWeight: 600, display: "block", marginBottom: "0.25rem" }}>Action souhaitée :</label>
             <select className="bw-select" style={{ width: "100%", marginBottom: "0.5rem" }} value={aiInstruction} onChange={(e) => setAiInstruction(e.target.value)}>
@@ -512,7 +512,7 @@ export function BersaWordA4({
             <label style={{ fontSize: "0.75rem", fontWeight: 600, display: "block", marginBottom: "0.25rem" }}>Passage sélectionné ou consigne :</label>
             <textarea style={{ width: "100%", height: "70px", padding: "0.4rem", fontSize: "0.75rem", borderRadius: "0.375rem", border: "1px solid #cbd5e1", fontFamily: "inherit" }} value={aiPrompt} onChange={(e) => setAiPrompt(e.target.value)} placeholder="Texte à régénérer…" />
             <button type="button" className="bw-btn-primary" style={{ width: "100%", marginTop: "0.5rem" }} disabled={aiBusy} onClick={executeAi}>
-              {aiBusy ? "Traitement par l'IA en cours…" : "Générer la proposition"}
+              {aiBusy ? "Rédaction en cours…" : "Générer la proposition"}
             </button>
             {aiResult && (
               <>

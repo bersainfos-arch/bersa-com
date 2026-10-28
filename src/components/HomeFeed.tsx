@@ -8,6 +8,7 @@ import {
   PenTool, Award, Check
 } from "lucide-react";
 import { HomeMessagesModal } from "@/components/HomeMessagesModal";
+import { HomeEditor } from "@/components/HomeEditor";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { useAuth } from "@/hooks/use-auth";
@@ -426,7 +427,7 @@ export function HomeFeed() {
   }).slice(0, 8);
   return (
     <AuthGate>
-      <div className="min-h-screen bg-[#f1f5f9] text-slate-800 antialiased pb-28">
+      <div className="home-writing-layout min-h-screen bg-background text-foreground antialiased">
         {/* ============================================================ */}
         {/* 1. EN-TÊTE : LOGO, RECHERCHE RAPIDE, PROFIL & MENU 3 TRAITS  */}
         {/* ============================================================ */}
@@ -518,6 +519,9 @@ export function HomeFeed() {
                     Tableau de bord BERSA
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setPublishModalOpen(true)}><Plus className="h-4 w-4" /> Publier</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setMsgTab("chat"); setMsgOpen(true); }}><MessageSquare className="h-4 w-4" /> Messages</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setMsgTab("notifications"); setMsgOpen(true); }}><Bell className="h-4 w-4" /> Notifications</DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/redaction" className="cursor-pointer gap-2.5 py-2 text-xs font-semibold text-[#1d4ed8]">
                       <FileText className="h-4 w-4 text-[#1d4ed8] shrink-0" /> Atelier de Rédaction Word A4
@@ -619,7 +623,29 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 3. ASSISTANT CHATGPT EN PREMIÈRE LIGNE (DIRECTEMENT VISIBLE)  */}
         {/* ============================================================ */}
-        <section className="bg-white border-b border-slate-200 px-3.5 py-4 shadow-2xs">
+        <section className="home-writing-stage" aria-label="Mon atelier de rédaction">
+          <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-2">
+            <h1 className="font-display text-lg font-bold text-primary">Mon atelier de rédaction</h1>
+            <Button variant="outline" size="sm" onClick={() => setChatOpen(true)}><MessageCircle className="h-4 w-4" /> Discuter</Button>
+          </div>
+          <HomeEditor embedded />
+        </section>
+        <nav className="home-bottom-navigation" aria-label="Navigation principale">
+          {([
+            { to: "/", label: "Accueil", icon: Home },
+            { to: "/redaction", label: "Rédaction", icon: FileText },
+            { to: "/formations", label: "Formation", icon: GraduationCap },
+            { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },
+            { to: "/opportunites", label: "Opportunités", icon: Briefcase },
+          ] as const).map(({ to, label, icon: Icon }) => (
+            <Button key={to} asChild variant="ghost" className="home-bottom-link">
+              <Link to={to} aria-label={label} activeOptions={{ exact: true }} activeProps={{ className: "home-bottom-active" }}>
+                <Icon className="h-5 w-5" /><span>{label}</span>
+              </Link>
+            </Button>
+          ))}
+        </nav>
+        <section className="hidden">
           <div className="mx-auto max-w-xl">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">

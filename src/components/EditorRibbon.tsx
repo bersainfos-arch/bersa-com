@@ -59,6 +59,7 @@ export function EditorRibbon({
       size="sm"
       className="h-7 gap-1 px-1.5 text-xs"
       title={label}
+      aria-label={label}
       onClick={onClick}
     >
       {icon}
@@ -516,7 +517,7 @@ export function EditorRibbon({
         {activeMenu === "Révision" && (
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="default" className="h-7 text-xs" onClick={correct}>
-              <CheckSquare className="h-4 w-4 mr-1" /> Correction & Grammaire IA
+              <CheckSquare className="h-4 w-4 mr-1" /> Correction & Grammaire
             </Button>
             <div className="flex items-center gap-1">
               <Input
