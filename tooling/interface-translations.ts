@@ -3,6 +3,7 @@ import traverseModule from "@babel/traverse";
 import generateModule from "@babel/generator";
 import * as types from "@babel/types";
 import type { Plugin } from "vite";
+import { interfaceCopy } from "../src/lib/interface-copy";
 
 const traverse = (traverseModule as unknown as { default?: typeof traverseModule }).default ?? traverseModule;
 const generate = (generateModule as unknown as { default?: typeof generateModule }).default ?? generateModule;
@@ -37,6 +38,13 @@ export function interfaceTranslations(): Plugin {
           }
         },
         StringLiteral(path) {
+          const property = path.parentPath;
+          const isMetadata = property.isObjectProperty() && types.isIdentifier(property.node.key, { name: "content" }) && property.parentPath.isObjectExpression() && property.parentPath.node.properties.some(p => types.isObjectProperty(p) && types.isIdentifier(p.key) && ["name", "property"].includes(p.key.name) && types.isStringLiteral(p.value) && /^(?:description|og:|twitter:)/.test(p.value.value));
+          if (property.isObjectProperty() && types.isIdentifier(property.node.key) && (["title", "label", "role"].includes(property.node.key.name) || isMetadata)) {
+            // Static metadata and built-in labels only, not prompts or payload values.
+            const cleaned = interfaceCopy(path.node.value);
+            if (cleaned !== path.node.value) { path.node.value = cleaned; changed = true; }
+          }
           if (!/[A-Za-zÀ-ÿ]/.test(path.node.value)) return;
           const parent = path.parentPath;
           const inJsx = Boolean(path.findParent(p => p.isJSXExpressionContainer()));

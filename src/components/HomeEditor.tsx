@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Node } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -25,11 +25,11 @@ import { createParser } from "eventsource-parser";
 const PageBreak = Node.create({ name: "pageBreak", group: "block", atom: true, parseHTML: () => [{ tag: "div.page-break" }], renderHTML: () => ["div", { class: "page-break" }] });
 const paragraphs = (text: string) => text.split(/\n/).map(line => ({ type: "paragraph", ...(line ? { content: [{ type: "text", text: line }] } : {}) }));
 
-export function HomeEditor() {
+export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const nav = useNavigate();
   const { quota, setQuota } = useDailyQuota();
   const [action, setAction] = useState("generate");
-  const [tab, setTab] = useState("Assistant");
+  const [tab, setTab] = useState(embedded ? "Mise en forme" : "Assistant");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
@@ -45,6 +45,7 @@ export function HomeEditor() {
   const [history, setHistory] = useState<Array<{ id: string; prompt: string; action: string; time: string }>>([]);
   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const Frame = embedded ? Fragment : AppShell;
 
   useEffect(() => {
     const updateOffset = () => {
@@ -361,8 +362,8 @@ export function HomeEditor() {
   }, [editor]);
 
   return (
-    <AppShell>
-      <section aria-label="Assistant — éditeur Word" className="home-editor mx-auto max-w-6xl sm:px-3">
+    <Frame>
+      <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
         <EditorRibbon
           editor={editor}
           tab={tab}
@@ -516,9 +517,9 @@ export function HomeEditor() {
 
           {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
         <div
-          className="no-print fixed right-3 sm:right-6 z-50 flex items-center gap-2 rounded-full border border-border/80 bg-card/95 p-1.5 shadow-2xl backdrop-blur-md transition-all duration-150 ease-out"
+          className={`no-print home-editor-commands flex items-center gap-2 border border-border/80 bg-card/95 p-1.5 shadow-soft ${embedded ? "" : "fixed right-3 sm:right-6 z-50 rounded-full backdrop-blur-md transition-all duration-150 ease-out"}`}
           style={{
-            bottom: keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
+            bottom: embedded ? undefined : keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
             transform: "translateZ(0)",
           }}
         >
@@ -539,10 +540,10 @@ export function HomeEditor() {
             className="h-10 rounded-full px-4 font-medium shadow-md gap-2"
             onClick={() => void run()}
             disabled={busy || recording || transcribing}
-            aria-label="Envoyer la commande IA"
+            aria-label="Envoyer la commande"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            <span className="hidden sm:inline">{busy ? "Rédaction…" : "Envoyer"}</span>
+            <span className={embedded ? "" : "hidden sm:inline"}>{busy ? "Rédaction…" : "Envoyer"}</span>
           </Button>
 
           <div className="h-6 w-[1px] bg-border/80" />
@@ -586,6 +587,6 @@ export function HomeEditor() {
           </details>
         )}
       </section>
-    </AppShell>
+    </Frame>
   );
 }

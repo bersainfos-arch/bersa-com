@@ -397,3 +397,34 @@
   .home-editor .home-paper-desk { display: block; overflow: visible; padding: 0; background: none; }
   .home-editor .home-ai-sheet { aspect-ratio: auto; border: none !important; box-shadow: none !important; }
 }
+
+/* Three home regions: existing header, writing workspace, fixed navigation. */
+.home-writing-layout { padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+.home-writing-layout > header { position: relative; }
+.home-writing-stage { min-width: 0; background: var(--editor-desk); }
+.home-editor.home-editor-embedded {
+  height: max(56dvh, calc(100dvh - 164px));
+  min-height: 360px;
+  padding: 0;
+}
+.home-editor-embedded .home-paper-desk { min-height: 180px; }
+.home-editor-embedded .home-ai-sheet { font-size: 13pt; line-height: 1.6; overflow-wrap: anywhere; }
+.home-editor-embedded .home-editor-commands { position: relative; justify-content: flex-end; width: 100%; min-height: 52px; border-radius: 0; }
+.home-bottom-navigation {
+  position: fixed; inset: auto 0 0; z-index: 40;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 4px 2px calc(4px + env(safe-area-inset-bottom, 0px));
+  background: var(--card); color: var(--muted-foreground);
+  border-top: 1px solid var(--border); box-shadow: var(--shadow-paper);
+}
+.home-bottom-navigation .home-bottom-link {
+  display: flex; flex-direction: column; gap: 4px; height: 56px;
+  min-width: 0; padding: 4px 0; border-radius: 0; color: inherit;
+}
+.home-bottom-link span { font-size: 9px; line-height: 1.2; white-space: nowrap; letter-spacing: 0; }
+.home-bottom-navigation .home-bottom-active { color: var(--primary); background: var(--accent); }
+@media (min-width: 640px) { .home-bottom-link span { font-size: 12px; } }
+@media print {
+  .home-bottom-navigation, .home-writing-layout > main { display: none !important; }
+  .home-editor.home-editor-embedded { height: auto; min-height: 0; }
+}

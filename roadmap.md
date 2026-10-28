@@ -1,4 +1,7 @@
 # BERSA roadmap (reconstruction)
+- [ ] Accueil en trois espaces : haut préservé, atelier Word visible et cinq destinations fixes en bas
+- [ ] Supprimer les mentions technologiques des libellés publics sans modifier les documents utilisateurs
+- [ ] Examiner les trois alertes de lecture communautaire sans réduire l’accès public légitime
 - [x] Accueil compact, menu à trois traits et papier dégagé des commandes persistantes
 - [x] Paiement manuel livres : demande non payée, confirmation admin, contrôle d’accès et tests de signature 60 secondes
 - [ ] Vérification acheteur réelle avant/après : consentement de connexion refusé ; ne pas relancer sans accord
