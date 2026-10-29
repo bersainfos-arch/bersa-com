@@ -184,7 +184,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }
   };
 
-    // Insertion intelligente style WPS Word AI
+  // Insertion dans le papier : disparaît d'un coup dès que le texte est inséré
   const insertIntoPaper = (mode: "auto" | "append" | "replace" = "auto") => {
     if (!editor || !generatedResponse.trim()) return;
     const { from, to } = editor.state.selection;
@@ -193,7 +193,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
     if (mode === "replace" || (mode === "auto" && hasSelection)) {
       editor.chain().focus().setTextSelection({ from, to }).insertContent(paragraphs(generatedResponse)).run();
-      toast.success("Texte inséré en remplacement de la sélection.");
+      toast.success("Texte inséré avec succès.");
     } else if (editor.getText().trim().length > 0) {
       editor.chain().focus("end").insertContent(paragraphs("\n\n" + generatedResponse)).run();
       toast.success("Texte inséré à la suite du document.");
@@ -201,6 +201,57 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       editor.commands.setContent(paragraphs(generatedResponse));
       toast.success("Texte inséré sur le papier.");
     }
+
+    // Le bouton et la carte de résultat disparaissent immédiatement
+    setShowResultCard(false);
+    setGeneratedResponse("");
+  };
+   // Enregistrement au format choisi vers le dossier du téléphone
+  const handleSaveDocument = async () => {
+    if (!editor) return;
+    const cleanName = (docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_");
+
+    if (exportFormat === "docx") {
+      const { buildDocx } = await import("@/lib/docx-export");
+      const marginCm = settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5;
+      const blob = await buildDocx(editor.getJSON() as any, {
+        marginCm,
+        lineSpacing: Number(settings.lineSpacing) || 1.6,
+        landscape: settings.orientation === "Paysage",
+        headerText: settings.headerText,
+        footerText: settings.footerText,
+        pageNumbers: true,
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${cleanName}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success(`Document Word enregistré pour votre dossier (${targetFolder}).`);
+      return;
+    }
+
+    if (exportFormat === "pdf") {
+      window.print();
+      toast.success("Impression / enregistrement PDF déclenché.");
+      return;
+    }
+
+    // Format TXT
+    const textBlob = new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" });
+    const textUrl = URL.createObjectURL(textBlob);
+    const link = document.createElement("a");
+    link.href = textUrl;
+    link.download = `${cleanName}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(textUrl), 1000);
+    toast.success(`Fichier texte enregistré pour votre dossier (${targetFolder}).`);
+  };
   };
 
   const copyGeneratedText = async () => {
