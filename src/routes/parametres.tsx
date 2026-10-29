@@ -70,6 +70,24 @@ function Settings() {
     <AppShell>
       <PageHeader title="Paramètres & Affichage" />
       <div className="mx-auto max-w-3xl divide-y px-4 py-6">
+                {/* Espace Gestion Administrateur (Réservé à dieudonnedjoma@gmail.com) */}
+        {isAdmin && (
+          <section className="py-5 bg-amber-50/70 -mx-4 px-4 rounded-xl border border-amber-300">
+            <div className="flex items-center gap-2 text-amber-900">
+              <ShieldCheck className="h-5 w-5 text-amber-700" />
+              <h2 className="text-xl font-bold">Espace de gestion administrateur</h2>
+            </div>
+            <p className="text-xs text-amber-800 mt-1">
+              Panneau de contrôle réservé à l'administrateur BERSA pour valider les abonnements, gérer les formations, les livres et les fonctionnalités.
+            </p>
+            <Button asChild className="mt-3 bg-amber-800 hover:bg-amber-900 text-white shadow">
+              <Link to="/gestion">
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Accéder à la gestion administrative
+              </Link>
+            </Button>
+          </section>
+        )}
         {/* Profil */}
         <section className="py-5">
           <h2 className="text-xl font-bold text-slate-900">Profil</h2>
