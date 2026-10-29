@@ -10,6 +10,7 @@ import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table
 import Highlight from "@tiptap/extension-highlight";
 import { toast } from "sonner";
 import { Send, Loader2, Mic, Square, Trash2, X, FileAudio, Paperclip, RotateCcw } from "lucide-react";
+import { HomeMessagesModal } from "@/components/HomeMessagesModal";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { EditorRibbon, type PageSettings } from "@/components/EditorRibbon";
