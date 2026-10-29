@@ -821,6 +821,104 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             <PlanQuickList />
           </details>
         )}
+       {/* Modale d'enregistrement avec proposition du dossier sur le téléphone */}
+        {showSaveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+            <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-4 shadow-2xl">
+              <div className="mb-3 flex items-center justify-between border-b pb-2">
+                <h3 className="flex items-center gap-2 font-serif text-base font-bold text-primary">
+                  <Save className="h-4 w-4 text-amber-500" />
+                  Enregistrer le document
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowSaveModal(false)}
+                  className="rounded-full p-1 text-muted-foreground hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="mb-1 block font-semibold text-foreground">Nom du document :</label>
+                  <input
+                    type="text"
+                    value={docFileName}
+                    onChange={(e) => setDocFileName(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                    placeholder="Mon_Document_BERSA"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-semibold text-foreground">Format d'export :</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {[
+                      { id: "docx", label: "Word (.docx)" },
+                      { id: "pdf", label: "PDF (.pdf)" },
+                      { id: "txt", label: "Texte (.txt)" },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setExportFormat(f.id as any)}
+                        className={`rounded-lg border px-2 py-1.5 text-center font-medium transition-colors ${
+                          exportFormat === f.id
+                            ? "border-primary bg-primary/10 text-primary font-bold"
+                            : "border-border bg-muted/40 text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1 block font-semibold text-foreground">Dossier sur votre téléphone :</label>
+                  <select
+                    value={targetFolder}
+                    onChange={(e) => setTargetFolder(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
+                  >
+                    <option value="Téléchargements (Downloads)">📁 Téléchargements (Downloads)</option>
+                    <option value="Documents">📁 Documents</option>
+                    <option value="Dossier BERSA">📁 Dossier BERSA</option>
+                    <option value="Mémoire interne">📁 Stockage interne</option>
+                  </select>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    Le fichier sera téléchargé directement pour être stocké dans ce dossier.
+                  </p>
+                </div>
+
+                <div className="mt-4 flex gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSaveModal(false)}
+                    className="flex-1 h-8 rounded-lg text-xs"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={async () => {
+                      await handleSaveDocument();
+                      setShowSaveModal(false);
+                    }}
+                    className="flex-1 h-8 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-semibold gap-1.5"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Enregistrer
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}  
       </section>
     </Frame>
   );
