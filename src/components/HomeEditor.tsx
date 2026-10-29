@@ -547,57 +547,80 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         </div>
 
           {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
-          {/* Espace de commande style Lovable / Assistant : carte avec champ en haut et boutons en bas */}
+                  {/* Espace de commande & Résultats ChatGPT / WPS Word */}
         <div
-          className={`no-print home-editor-commands border border-border/80 bg-card/98 p-2.5 shadow-lg backdrop-blur-md transition-all duration-150 ease-out ${
+          className={`no-print home-editor-commands border border-border/80 bg-card/98 p-2.5 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
             embedded
               ? "mx-auto w-full max-w-[794px] rounded-2xl mb-2"
-              : "fixed left-3 right-3 sm:left-auto sm:right-6 sm:w-[560px] z-50 rounded-2xl"
+              : "fixed left-3 right-3 sm:left-auto sm:right-6 sm:w-[580px] z-50 rounded-2xl"
           }`}
           style={{
             bottom: embedded ? undefined : keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
             transform: "translateZ(0)",
           }}
         >
-          {/* Zone de saisie supérieure auto-agrandissante */}
-            {/* Menu flottant des actions Assistant incluant Plan, Développer, Humaniser... */}
-          {showActionsMenu && (
-            <div className="mb-2 max-h-60 overflow-y-auto rounded-xl border border-border bg-card/98 p-2.5 shadow-xl backdrop-blur-md">
-              <div className="mb-2 flex items-center justify-between border-b border-border/40 pb-1.5 px-1">
-                <span className="text-[11px] font-bold text-primary flex items-center gap-1.5">
+          {/* FENÊTRE DE RÉSULTAT STYLE CHATGPT / WPS WORD AI */}
+          {showResultCard && (generatedResponse || busy) && (
+            <div className="mb-2 rounded-xl border border-primary/25 bg-background/95 p-3 shadow-lg">
+              {/* En-tête du résultat */}
+              <div className="mb-2 flex items-center justify-between border-b border-border/40 pb-1.5">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-primary">
                   <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                  Services de l'Assistant
+                  {busy ? "Génération en cours…" : "Texte généré par l'Assistant"}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setShowActionsMenu(false)}
-                  className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {assistantActions.map(([id, label]) => (
+                <div className="flex items-center gap-1.5">
+                  {generatedResponse && (
+                    <button
+                      type="button"
+                      onClick={() => void copyGeneratedText()}
+                      className="flex items-center gap-1 rounded px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      title="Copier le texte"
+                    >
+                      {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                      <span>{copied ? "Copié" : "Copier"}</span>
+                    </button>
+                  )}
                   <button
-                    key={id}
                     type="button"
-                    disabled={busy || transcribing || recording}
-                    onClick={() => {
-                      setShowActionsMenu(false);
-                      setAction(id);
-                      void run(id);
-                    }}
-                    className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors disabled:opacity-50 ${
-                      id === "humanize"
-                        ? "bg-amber-500/10 text-amber-900 dark:text-amber-300 font-semibold border border-amber-500/30 hover:bg-amber-500/20"
-                        : "text-foreground hover:bg-primary/10 hover:text-primary"
-                    }`}
+                    onClick={() => setShowResultCard(false)}
+                    className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    title="Fermer"
                   >
-                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${id === "humanize" ? "bg-amber-500" : "bg-primary/70"}`} />
-                    <span className="truncate">{label}</span>
+                    <X className="h-3.5 w-3.5" />
                   </button>
-                ))}
+                </div>
               </div>
+
+              {/* Contenu du texte généré avec défilement pour grands textes */}
+              <div className="max-h-64 overflow-y-auto pr-1 text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed select-text scrollbar-thin">
+                {generatedResponse || <span className="text-muted-foreground italic flex items-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Rédaction de votre demande…</span>}
+              </div>
+
+              {/* BOUTON D'INSERTION STYLE WPS WORD */}
+              {generatedResponse && !busy && (
+                <div className="mt-2.5 flex items-center gap-2 border-t border-border/40 pt-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => insertIntoPaper("auto")}
+                    className="flex-1 h-8 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-semibold gap-1.5 shadow"
+                  >
+                    <FileDown className="h-3.5 w-3.5" />
+                    <span>Insérer dans le document</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void run(action, true)}
+                    className="h-8 rounded-lg text-xs gap-1 border-border/70"
+                    title="Régénérer"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Régénérer</span>
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
@@ -620,11 +643,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             className="w-full resize-none bg-transparent px-2 py-1 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[38px] max-h-28"
           />
 
-          {/* Rangée inférieure : document & actions à gauche, commandes à droite */}
+          {/* Rangée inférieure : Trombone à gauche, Commandes & Quota à droite */}
           <div className="flex items-center justify-between gap-2 pt-1">
-            {/* COIN GAUCHE : Bouton document + Bouton Actions (Humaniser, Plan...) + Horloge */}
+            {/* COIN GAUCHE */}
             <div className="flex items-center gap-1.5">
-              {/* Trombone pièces jointes */}
               <Button
                 type="button"
                 variant="outline"
@@ -637,24 +659,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 <Paperclip className="h-4 w-4" />
               </Button>
 
-              {/* Bouton ✨ Actions qui ouvre Planifier, Développer, Humaniser, Corriger... */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowActionsMenu(!showActionsMenu)}
-                className={`h-8 rounded-full px-2.5 text-xs font-medium gap-1 shadow-sm shrink-0 transition-colors ${
-                  showActionsMenu
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border/70 hover:bg-muted text-primary"
-                }`}
-                title="Planifier, Développer, Humaniser, Corriger, Résumer..."
-              >
-                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                <span>Actions</span>
-              </Button>
-
-              {/* Horloge discrète pour l'historique */}
               {history.length > 0 && (
                 <Button
                   type="button"
@@ -675,9 +679,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               )}
             </div>
 
-            {/* COIN DROIT : Micro, Régénération, Envoyer, Quota */}
+            {/* COIN DROIT */}
             <div className="flex items-center gap-1.5">
-              {/* Micro consigne vocale */}
               <Button
                 type="button"
                 variant="ghost"
@@ -690,23 +693,20 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
               </Button>
 
-              {/* Bouton de régénération */}
               {lastPrompt && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full text-slate-600 hover:bg-slate-100 active:scale-95 transition shrink-0"
+                  className="h-8 w-8 rounded-full text-slate-600 hover:bg-slate-100 shrink-0"
                   onClick={() => void run(action, true)}
                   disabled={busy}
                   title="Régénérer"
-                  aria-label="Régénérer"
                 >
                   <RotateCcw className={`h-4 w-4 ${busy ? "animate-spin text-primary" : ""}`} />
                 </Button>
               )}
 
-              {/* Bouton Envoyer */}
               <Button
                 size="sm"
                 className="h-8 rounded-full px-3 text-xs font-medium shadow-md gap-1.5 bg-[#0a192f] text-white hover:bg-[#1e3a8a] shrink-0"
@@ -720,7 +720,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
               <div className="h-5 w-[1px] bg-border/60 mx-0.5" />
 
-              {/* Compteur de quota */}
               <Link
                 to="/abonnements"
                 className="flex h-8 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-primary hover:bg-primary/10 transition-colors shrink-0"
@@ -732,14 +731,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               </Link>
             </div>
           </div>
-
-
-          
         </div>
-    
-
-
-
         {audioUrl && (
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <audio controls src={audioUrl} className="h-9 min-w-0 max-w-full flex-1" />
