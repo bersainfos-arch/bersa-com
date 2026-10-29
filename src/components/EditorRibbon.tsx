@@ -255,7 +255,7 @@ export function EditorRibbon({
       </div>
 
       {/* Ruban dynamique contextuel */}
-      <div className="flex min-h-8 items-center gap-1 overflow-x-auto border-b bg-background px-1 py-0.5 text-xs scrollbar-none [&>div]:flex-nowrap [&>div]:shrink-0">
+      <div className="flex min-h-8 w-full max-w-full items-center gap-1 overflow-x-auto border-b bg-background px-1 py-0.5 text-xs scrollbar-none touch-pan-x">
         {/* ONGLET FICHIER */}
         {activeMenu === "Fichier" && (
           <div className="flex flex-wrap items-center gap-1">
