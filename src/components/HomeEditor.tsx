@@ -542,6 +542,48 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           }}
         >
           {/* Zone de saisie supérieure auto-agrandissante */}
+            {/* Menu flottant des actions Assistant incluant Plan, Développer, Humaniser... */}
+          {showActionsMenu && (
+            <div className="mb-2 max-h-60 overflow-y-auto rounded-xl border border-border bg-card/98 p-2.5 shadow-xl backdrop-blur-md">
+              <div className="mb-2 flex items-center justify-between border-b border-border/40 pb-1.5 px-1">
+                <span className="text-[11px] font-bold text-primary flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  Services de l'Assistant
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowActionsMenu(false)}
+                  className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {assistantActions.map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    disabled={busy || transcribing || recording}
+                    onClick={() => {
+                      setShowActionsMenu(false);
+                      setAction(id);
+                      void run(id);
+                    }}
+                    className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors disabled:opacity-50 ${
+                      id === "humanize"
+                        ? "bg-amber-500/10 text-amber-900 dark:text-amber-300 font-semibold border border-amber-500/30 hover:bg-amber-500/20"
+                        : "text-foreground hover:bg-primary/10 hover:text-primary"
+                    }`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${id === "humanize" ? "bg-amber-500" : "bg-primary/70"}`} />
+                    <span className="truncate">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Zone de saisie supérieure auto-agrandissante */}
           <textarea
             value={promptInput}
             onChange={(e) => {
@@ -560,10 +602,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             className="w-full resize-none bg-transparent px-2 py-1 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[38px] max-h-28"
           />
 
-          {/* Rangée inférieure : document TOUJOURS au coin gauche, actions à droite */}
+          {/* Rangée inférieure : document & actions à gauche, commandes à droite */}
           <div className="flex items-center justify-between gap-2 pt-1">
-            {/* COIN GAUCHE : Bouton pour ajouter les documents */}
+            {/* COIN GAUCHE : Bouton document + Bouton Actions (Humaniser, Plan...) + Horloge */}
             <div className="flex items-center gap-1.5">
+              {/* Trombone pièces jointes */}
               <Button
                 type="button"
                 variant="outline"
@@ -575,6 +618,38 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
+
+              {/* Bouton ✨ Actions qui ouvre Planifier, Développer, Humaniser, Corriger... */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowActionsMenu(!showActionsMenu)}
+                className={`h-8 rounded-full px-2.5 text-xs font-medium gap-1 shadow-sm shrink-0 transition-colors ${
+                  showActionsMenu
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border/70 hover:bg-muted text-primary"
+                }`}
+                title="Planifier, Développer, Humaniser, Corriger, Résumer..."
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                <span>Actions</span>
+              </Button>
+
+              {/* Horloge discrète pour l'historique */}
+              {history.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted shrink-0"
+                  onClick={() => setShowHistory(!showHistory)}
+                  title={`Historique (${history.length})`}
+                >
+                  <History className="h-4 w-4" />
+                </Button>
+              )}
+
               {files.length > 0 && (
                 <span className="text-[10px] text-muted-foreground font-semibold">
                   {files.length} doc{files.length > 1 ? "s" : ""}
@@ -597,7 +672,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 {recording ? <Square className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4 text-primary" />}
               </Button>
 
-              {/* Bouton de régénération rond (icône seule sans texte) */}
+              {/* Bouton de régénération */}
               {lastPrompt && (
                 <Button
                   type="button"
@@ -639,6 +714,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               </Link>
             </div>
           </div>
+
+
+          
         </div>
     
 
