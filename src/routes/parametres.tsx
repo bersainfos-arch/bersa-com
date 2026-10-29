@@ -28,11 +28,11 @@ export const Route = createFileRoute("/parametres")({
   }),
   component: Settings,
 });
-
 function Settings() {
+  const { user } = useAuth();
+  const isAdmin = user?.email?.toLowerCase() === "dieudonnedjoma@gmail.com";
   const [install, setInstall] = useState<InstallEvent | null>(null);
   const [fontSize, setFontSize] = useState<string>("normal");
-
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
