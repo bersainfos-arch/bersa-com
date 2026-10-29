@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Share2, Copy, Download, User, Mail, Type } from "lucide-react";
+import { Share2, Copy, Download, User, Mail, Type, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { APP_URL, shareApp } from "@/lib/settings";
-
+import { useAuth } from "@/hooks/use-auth";
 type InstallEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: string }>;
