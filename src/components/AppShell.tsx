@@ -27,10 +27,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
 
 interface MenuItem {
+  to: string;
+  label: string;
+  icon: typeof PenLine;
+  adminOnly?: boolean;
+}
   to: string;
   label: string;
   icon: typeof PenLine;
