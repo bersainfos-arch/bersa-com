@@ -1,4 +1,6 @@
 # BERSA roadmap (reconstruction)
+- [ ] Unifier l’ouverture et Rédaction sur le papier avec Assistant, sans deuxième atelier
+- [ ] Vérifier et verrouiller la gestion et les abonnements au seul administrateur propriétaire
 - [ ] Accueil en trois espaces : haut préservé, atelier Word visible et cinq destinations fixes en bas
 - [ ] Supprimer les mentions technologiques des libellés publics sans modifier les documents utilisateurs
 - [ ] Examiner les trois alertes de lecture communautaire sans réduire l’accès public légitime
