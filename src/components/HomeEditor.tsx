@@ -52,6 +52,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const [ribbonOpen, setRibbonOpen] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+    const [showAssistantBar, setShowAssistantBar] = useState(false);
+  const [generatedResponse, setGeneratedResponse] = useState("");
+  const [showResultCard, setShowResultCard] = useState(false);
+  const [copied, setCopied] = useState(false);
   const Frame = embedded ? Fragment : AppShell;
   useEffect(() => {
     const updateOffset = () => {
