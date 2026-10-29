@@ -38,8 +38,8 @@ interface MenuItem {
   exact?: boolean;
   adminOnly?: boolean;
 }
-
 const menuItems: MenuItem[] = [
+  { to: "/accueil", label: "Accueil (Publications)", icon: Home },
   { to: "/redaction", label: "Rédaction", icon: PenLine },
   { to: "/anti-plagiat", label: "Anti-plagiat", icon: ShieldAlert },
   { to: "/documents", label: "Documents", icon: FileText },
@@ -59,11 +59,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       setIsAdmin(false);
       return;
     }
+    // L'administrateur propriétaire a un accès direct garanti
+    if (user.email?.toLowerCase() === "dieudonnedjoma@gmail.com") {
+      setIsAdmin(true);
+      return;
+    }
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
       setIsAdmin(Boolean(data));
     });
   }, [user]);
-
   const visibleTabs = menuItems.filter((m) => !m.adminOnly || isAdmin);
 
   return (
