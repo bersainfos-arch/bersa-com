@@ -13,7 +13,8 @@ import {
   Settings,
   ShieldAlert,
   MessageCircle,
-  Menu,
+    Menu,
+  Home,
 } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
