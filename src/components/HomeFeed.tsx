@@ -7,7 +7,6 @@ import {
   Loader2, Copy, ShieldAlert, MessageSquare, Bell, ArrowRight,
   PenTool, Award, Check
 } from "lucide-react";
-import { HomeMessagesModal } from "@/components/HomeMessagesModal";
 import { HomeEditor } from "@/components/HomeEditor";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
