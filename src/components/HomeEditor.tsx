@@ -183,7 +183,18 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       }, 1500);
     }
   };
-
+  // Analyse des pièces jointes
+  const addFiles = async (list: FileList | null) => {
+    if (!list) return;
+    for (const file of Array.from(list).slice(0, Math.max(0, 3 - files.length))) {
+      try {
+        const attachment = await readAttachment(file);
+        setFiles((previous) => [...previous, attachment]);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Fichier illisible.");
+      }
+    }
+  };
   // Insertion dans le papier : disparaît d'un coup dès que le texte est inséré
   const insertIntoPaper = (mode: "auto" | "append" | "replace" = "auto") => {
     if (!editor || !generatedResponse.trim()) return;
