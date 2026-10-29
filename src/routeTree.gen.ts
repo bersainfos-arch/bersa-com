@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AbonnementsRouteImport } from './routes/abonnements'
+import { Route as AccueilRouteImport } from './routes/accueil'
 import { Route as AntiPlagiatRouteImport } from './routes/anti-plagiat'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AssistantRouteImport } from './routes/assistant'
@@ -37,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
 const AbonnementsRoute = AbonnementsRouteImport.update({
   id: '/abonnements',
   path: '/abonnements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccueilRoute = AccueilRouteImport.update({
+  id: '/accueil',
+  path: '/accueil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AntiPlagiatRoute = AntiPlagiatRouteImport.update({
@@ -128,6 +134,7 @@ const FactureIdRoute = FactureIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/abonnements': typeof AbonnementsRoute
+  '/accueil': typeof AccueilRoute
   '/anti-plagiat': typeof AntiPlagiatRoute
   '/app': typeof AppRoute
   '/assistant': typeof AssistantRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/abonnements': typeof AbonnementsRoute
+  '/accueil': typeof AccueilRoute
   '/anti-plagiat': typeof AntiPlagiatRoute
   '/app': typeof AppRoute
   '/assistant': typeof AssistantRoute
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/abonnements': typeof AbonnementsRoute
+  '/accueil': typeof AccueilRoute
   '/anti-plagiat': typeof AntiPlagiatRoute
   '/app': typeof AppRoute
   '/assistant': typeof AssistantRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/abonnements'
+    | '/accueil'
     | '/anti-plagiat'
     | '/app'
     | '/assistant'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/abonnements'
+    | '/accueil'
     | '/anti-plagiat'
     | '/app'
     | '/assistant'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/abonnements'
+    | '/accueil'
     | '/anti-plagiat'
     | '/app'
     | '/assistant'
@@ -258,6 +270,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AbonnementsRoute: typeof AbonnementsRoute
+  AccueilRoute: typeof AccueilRoute
   AntiPlagiatRoute: typeof AntiPlagiatRoute
   AppRoute: typeof AppRoute
   AssistantRoute: typeof AssistantRoute
@@ -291,6 +304,13 @@ declare module '@tanstack/react-router' {
       path: '/abonnements'
       fullPath: '/abonnements'
       preLoaderRoute: typeof AbonnementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accueil': {
+      id: '/accueil'
+      path: '/accueil'
+      fullPath: '/accueil'
+      preLoaderRoute: typeof AccueilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anti-plagiat': {
@@ -418,6 +438,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AbonnementsRoute: AbonnementsRoute,
+  AccueilRoute: AccueilRoute,
   AntiPlagiatRoute: AntiPlagiatRoute,
   AppRoute: AppRoute,
   AssistantRoute: AssistantRoute,

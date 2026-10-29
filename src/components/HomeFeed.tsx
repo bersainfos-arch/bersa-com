@@ -433,7 +433,7 @@ export function HomeFeed() {
         {/* ============================================================ */}
         <header className="sticky top-0 z-40 bg-white/95 px-3 py-2 shadow-xs backdrop-blur-md border-b border-slate-200">
           <div className="mx-auto flex max-w-xl items-center justify-between gap-2">
-            <Link to="/" className="flex items-center gap-2 shrink-0">
+            <Link to="/accueil" className="flex items-center gap-2 shrink-0">
               <img
                 src={logo.url}
                 alt="Logo BERSA"
@@ -593,7 +593,7 @@ export function HomeFeed() {
         </section>
         <nav className="home-bottom-navigation" aria-label="Navigation principale">
           {([
-            { to: "/", label: "Accueil", icon: Home },
+            { to: "/accueil", label: "Accueil", icon: Home },
             { to: "/redaction", label: "Rédaction", icon: FileText },
             { to: "/formations", label: "Formation", icon: GraduationCap },
             { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },

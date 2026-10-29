@@ -276,7 +276,7 @@ export function BersaWordA4({
     <div className="bersa-word-app">
       {/* 1. BANDEAU BLEU ROI */}
       <header className="bw-top-header">
-        <button type="button" className="bw-btn-icon" onClick={onBack || (() => window.history.back())}>
+        <button type="button" className="bw-btn-icon" aria-label="Accueil" onClick={onBack || (() => { window.location.href = "/accueil"; })}>
           <ArrowLeft size={18} />
         </button>
         <div className="bw-brand-block">
@@ -313,6 +313,19 @@ export function BersaWordA4({
               <button type="button" onClick={() => { localStorage.setItem("bersa-word-draft", JSON.stringify({ title, html: editor?.getHTML(), text: editor?.getText() })); setSaveState("Enregistré"); setNotice("Document sauvegardé."); setMenuOpen(false); }}>
                 <Save size={15} /> Enregistrer
               </button>
+              <div className="bw-menu-divider" />
+              {[
+                ["/accueil", "Accueil & publications"],
+                ["/formations", "Formation"],
+                ["/bibliotheque", "Bibliothèque"],
+                ["/opportunites", "Opportunités"],
+                ["/documents", "Mes documents"],
+                ["/anti-plagiat", "Anti-plagiat"],
+                ["/abonnements", "Abonnement"],
+                ["/parametres", "Paramètres"],
+              ].map(([href, label]) => (
+                <a key={href} href={href} className="bw-menu-link" style={{ display: "block", padding: "8px 12px", textDecoration: "none", color: "inherit" }}>{label}</a>
+              ))}
               <div className="bw-menu-divider" />
               <button type="button" onClick={() => { exportDocxReal(); setMenuOpen(false); }}>
                 <Download size={15} /> Exporter Word (.docx)

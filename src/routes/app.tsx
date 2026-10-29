@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import BersaWordA4 from "@/components/BersaWordA4";
+import { BersaWordA4 } from "@/components/BersaWordA4";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
