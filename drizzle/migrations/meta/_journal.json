@@ -78,6 +78,13 @@
       "when": 1791833513036,
       "tag": "0010_private_birthdate",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793232353541,
+      "tag": "0011_community_read_signed_in",
+      "breakpoints": true
     }
   ]
 }
