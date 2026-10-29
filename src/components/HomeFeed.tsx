@@ -583,13 +583,17 @@ export function HomeFeed() {
             </div>
           </div>
         </header>
-
-        <section className="home-writing-stage" aria-label="Mon atelier de rédaction">
-          <div className="flex items-center justify-between gap-2 border-b bg-card px-3 py-2">
-            <h1 className="font-display text-lg font-bold text-primary">Mon atelier de rédaction</h1>
-            <Button variant="outline" size="sm" onClick={() => setChatOpen(true)}><MessageCircle className="h-4 w-4" /> Discuter</Button>
+                <section className="mx-auto max-w-2xl px-3 py-3" aria-label="Mon atelier de rédaction">
+          <div className="rounded-xl border border-royal/20 bg-gradient-to-r from-royal/5 via-background to-gold/10 p-4 text-center shadow-sm">
+            <h2 className="font-display text-base font-bold text-royal">Mon atelier de rédaction BERSA</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Rédigez vos travaux avec l'Assistant, insérez vos documents et exportez en Word.</p>
+            <Button asChild className="mt-3 bg-royal hover:bg-royal/90 text-white font-semibold shadow">
+              <Link to="/redaction">
+                <FileText className="h-4 w-4 mr-2" />
+                Ouvrir mon atelier de rédaction
+              </Link>
+            </Button>
           </div>
-          <HomeEditor embedded />
         </section>
         <nav className="home-bottom-navigation" aria-label="Navigation principale">
           {([
