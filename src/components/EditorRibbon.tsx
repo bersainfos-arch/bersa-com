@@ -258,7 +258,7 @@ export function EditorRibbon({
       <div className="flex min-h-8 w-full max-w-full items-center gap-1 overflow-x-auto border-b bg-background px-1 py-0.5 text-xs scrollbar-none touch-pan-x">
         {/* ONGLET FICHIER */}
         {activeMenu === "Fichier" && (
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex items-center flex-nowrap shrink-0 gap-1 overflow-x-auto max-w-full py-0.5 scrollbar-none touch-pan-x">
             {btn(<FilePlus className="h-4 w-4" />, "Nouveau", handleNewDoc)}
             <input type="file" ref={fileInputRef} className="hidden" accept=".txt,.html,.htm,.docx" onChange={handleOpenFile} />
             {btn(<FolderOpen className="h-4 w-4" />, "Ouvrir", () => fileInputRef.current?.click())}
@@ -274,7 +274,7 @@ export function EditorRibbon({
 
         {/* ONGLET ACCUEIL */}
         {activeMenu === "Accueil" && (
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex items-center flex-nowrap shrink-0 gap-1 overflow-x-auto max-w-full py-0.5 scrollbar-none touch-pan-x">
             {/* Presse-papier */}
             {btn(<Scissors className="h-4 w-4" />, "Couper", () => document.execCommand("cut"))}
             {btn(<Copy className="h-4 w-4" />, "Copier", () => document.execCommand("copy"))}
