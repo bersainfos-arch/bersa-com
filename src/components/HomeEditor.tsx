@@ -405,41 +405,60 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   return (
     <Frame>
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
-       {/* Barre au-dessus du papier : Outils Word & Fonctions de l'Assistant */}
-        <div className="no-print mx-auto mb-1.5 flex max-w-[794px] flex-col gap-1.5">
-          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/85 px-2.5 py-1.5 text-xs backdrop-blur-sm">
+               {/* Barre au-dessus du papier : Mise en forme, Améliorer & Enregistrer */}
+        <div className="no-print mx-auto mb-1.5 flex w-full max-w-[794px] flex-col gap-1.5 px-1 sm:px-0 min-w-0">
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/90 px-2.5 py-1.5 text-xs backdrop-blur-sm">
+            
+            {/* 1. Outils Word renommés « Mise en forme » avec flèche plus grande */}
             <button
               type="button"
               onClick={() => setRibbonOpen(!ribbonOpen)}
-              className="flex items-center gap-1.5 font-semibold text-primary hover:text-primary/80 transition-colors"
-              title="Afficher ou masquer les outils Word"
+              className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
+              title="Afficher ou masquer la mise en forme Word"
             >
-              <PenTool className="h-3.5 w-3.5" />
-              <span>Outils Word ({tab})</span>
-              {ribbonOpen ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+              <PenTool className="h-4 w-4 text-primary" />
+              <span>Mise en forme</span>
+              {ribbonOpen ? (
+                <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-primary stroke-[2.5]" />
+              )}
             </button>
 
-            <div className="flex items-center gap-2">
+            {/* Droite : Améliorer + Enregistrer */}
+            <div className="flex items-center gap-1.5">
+              {/* 2. Bouton « Améliorer » avec flèche plus grande */}
               <button
                 type="button"
                 onClick={() => setShowAssistantBar(!showAssistantBar)}
-                className="flex items-center gap-1 font-semibold text-primary hover:text-primary/80 text-[11px] bg-primary/10 rounded-full px-2 py-0.5"
-                title="Afficher ou masquer les fonctionnalités de l'Assistant"
+                className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 text-xs bg-primary/10 rounded-full px-2.5 py-1 transition-colors"
+                title="Fonctionnalités d'amélioration (Plan, développer, humaniser, résumer...)"
               >
                 <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                <span>Assistant</span>
-                {showAssistantBar ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                <span>Améliorer</span>
+                {showAssistantBar ? (
+                  <ChevronUp className="h-4.5 w-4.5 text-primary stroke-[2.5]" />
+                ) : (
+                  <ChevronDown className="h-4.5 w-4.5 text-primary stroke-[2.5]" />
+                )}
               </button>
 
-              <span className="text-[11px] text-muted-foreground hidden sm:inline">
-                {settings.format} · {settings.margin}
-              </span>
+              {/* 3. Bouton Enregistrer avec choix Word, PDF, dossier */}
+              <button
+                type="button"
+                onClick={() => setShowSaveModal(true)}
+                className="flex items-center gap-1 font-semibold text-primary hover:text-primary/80 text-xs bg-muted hover:bg-muted/80 rounded-full px-2 py-1 transition-colors"
+                title="Enregistrer le document (Word, PDF, Texte)"
+              >
+                <Save className="h-3.5 w-3.5 text-primary" />
+                <span className="hidden xs:inline">Enregistrer</span>
+              </button>
             </div>
           </div>
 
-          {/* Fonctions de l'Assistant intégrées au-dessus du papier Word (défilement horizontal fluide sans déborder) */}
+          {/* Fonctions sous Améliorer (défilement horizontal sans déborder l'écran) */}
           {showAssistantBar && (
-            <div className="flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/50 bg-card/90 p-1.5 text-xs scrollbar-none touch-pan-x">
+            <div className="flex w-full items-center gap-1.5 overflow-x-auto rounded-lg border border-border/50 bg-card/95 p-1.5 text-xs scrollbar-none touch-pan-x min-w-0">
               {assistantActions.map(([id, label]) => (
                 <button
                   key={id}
