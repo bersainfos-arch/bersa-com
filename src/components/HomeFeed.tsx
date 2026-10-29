@@ -10,6 +10,7 @@ import {
 import { HomeEditor } from "@/components/HomeEditor";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
+import { HomeMessagesModal } from "@/components/HomeMessagesModal";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { askAssistant } from "@/lib/assistant.functions";
