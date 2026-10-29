@@ -27,27 +27,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { LanguageSelector } from "@/components/LanguageSelector";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
-interface MenuItem {
 interface MenuItem {
   to: string;
   label: string;
   icon: typeof PenLine;
   adminOnly?: boolean;
 }
-
 const menuItems: MenuItem[] = [
   { to: "/redaction", label: "Rédaction", icon: PenLine },
   { to: "/formations", label: "Formation", icon: GraduationCap },
