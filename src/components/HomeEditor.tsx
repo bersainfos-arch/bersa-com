@@ -279,6 +279,17 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       if (match) setQuota({ used: Number(match[1]), limit: Number(match[2]) });
     } finally {
       setBusy(false);
+        async function addFiles(list: FileList | null) {
+    if (!list) return;
+    for (const file of Array.from(list).slice(0, Math.max(0, 3 - files.length))) {
+      try {
+        const attachment = await readAttachment(file);
+        setFiles(previous => [...previous, attachment]);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Fichier illisible.");
+      }
+    }
+  }
     }
   }   
   async function save() {
