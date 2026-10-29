@@ -27,18 +27,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-
 interface MenuItem {
   to: string;
   label: string;
   icon: typeof PenLine;
   adminOnly?: boolean;
 }
-  to: string;
-  label: string;
-  icon: typeof PenLine;
-  adminOnly?: boolean;
-}
+
 const menuItems: MenuItem[] = [
   { to: "/redaction", label: "Rédaction", icon: PenLine },
   { to: "/formations", label: "Formation", icon: GraduationCap },
@@ -50,7 +45,6 @@ const menuItems: MenuItem[] = [
   { to: "/parametres", label: "Paramètres", icon: Settings },
   { to: "/gestion", label: "Gestion", icon: ShieldCheck, adminOnly: true },
 ];
-
 export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
