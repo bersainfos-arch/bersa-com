@@ -49,11 +49,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
   const [keyboardOffset, setKeyboardOffset] = useState(0);
     // Affichage aéré et épuré (sans encombrement)
-  const [ribbonOpen, setRibbonOpen] = useState(false);
+    const [ribbonOpen, setRibbonOpen] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const Frame = embedded ? Fragment : AppShell;
-
   useEffect(() => {
     const updateOffset = () => {
       const vv = window.visualViewport;
