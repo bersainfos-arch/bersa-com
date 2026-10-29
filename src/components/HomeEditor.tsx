@@ -377,54 +377,67 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   return (
     <Frame>
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
-        <EditorRibbon
-          editor={editor}
-          tab={tab}
-          setTab={setTab}
-          settings={settings}
-          setSettings={setSettings}
-          attach={() => fileInput.current?.click()}
-          save={() => void save()}
-          correct={() => { setAction("correct"); void run("correct"); }}
-        />
+       {/* Barre discrète pour déplier/replier les outils Word d'un simple clic */}
+        <div className="no-print mx-auto mb-1 flex max-w-[794px] items-center justify-between rounded-lg border border-border/60 bg-card/85 px-3 py-1.5 text-xs backdrop-blur-sm">
+          <button
+            type="button"
+            onClick={() => setRibbonOpen(!ribbonOpen)}
+            className="flex items-center gap-1.5 font-semibold text-primary hover:text-primary/80 transition-colors"
+            title="Afficher ou masquer les fonctionnalités Word"
+          >
+            <PenTool className="h-3.5 w-3.5" />
+            <span>Outils Word ({tab})</span>
+            {ribbonOpen ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+          </button>
 
-        {tab === "Assistant" && (
-          <div className="no-print flex items-center gap-0.5 overflow-x-auto border-b bg-card px-1 py-0.5 scrollbar-none" aria-label="Services de l’Assistant">
-            {assistantActions.filter(([id]) => !["generate", "cv", "academic"].includes(id)).map(([id, label]) => (
-              <Button
-                key={id}
-                size="sm"
-                variant="ghost"
-                className="h-6 shrink-0 rounded-full px-2.5 text-xs text-primary hover:bg-accent"
-                onMouseDown={e => e.preventDefault()}
-                disabled={busy || transcribing || recording}
-                onClick={() => { setAction("generate"); void run(id); }}
-              >
-                {label}
-              </Button>
-            ))}
+          <span className="text-[11px] text-muted-foreground">
+            {settings.format} · {settings.margin} · {settings.zoom}
+          </span>
+        </div>
+
+        {/* Ruban complet : s'affiche uniquement quand vous cliquez sur Outils Word */}
+        {ribbonOpen && (
+          <div className="no-print mx-auto mb-2 max-w-[794px] overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all">
+            <EditorRibbon
+              editor={editor}
+              tab={tab}
+              setTab={setTab}
+              settings={settings}
+              setSettings={setSettings}
+              attach={() => fileInput.current?.click()}
+              save={() => void save()}
+              correct={() => { setAction("correct"); void run("correct"); }}
+            />
           </div>
         )}
 
-                {/* Historique des demandes de l'Assistant en haut dans la discussion */}
-        {history.length > 0 && (
-          <div className="no-print mx-auto my-1 max-w-[794px] rounded-md border bg-card px-2 py-1.5 text-xs">
+        {/* Historique : s'affiche seulement si vous cliquez sur l'horloge dans la capsule */}
+        {showHistory && history.length > 0 && (
+          <div className="no-print mx-auto my-1.5 max-w-[794px] rounded-xl border border-border bg-card/95 p-2 text-xs shadow-md backdrop-blur-sm">
             <div className="mb-1.5 flex items-center justify-between border-b border-border/40 pb-1">
               <span className="font-semibold text-primary">
                 Historique des demandes ({history.length})
               </span>
-              <button
-                type="button"
-                onClick={() => setHistory([])}
-                className="text-[11px] text-muted-foreground hover:text-destructive transition-colors"
-                title="Effacer l'historique"
-              >
-                Effacer
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setHistory([])}
+                  className="text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  Effacer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowHistory(false)}
+                  className="rounded p-0.5 hover:bg-muted text-muted-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
-            <div className="max-h-20 space-y-1 overflow-y-auto pr-1">
+            <div className="max-h-24 space-y-1 overflow-y-auto pr-1">
               {history.map(item => (
-                <div key={item.id} className="flex items-start justify-between gap-2 rounded bg-muted/40 px-2 py-1 text-[11.5px]">
+                <div key={item.id} className="flex items-start justify-between gap-2 rounded bg-muted/50 px-2 py-1 text-[11px]">
                   <span className="truncate text-foreground font-medium flex-1">
                     « {item.prompt} »
                   </span>
@@ -436,6 +449,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           </div>
         )}
+        
         <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
 
         {tab === "Insérer" && (
