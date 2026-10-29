@@ -83,69 +83,89 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <AuthGate>
       <div className="min-h-screen">
-        {/* En-tête compact : menu à trois traits, logo, puis actions personnelles */}
-        <header className="sticky top-0 z-30 bg-royal text-royal-foreground shadow-sm">
-          <div className="mx-auto flex h-11 max-w-7xl items-center gap-1.5 px-2 md:px-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 shrink-0 text-royal-foreground hover:bg-royal-foreground/10" aria-label="Ouvrir le menu des fonctionnalités">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" sideOffset={6} className="w-60 p-1.5">
-                <DropdownMenuLabel className="font-display text-base text-primary">Fonctionnalités</DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link to="/" className="cursor-pointer gap-3 py-2"><Bot className="text-primary" /> Assistant</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {visibleTabs.map((tb) => (
-                  <DropdownMenuItem key={tb.to} asChild>
+        {/* En-tête épuré plein écran : Retour + Logo à gauche | Menu ☰ à droite */}
+        <header className="sticky top-0 z-30 bg-[#0a192f] text-white shadow-sm">
+          <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-2 sm:px-4">
+            
+            {/* GAUCHE : Bouton retour ← + Logo officiel BERSA */}
+            <div className="flex items-center gap-2">
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-white hover:bg-white/10 rounded-full shrink-0"
+                title="Retour à l'accueil"
+                aria-label="Retour à l'accueil"
+              >
+                <Link to="/accueil">
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
+              </Button>
+
+              <Link to="/accueil" className="flex items-center gap-2 min-w-0">
+                <img
+                  src={logo.url}
+                  alt="Logo BERSA"
+                  className="h-8 w-8 rounded-lg shadow-xs bg-white p-0.5 object-contain shrink-0"
+                />
+                <div className="flex flex-col leading-none">
+                  <span className="font-serif text-lg font-black tracking-tight text-white">
+                    BERSA
+                  </span>
+                  <span className="text-[10px] font-semibold text-amber-400">
+                    Berceau du Savoir
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* DROITE : Bouton unique à 3 lignes ☰ avec les 8 fonctionnalités */}
+            <div className="flex items-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-white hover:bg-white/10 rounded-lg shrink-0"
+                    aria-label="Menu principal BERSA"
+                    title="Menu principal"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" sideOffset={6} className="w-64 p-2 bg-white text-slate-900 shadow-xl border border-slate-200 rounded-xl">
+                  <DropdownMenuLabel className="font-serif text-sm font-bold text-[#0a192f] px-2 py-1">
+                    Services BERSA
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {visibleTabs.map((tb) => (
+                    <DropdownMenuItem key={tb.to} asChild>
+                      <Link
+                        to={tb.to}
+                        className="flex items-center gap-3 px-2.5 py-2 text-sm rounded-lg hover:bg-slate-100 cursor-pointer font-medium text-slate-700 hover:text-[#0a192f] transition"
+                        activeProps={{ className: "bg-blue-50 text-blue-900 font-semibold" }}
+                      >
+                        <tb.icon className="h-4 w-4 text-blue-900 shrink-0" />
+                        <span>{tb.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
                     <Link
-                      to={tb.to}
-                      className="cursor-pointer gap-3 py-2"
-                      activeProps={{ className: "bg-accent font-semibold text-accent-foreground" }}
+                      to="/profil"
+                      className="flex items-center gap-3 px-2.5 py-2 text-xs text-slate-500 hover:bg-slate-100 rounded-lg cursor-pointer"
                     >
-                      <tb.icon className="text-primary" /> {tb.label}
+                      <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      <span>Mon profil</span>
                     </Link>
                   </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Link to="/" className="flex min-w-0 items-center gap-2">
-              <img src={logo.url} alt="Logo BERSA" className="h-7 w-7 shrink-0 rounded-md shadow-sm" />
-              <div className="flex min-w-0 flex-col leading-none">
-                <span className="font-display text-lg font-bold">BERSA</span>
-                <span className="truncate font-display text-[10px] text-gold">Berceau du Savoir</span>
-              </div>
-            </Link>
-
-            {/* Bloc droit : Profil, Réglages, Contact, Langue */}
-            <div className="ml-auto flex shrink-0 items-center gap-0.5">
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-royal-foreground hover:bg-royal-foreground/10">
-                <Link to="/profil" aria-label="Mon profil" title="Mon profil">
-                  <User className="h-4 w-4" />
-                </Link>
-              </Button>
-
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-royal-foreground hover:bg-royal-foreground/10">
-                <Link to="/parametres" aria-label="Paramètres" title="Paramètres">
-                  <Settings className="h-4 w-4" />
-                </Link>
-              </Button>
-
-              <Link
-                to="/contact"
-                className="hidden items-center gap-1 rounded-full bg-gold px-2.5 py-1 text-[11px] font-semibold text-gold-foreground transition hover:opacity-90 sm:inline-flex"
-              >
-                <MessageCircle className="h-3 w-3" /> Contact
-              </Link>
-
-              <LanguageSelector compact />
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
+
           </div>
         </header>
-
         <main>{children}</main>
       </div>
     </AuthGate>
