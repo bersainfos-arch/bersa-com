@@ -41,22 +41,23 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MenuItem {
+interface MenuItem {
   to: string;
   label: string;
-  icon: typeof Bot;
-  exact?: boolean;
+  icon: typeof PenLine;
   adminOnly?: boolean;
 }
+
 const menuItems: MenuItem[] = [
-  { to: "/accueil", label: "Accueil (Publications)", icon: Home },
   { to: "/redaction", label: "Rédaction", icon: PenLine },
-  { to: "/anti-plagiat", label: "Anti-plagiat", icon: ShieldAlert },
-  { to: "/documents", label: "Documents", icon: FileText },
   { to: "/formations", label: "Formation", icon: GraduationCap },
   { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },
   { to: "/opportunites", label: "Opportunités", icon: Briefcase },
+  { to: "/documents", label: "Documents", icon: FileText },
+  { to: "/anti-plagiat", label: "Anti-plagiat", icon: ShieldAlert },
+  { to: "/abonnements", label: "Abonnements", icon: Crown },
+  { to: "/parametres", label: "Paramètres", icon: Settings },
   { to: "/gestion", label: "Gestion", icon: ShieldCheck, adminOnly: true },
-  { to: "/abonnements", label: "Abonnement", icon: Crown },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
