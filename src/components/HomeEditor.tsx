@@ -56,6 +56,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [generatedResponse, setGeneratedResponse] = useState("");
   const [showResultCard, setShowResultCard] = useState(false);
   const [copied, setCopied] = useState(false);
+    // Gestion de l'enregistrement Word/PDF et dossier mobile
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [docFileName, setDocFileName] = useState("Mon_Document_BERSA");
+  const [exportFormat, setExportFormat] = useState<"docx" | "pdf" | "txt">("docx");
+  const [targetFolder, setTargetFolder] = useState("downloads");
   const Frame = embedded ? Fragment : AppShell;
   useEffect(() => {
     const updateOffset = () => {
