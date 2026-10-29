@@ -658,18 +658,17 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               <div className="max-h-64 overflow-y-auto pr-1 text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed select-text scrollbar-thin">
                 {generatedResponse || <span className="text-muted-foreground italic flex items-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Rédaction de votre demande…</span>}
               </div>
-
-              {/* BOUTON D'INSERTION STYLE WPS WORD */}
+              {/* BOUTON INSÉRER : apparaît d'un coût puis disparaît dès que le texte est inséré */}
               {generatedResponse && !busy && (
                 <div className="mt-2.5 flex items-center gap-2 border-t border-border/40 pt-2">
                   <Button
                     type="button"
                     size="sm"
                     onClick={() => insertIntoPaper("auto")}
-                    className="flex-1 h-8 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-semibold gap-1.5 shadow"
+                    className="flex-1 h-8 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-bold gap-1.5 shadow"
                   >
-                    <FileDown className="h-3.5 w-3.5" />
-                    <span>Insérer dans le document</span>
+                    <FileDown className="h-4 w-4 text-amber-400" />
+                    <span>Insérer</span>
                   </Button>
                   <Button
                     type="button"
@@ -683,10 +682,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                     <span className="hidden sm:inline">Régénérer</span>
                   </Button>
                 </div>
-              )}
-            </div>
-          )}
-
+              )}        
           {/* Zone de saisie supérieure auto-agrandissante */}
           <textarea
             value={promptInput}
