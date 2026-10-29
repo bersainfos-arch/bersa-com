@@ -381,24 +381,63 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   return (
     <Frame>
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
-       {/* Barre discrète pour déplier/replier les outils Word d'un simple clic */}
-        <div className="no-print mx-auto mb-1 flex max-w-[794px] items-center justify-between rounded-lg border border-border/60 bg-card/85 px-3 py-1.5 text-xs backdrop-blur-sm">
-          <button
-            type="button"
-            onClick={() => setRibbonOpen(!ribbonOpen)}
-            className="flex items-center gap-1.5 font-semibold text-primary hover:text-primary/80 transition-colors"
-            title="Afficher ou masquer les fonctionnalités Word"
-          >
-            <PenTool className="h-3.5 w-3.5" />
-            <span>Outils Word ({tab})</span>
-            {ribbonOpen ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
-          </button>
+       {/* Barre au-dessus du papier : Outils Word & Fonctions de l'Assistant */}
+        <div className="no-print mx-auto mb-1.5 flex max-w-[794px] flex-col gap-1.5">
+          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/85 px-2.5 py-1.5 text-xs backdrop-blur-sm">
+            <button
+              type="button"
+              onClick={() => setRibbonOpen(!ribbonOpen)}
+              className="flex items-center gap-1.5 font-semibold text-primary hover:text-primary/80 transition-colors"
+              title="Afficher ou masquer les outils Word"
+            >
+              <PenTool className="h-3.5 w-3.5" />
+              <span>Outils Word ({tab})</span>
+              {ribbonOpen ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+            </button>
 
-          <span className="text-[11px] text-muted-foreground">
-            {settings.format} · {settings.margin} · {settings.zoom}
-          </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowAssistantBar(!showAssistantBar)}
+                className="flex items-center gap-1 font-semibold text-primary hover:text-primary/80 text-[11px] bg-primary/10 rounded-full px-2 py-0.5"
+                title="Afficher ou masquer les fonctionnalités de l'Assistant"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                <span>Assistant</span>
+                {showAssistantBar ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
+
+              <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                {settings.format} · {settings.margin}
+              </span>
+            </div>
+          </div>
+
+          {/* Fonctions de l'Assistant intégrées au-dessus du papier Word (défilement horizontal fluide sans déborder) */}
+          {showAssistantBar && (
+            <div className="flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/50 bg-card/90 p-1.5 text-xs scrollbar-none touch-pan-x">
+              {assistantActions.map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  disabled={busy || transcribing || recording}
+                  onClick={() => {
+                    setAction(id);
+                    void run(id);
+                  }}
+                  className={`shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-50 ${
+                    id === "humanize"
+                      ? "bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/40 hover:bg-amber-500/25 font-bold"
+                      : "bg-muted/70 text-foreground hover:bg-primary/10 hover:text-primary"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${id === "humanize" ? "bg-amber-500" : "bg-primary/70"}`} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-
         {/* Ruban complet : s'affiche uniquement quand vous cliquez sur Outils Word */}
         {ribbonOpen && (
           <div className="no-print mx-auto mb-2 max-w-[794px] overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all">
