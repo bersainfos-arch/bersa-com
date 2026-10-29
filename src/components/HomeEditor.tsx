@@ -181,7 +181,38 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }
   };
 
-    async function run(chosen = action, isRegenerate = false) {
+    // Insertion intelligente style WPS Word AI
+  const insertIntoPaper = (mode: "auto" | "append" | "replace" = "auto") => {
+    if (!editor || !generatedResponse.trim()) return;
+    const { from, to } = editor.state.selection;
+    const selected = editor.state.doc.textBetween(from, to, "\n");
+    const hasSelection = from !== to && selected.trim();
+
+    if (mode === "replace" || (mode === "auto" && hasSelection)) {
+      editor.chain().focus().setTextSelection({ from, to }).insertContent(paragraphs(generatedResponse)).run();
+      toast.success("Texte inséré en remplacement de la sélection.");
+    } else if (editor.getText().trim().length > 0) {
+      editor.chain().focus("end").insertContent(paragraphs("\n\n" + generatedResponse)).run();
+      toast.success("Texte inséré à la suite du document.");
+    } else {
+      editor.commands.setContent(paragraphs(generatedResponse));
+      toast.success("Texte inséré sur le papier.");
+    }
+  };
+
+  const copyGeneratedText = async () => {
+    if (!generatedResponse) return;
+    try {
+      await navigator.clipboard.writeText(generatedResponse);
+      setCopied(true);
+      toast.success("Texte copié dans le presse-papier.");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Impossible de copier.");
+    }
+  };
+
+  async function run(chosen = action, isRegenerate = false) {
     if (!editor || busy) return;
     const { from, to } = editor.state.selection;
     const selected = editor.state.doc.textBetween(from, to, "\n");
@@ -191,9 +222,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const text = rawText.trim();
     if (!text) { toast.error("Écrivez votre consigne sur le papier ou dans le champ."); return; }
     if (files.some(file => file.type === "other")) { toast.info("Les pièces jointes non analysables ne sont pas transmises à l’Assistant."); }
-    setBusy(true); setError(""); editor.setEditable(false);
+
+    setBusy(true);
+    setError("");
+    setGeneratedResponse("");
+    setShowResultCard(true);
     setLastPrompt(text);
     setPromptInput("");
+
     try {
       const { data } = await supabase.auth.getSession();
       if (!data.session) throw new Error("Connectez-vous pour rédiger.");
@@ -213,22 +249,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       });
       if (!response.ok) throw new Error(await response.text());
       if (!response.body) throw new Error("Réponse vide.");
-      const original = editor.getJSON();
-      let reply = "", failure = "", lastPaint = 0;
-      const replaceSelection = from !== to && selected.trim();
-      const hasContent = editor.getText().trim().length > 0;
-      const paint = () => {
-        if (!reply) return;
-        editor.commands.setContent(original);
-        if (replaceSelection) {
-          editor.chain().setTextSelection({ from, to }).insertContent(paragraphs(reply)).run();
-        } else if (hasContent) {
-          // Allonge le papier en continu sans mention Chapitre
-          editor.chain().focus("end").insertContent(paragraphs("\n\n" + reply)).run();
-        } else {
-          editor.commands.setContent(paragraphs(reply));
-        }
-      };
+
+      let reply = "", failure = "";
       const parser = createParser({
         onEvent(event) {
           try {
@@ -236,7 +258,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             if (item.type === "quota") setQuota({ used: item.used, limit: item.limit });
             if (item.type === "delta") {
               reply += item.text;
-              if (performance.now() - lastPaint > 100) { paint(); lastPaint = performance.now(); }
+              setGeneratedResponse(reply);
             }
             if (item.type === "error") failure = item.message;
           } catch {}
@@ -248,9 +270,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         if (chunk.done) break;
         parser.feed(decoder.decode(chunk.value, { stream: true }));
       }
-      paint();
       if (failure) throw new Error(failure);
       if (!reply.trim()) throw new Error("L’Assistant n’a pas produit de texte.");
+      toast.success("Texte généré ! Cliquez sur « Insérer dans le document ».");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Assistant indisponible.";
       setError(message);
@@ -258,20 +280,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       if (match) setQuota({ used: Number(match[1]), limit: Number(match[2]) });
     } finally {
       setBusy(false);
-      editor.setEditable(settings.viewMode !== "lecture");
     }
-  }
-  async function addFiles(list: FileList | null) {
-    if (!list) return;
-    for (const file of Array.from(list).slice(0, Math.max(0, 3 - files.length))) {
-      try {
-        const attachment = await readAttachment(file);
-        setFiles(previous => [...previous, attachment]);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Fichier illisible.");
-      }
-    }
-  }
+  }   
   async function save() {
     if (!editor) return;
     const title = prompt("Titre du document", "Texte assisté");
