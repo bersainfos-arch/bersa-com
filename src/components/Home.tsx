@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/bersa-logo.png.asset.json";
 
 interface TemplateItem {
   id: string;
@@ -103,7 +104,7 @@ const STARTER_FILES: RecentDoc[] = [
   {
     id: "3",
     title: "Statuts_ASBL_RDC.pdf",
-    date: "22 sept. • 3.6 Mo",
+    date: "22 sept.",
     size: "3.6 Mo",
     type: "pdf",
   },
@@ -117,9 +118,9 @@ export function Home() {
   const [filesList, setFilesList] = useState<RecentDoc[]>(STARTER_FILES);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isAdmin = user?.email === "dieudonnedjoma@gmail.com";
+  const isAdmin = user?.email?.toLowerCase() === "dieudonnedjoma@gmail.com";
 
-  // Chargement des documents réels de l'utilisateur s'ils existent
+  // Chargement des documents réels de l'utilisateur
   useEffect(() => {
     async function loadUserDocs() {
       if (!user) return;
@@ -128,7 +129,7 @@ export function Home() {
           .from("user_docs")
           .select("id, title, updated_at")
           .order("updated_at", { ascending: false })
-          .limit(5);
+          .limit(8);
 
         if (data && data.length > 0) {
           const mapped: RecentDoc[] = data.map((doc) => ({
@@ -144,13 +145,28 @@ export function Home() {
           setFilesList(mapped);
         }
       } catch {
-        // En cas d'erreur ou hors-ligne, les fichiers BERSA par défaut restent visibles
+        // En cas de déconnexion, les modèles par défaut restent visibles
       }
     }
     void loadUserDocs();
   }, [user]);
 
-  // Gestion de l'import depuis l'appareil
+  // Ouverture d'un modèle : transmet l'instruction à l'Atelier
+  const handleOpenTemplate = (tmpl: TemplateItem) => {
+    sessionStorage.setItem("bersa-assistant-prompt", tmpl.prompt);
+    navigate({ to: "/redaction" });
+  };
+
+  // Ouverture d'un document existant dans l'Atelier
+  const handleOpenDoc = (file: RecentDoc) => {
+    sessionStorage.setItem(
+      "bersa-writing-request",
+      `Document sélectionné : ${file.title}\n\nPrêt pour la révision et la mise en forme dans l'Atelier BERSA.\n`
+    );
+    navigate({ to: "/redaction" });
+  };
+
+  // Import de fichier depuis l'appareil
   const handleDeviceImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -164,6 +180,11 @@ export function Home() {
     };
     setFilesList((prev) => [newDoc, ...prev]);
     setActiveTab("recents");
+    sessionStorage.setItem(
+      "bersa-writing-request",
+      `Document importé depuis votre appareil : ${file.name}\n\nVous pouvez désormais utiliser l'Assistant pour enrichir, corriger ou reformuler ce document.\n`
+    );
+    navigate({ to: "/redaction" });
   };
 
   const filteredFiles = filesList.filter((f) =>
@@ -171,14 +192,15 @@ export function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-white text-[#0A2342] font-sans pb-32 max-w-md mx-auto relative select-none">
-      {/* 1. EN-TÊTE COMPOSANT <Header /> */}
+    <div className="min-h-screen bg-white text-[#0A2342] font-sans pb-32 max-w-md md:max-w-xl mx-auto relative select-none">
+      {/* 1. EN-TÊTE AVEC LOGO OFFICIEL BERSA */}
       <header className="px-4 pt-3 pb-2 flex items-center justify-between gap-2.5">
-        {/* Logo BERSA */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-12 h-12 bg-[#0A84FF] rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-sm">
-            B
-          </div>
+          <img
+            src={logo.url}
+            alt="Logo officiel BERSA"
+            className="w-11 h-11 object-contain rounded-xl shadow-xs"
+          />
           <div className="flex flex-col leading-tight">
             <span className="text-[#0A2342] font-extrabold text-[21px] tracking-tight">
               BERSA
@@ -213,7 +235,7 @@ export function Home() {
             <User className="w-5 h-5 text-gray-600" />
           </Link>
 
-          {/* Menu à 3 traits complet pour préserver tous les accès */}
+          {/* Menu principal à 3 traits */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -308,7 +330,7 @@ export function Home() {
         </div>
       </header>
 
-      {/* 2. SECTION MODÈLES DE DOCUMENTS <DocumentTemplates /> */}
+      {/* 2. MODÈLES DE DOCUMENTS */}
       <section className="px-4 mt-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[#0A2342] font-bold text-[19px] tracking-tight">
@@ -322,7 +344,7 @@ export function Home() {
           </Link>
         </div>
 
-        {/* Grille 4 colonnes proportionnelles 1:1 exacte */}
+        {/* Grille 4 colonnes proportionnelles */}
         <div className="grid grid-cols-4 gap-2.5">
           {TEMPLATES.map((tmpl) => {
             const Icon = tmpl.icon;
@@ -330,15 +352,15 @@ export function Home() {
               <button
                 key={tmpl.id}
                 type="button"
-                onClick={() => navigate({ to: "/redaction" })}
+                onClick={() => handleOpenTemplate(tmpl)}
                 className="relative bg-white rounded-2xl p-2.5 pt-3.5 flex flex-col items-center justify-between border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-md transition-all active:scale-[0.97] min-h-[128px]"
               >
-                {/* Découpe vague d'angle bleu ciel */}
+                {/* Découpe d'angle bleu ciel */}
                 <div className="absolute top-0 right-0 w-8 h-8 overflow-hidden rounded-tr-2xl pointer-events-none">
                   <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#A8D0F0]/60" />
                 </div>
 
-                {/* Badge système */}
+                {/* Badge */}
                 {tmpl.badge === "Nouveau" && (
                   <span className="absolute -top-2 right-2 bg-[#FF5A5A] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                     Nouveau
@@ -351,12 +373,12 @@ export function Home() {
                   </span>
                 )}
 
-                {/* Icône centrale */}
+                {/* Icône */}
                 <div className="flex-1 flex items-center justify-center my-1">
                   <Icon className="w-11 h-11 text-[#0A2342] stroke-[1.8]" />
                 </div>
 
-                {/* Label centré */}
+                {/* Label */}
                 <span className="text-[11px] font-bold text-[#0A2342] text-center leading-tight">
                   {tmpl.label}
                 </span>
@@ -366,9 +388,8 @@ export function Home() {
         </div>
       </section>
 
-      {/* 3. ONGLETS + LISTE DE FICHIERS <RecentFiles /> */}
+      {/* 3. ONGLETS RÉCENTS / APPAREIL */}
       <section className="px-4 mt-6">
-        {/* Pilules d'onglets */}
         <div className="flex items-center gap-2 mb-4">
           <button
             type="button"
@@ -405,26 +426,25 @@ export function Home() {
           />
         </div>
 
-        {/* Liste des cartes fichiers avec coin plié */}
+        {/* Liste des cartes fichiers */}
         <div className="space-y-2.5">
           {filteredFiles.map((file) => (
             <div
               key={file.id}
-              onClick={() => navigate({ to: "/redaction" })}
+              onClick={() => handleOpenDoc(file)}
               className="bg-white rounded-2xl p-3.5 flex items-center gap-3.5 border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md cursor-pointer transition-all active:scale-[0.99]"
             >
-              {/* Icône avec coin plié en haut à droite */}
+              {/* Icône avec coin plié */}
               <div
                 className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl text-white shrink-0 shadow-sm ${
                   file.type === "pdf" ? "bg-[#FF5A5A]" : "bg-[#0A84FF]"
                 }`}
               >
-                {/* Coin plié top-right */}
                 <div className="absolute top-0 right-0 w-3 h-3 bg-white/35 rounded-bl-sm" />
                 <span>{file.type === "pdf" ? "P" : "W"}</span>
               </div>
 
-              {/* Titre et métadonnées */}
+              {/* Titre et détails */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-[#0A2342] text-[15px] truncate">
                   {file.title}
@@ -438,8 +458,8 @@ export function Home() {
         </div>
       </section>
 
-      {/* 4. BOUTON D'ACTION 3D FLOTTANT <PrimaryAction /> */}
-      <div className="fixed bottom-[86px] left-0 right-0 max-w-md mx-auto px-6 z-40 pointer-events-none">
+      {/* 4. GROS BOUTON 3D FLOTTANT : + RÉDIGER */}
+      <div className="fixed bottom-[86px] left-0 right-0 max-w-md md:max-w-xl mx-auto px-6 z-40 pointer-events-none">
         <button
           type="button"
           onClick={() => navigate({ to: "/redaction" })}
@@ -450,58 +470,29 @@ export function Home() {
         </button>
       </div>
 
-      {/* 5. BARRE DE NAVIGATION INFÉRIEURE <BottomNav /> */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 h-[68px] px-2 flex items-center justify-around z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
-        {/* 1. Accueil */}
-        <Link
-          to="/"
-          className="flex flex-col items-center justify-center gap-1 text-[#0A84FF] w-12"
-        >
+      {/* 5. NAVIGATION INFÉRIEURE FIXE */}
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md md:max-w-xl mx-auto bg-white border-t border-gray-100 h-[68px] px-2 flex items-center justify-around z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
+        <Link to="/" className="flex flex-col items-center justify-center gap-1 text-[#0A84FF] w-12">
           <HomeIcon className="w-6 h-6 fill-[#0A84FF]" />
           <span className="text-[10px] font-bold">Accueil</span>
         </Link>
-
-        {/* 2. Fichier */}
-        <Link
-          to="/documents"
-          className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-12"
-        >
+        <Link to="/documents" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-12">
           <FileText className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Fichier</span>
         </Link>
-
-        {/* 3. Bibliothèque */}
-        <Link
-          to="/bibliotheque"
-          className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-14"
-        >
-          <GraduationCap className="w-6 h-6 stroke-[1.8]" />
+        <Link to="/bibliotheque" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-14">
+          <BookOpen className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Bibliothèque</span>
         </Link>
-
-        {/* 4. Formation */}
-        <Link
-          to="/formations"
-          className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-14"
-        >
-          <Briefcase className="w-6 h-6 stroke-[1.8]" />
+        <Link to="/formations" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-14">
+          <GraduationCap className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Formation</span>
         </Link>
-
-        {/* 5. Opportunités */}
-        <Link
-          to="/opportunites"
-          className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-16"
-        >
-          <Briefcase className="w-6 h-6 stroke-[1.8]" />
+        <Link to="/opportunites" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-16">
+          <Award className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium truncate">Opportunités</span>
         </Link>
-
-        {/* 6. Découvrir */}
-        <Link
-          to="/accueil"
-          className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-12"
-        >
+        <Link to="/accueil" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-12">
           <Compass className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Découvrir</span>
         </Link>
