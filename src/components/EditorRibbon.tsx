@@ -406,7 +406,32 @@ export function EditorRibbon({
             })}
           </div>
         )}
+                    {/* Outils Tableaux façon WPS Word */}
+            {btn(<Table className="h-4 w-4" />, "Tableau 3x3", () =>
+              editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            )}
+            {btn(<Plus className="h-4 w-4" />, "+ Ligne", () =>
+              editor?.chain().focus().addRowAfter().run()
+            )}
+            {btn(<Plus className="h-4 w-4" />, "+ Colonne", () =>
+              editor?.chain().focus().addColumnAfter().run()
+            )}
 
+            {/* Insertion et retouche d'image */}
+            {btn(<Image className="h-4 w-4" />, "Insérer image", () => {
+              const inp = document.createElement("input");
+              inp.type = "file";
+              inp.accept = "image/*";
+              inp.onchange = () => {
+                const f = inp.files?.[0];
+                if (!f) return;
+                const r = new FileReader();
+                r.onload = () => editor?.chain().focus().setImage({ src: String(r.result) }).run();
+                r.readAsDataURL(f);
+              };
+              inp.click();
+            })}
+        
         {/* ONGLET MISE EN PAGE */}
         {activeMenu === "Mise en page" && (
           <div className="flex flex-wrap items-center gap-2">
