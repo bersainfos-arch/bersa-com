@@ -268,7 +268,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setTimeout(() => URL.revokeObjectURL(textUrl), 1000);
     toast.success(`Fichier texte enregistré pour votre dossier (${targetFolder}).`);
   };
-  };
 
   const copyGeneratedText = async () => {
     if (!generatedResponse) return;
@@ -768,7 +767,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                     <span className="hidden sm:inline">Régénérer</span>
                   </Button>
                 </div>
-              )}        
+              )}
+               </div>
+                )}
           {/* Zone de saisie supérieure auto-agrandissante */}
           <textarea
             value={promptInput}
