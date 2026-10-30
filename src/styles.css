@@ -143,19 +143,18 @@
   display: flex;
   justify-content: center;
 }
-
-/* La vraie et unique feuille A4 blanche pure Word */
+/* Découpage du papier en pages A4 successives style WPS Word & Office Word */
 .home-ai-sheet {
   width: min(100%, 794px);
   min-height: 1123px;
   background-color: #ffffff !important;
   background: #ffffff !important;
   color: #111827 !important;
-  border-radius: 2px;
+  border-radius: 3px;
   border: 1px solid rgba(0, 0, 0, 0.12) !important;
   box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
-  padding: 44px 44px !important;
-  margin: 0 auto 16px auto;
+  padding: 48px 48px !important;
+  margin: 0 auto 18px auto;
   position: relative;
   box-sizing: border-box;
   font-family: "Times New Roman", Times, serif;
@@ -164,14 +163,26 @@
   outline: none;
 }
 
-/* Version téléphone : pleine largeur d'écran sans aucun débordement */
+/* Coupure de feuille réelle : crée la séparation visuelle entre deux pages */
+.home-ai-sheet hr.page-break,
+.home-ai-sheet .a4-page-break {
+  display: block;
+  break-after: page;
+  height: 18px !important;
+  margin: 32px -48px !important;
+  background: #E5E7EB !important; /* Couleur du bureau qui sépare les 2 feuilles */
+  border-top: 1px solid #D1D5DB !important;
+  border-bottom: 1px solid #D1D5DB !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+}
+
 @media (max-width: 640px) {
   html, body {
     max-width: 100vw !important;
     overflow-x: hidden !important;
   }
   .home-paper-desk {
-    padding: 6px 6px 110px 6px;
+    padding: 6px 6px 120px 6px;
     height: calc(100dvh - 95px);
     width: 100% !important;
     max-width: 100% !important;
@@ -189,17 +200,23 @@
     background-color: #ffffff !important;
     background: #ffffff !important;
     color: #111827 !important;
-    padding: 16px 14px !important;
+    padding: 20px 16px !important;
     font-size: 11.5pt;
     line-height: 1.5;
     box-sizing: border-box !important;
     border-radius: 4px;
+  }
+  .home-ai-sheet hr.page-break,
+  .home-ai-sheet .a4-page-break {
+    margin: 24px -16px !important;
+    height: 14px !important;
   }
   .home-command-bar,
   .home-subscribe-bar {
     display: none !important;
   }
 }
+  
 /* Barre desktop standard */
 .home-command-bar {
   position: sticky;
