@@ -677,7 +677,7 @@ export function HomeFeed() {
                         <img
                           src={post.mediaUrl}
                           alt={post.title || "Illustration"}
-                          className="w-full max-h-72 object-cover aspect-video"
+                          className="w-full max-h-72 object-contain max-h-80 w-full bg-slate-900/5 rounded-xl"
                           loading="lazy"
                         />
                       </div>
