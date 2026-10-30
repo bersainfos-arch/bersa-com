@@ -143,7 +143,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       sessionStorage.removeItem("bersa-writing-request");
     }
   }, [editor]);
-
+  useEffect(() => {
+    const assistantPrompt = sessionStorage.getItem("bersa-assistant-prompt");
+    if (assistantPrompt) {
+      setPromptInput(assistantPrompt);
+      setShowAssistantBar(true);
+      sessionStorage.removeItem("bersa-assistant-prompt");
+    }
+  }, []);
   useEffect(() => {
     if (!audio) { setAudioUrl(""); return; }
     const url = URL.createObjectURL(audio);
