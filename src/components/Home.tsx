@@ -122,9 +122,9 @@ export function Home() {
   useEffect(() => {
     void supabase.from("document_templates").select("id, title, badge, prompt").eq("published", true).order("created_at").then(({ data }) => {
       if (!data?.length) return;
-      setTemplates([...TEMPLATES, ...data.map((t) => ({
+      setTemplates([...TEMPLATES, ...data.map((t): TemplateItem => ({
         id: t.id, label: t.title, icon: FileBadge, prompt: t.prompt,
-        badge: t.badge === "Nouveau" || t.badge === "Premium" ? t.badge : undefined,
+        badge: t.badge === "Nouveau" || t.badge === "Premium" ? (t.badge as "Nouveau" | "Premium") : undefined,
         badgeColor: t.badge === "Premium" ? "bg-[#FFD700] text-[#854d0e]" : "bg-[#FF5A5A]",
       }))]);
     });
