@@ -436,6 +436,33 @@ export type Database = {
         }
         Relationships: []
       }
+      document_templates: {
+        Row: {
+          badge: string
+          created_at: string
+          id: string
+          prompt: string
+          published: boolean
+          title: string
+        }
+        Insert: {
+          badge?: string
+          created_at?: string
+          id?: string
+          prompt: string
+          published?: boolean
+          title: string
+        }
+        Update: {
+          badge?: string
+          created_at?: string
+          id?: string
+          prompt?: string
+          published?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           content: string
