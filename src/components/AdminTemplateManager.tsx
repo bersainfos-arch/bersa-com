@@ -20,7 +20,7 @@ export function AdminTemplateManager() {
 
   const add = async () => {
     const { error } = await supabase.from("document_templates").insert({ title: title.trim(), badge, prompt: prompt.trim(), published: true });
-    if (error) return toast.error("Enregistrement impossible.");
+    if (error) { toast.error("Enregistrement impossible."); return; }
     toast.success("Modèle enregistré et publié.");
     setTitle(""); setPrompt(""); setBadge(""); void load();
   };

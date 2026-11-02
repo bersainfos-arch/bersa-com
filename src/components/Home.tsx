@@ -42,7 +42,7 @@ interface TemplateItem {
   id: string;
   label: string;
   icon: typeof FileBadge;
-  badge?: "Nouveau" | "Premium";
+  badge?: "Nouveau" | "Premium" | undefined;
   badgeColor?: string;
   prompt: string;
 }
