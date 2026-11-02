@@ -452,3 +452,7 @@
   .home-bottom-navigation, .home-writing-layout > main { display: none !important; }
   .home-editor.home-editor-embedded { height: auto; min-height: 0; }
 }
+
+/* Garde-fou global : aucun débordement horizontal */
+html, body { max-width: 100%; overflow-x: clip; }
+img, video, canvas, iframe, table { max-width: 100%; }
