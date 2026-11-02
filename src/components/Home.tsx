@@ -117,6 +117,18 @@ export function Home() {
   const [activeTab, setActiveTab] = useState<"recents" | "appareil">("recents");
   const [filesList, setFilesList] = useState<RecentDoc[]>(STARTER_FILES);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [templates, setTemplates] = useState<TemplateItem[]>(TEMPLATES);
+
+  useEffect(() => {
+    void supabase.from("document_templates").select("id, title, badge, prompt").eq("published", true).order("created_at").then(({ data }) => {
+      if (!data?.length) return;
+      setTemplates([...TEMPLATES, ...data.map((t) => ({
+        id: t.id, label: t.title, icon: FileBadge, prompt: t.prompt,
+        badge: t.badge === "Nouveau" || t.badge === "Premium" ? t.badge : undefined,
+        badgeColor: t.badge === "Premium" ? "bg-[#FFD700] text-[#854d0e]" : "bg-[#FF5A5A]",
+      }))]);
+    });
+  }, []);
 
   const isAdmin = user?.email?.toLowerCase() === "dieudonnedjoma@gmail.com";
 
@@ -346,7 +358,7 @@ export function Home() {
 
         {/* Grille 4 colonnes proportionnelles */}
         <div className="grid grid-cols-4 gap-2.5">
-          {TEMPLATES.map((tmpl) => {
+          {templates.map((tmpl) => {
             const Icon = tmpl.icon;
             return (
               <button
