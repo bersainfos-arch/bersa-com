@@ -5,7 +5,8 @@ import {
   Scissors, Copy, Clipboard, Bold, Italic, Underline, Strikethrough, Subscript, Superscript,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Indent, Outdent,
   Eraser, Table, Image, Link2, Search, Replace, Printer, Share2, Download,
-  FolderOpen, Save, FilePlus, Sparkles, Sliders, Type, Hash, BookOpen
+  FolderOpen, Save, FilePlus, Sparkles, Sliders, Type, Hash, BookOpen,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

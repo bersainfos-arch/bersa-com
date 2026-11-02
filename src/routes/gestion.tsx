@@ -13,6 +13,7 @@ import { BookManager } from "@/components/BookManager";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { OpportunityManager } from "@/components/OpportunityManager";
 import { AdminCommunity } from "@/components/AdminCommunity";
+import { AdminTemplateManager } from "@/components/AdminTemplateManager";
 
 export const Route = createFileRoute("/gestion")({
   head: () => ({
@@ -77,6 +78,7 @@ function Page() {
           <p className="text-center text-muted-foreground">Accès réservé aux gestionnaires BERSA.</p>
         ) : (
           <>
+            <AdminTemplateManager />
             <AdminCommunity />
             <div className="flex flex-wrap gap-2">
               {([["all", "Tout"], ["redaction", "Rédaction"], ["formation", "Formations"], ["livre", "Livres"]] as const).map(([v, l]) => (

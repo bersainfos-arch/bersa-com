@@ -134,8 +134,8 @@ export function CourseCatalog() {
             return (
               <article key={c.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md">
                 <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-[#0a192f] to-[#1e3a8a]">
-                  {images[c.id] ? 
-                 <img src={images[c.id]} alt={c.title} className="h-full w-full object-contain bg-slate-900/10" />
+                  {images[c.id] ? (
+                    <img src={images[c.id]} alt={c.title} className="h-full w-full object-contain bg-slate-900/10" />
 
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-white">
