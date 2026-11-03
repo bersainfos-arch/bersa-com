@@ -28,7 +28,7 @@ export async function importDocumentFile(file: File): Promise<{ html: string }> 
         const text = await page.getTextContent();
         pages.push(text.items.map(item => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join(""));
       }
-    } finally { await pdf.destroy(); }
+    } finally { await pdf.cleanup(); }
     if (!pages.join("").trim()) throw new Error("PDF numérisé sans texte : ajoutez-le avec le trombone pour analyse.");
     return { html: pages.map(text => textHtml(text)).join('<div class="page-break"></div>') };
   }

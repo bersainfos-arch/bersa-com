@@ -40,7 +40,7 @@ export const AutoPages = Extension.create({
                 el.className = "auto-page-gap";
                 el.style.height = `${gap}px`;
                 el.setAttribute("contenteditable", "false");
-                el.dataset.page = String(number);
+                el.dataset['page'] = String(number);
                 return el;
               }, { side: -1, key: `page-${pos}-${Math.round(gap)}` }));
               used = 0;
@@ -48,7 +48,7 @@ export const AutoPages = Extension.create({
             used += height;
           });
           view.dispatch(view.state.tr.setMeta(key, DecorationSet.create(view.state.doc, decos)));
-          dom.dataset.pages = String(number);
+          dom.dataset['pages'] = String(number);
           running = false;
         };
         const schedule = () => { clearTimeout(timer); timer = setTimeout(measure, 200); };
