@@ -456,3 +456,23 @@
 /* Garde-fou global : aucun débordement horizontal */
 html, body { max-width: 100%; overflow-x: clip; }
 img, video, canvas, iframe, table { max-width: 100%; }
+
+/* Shared workspace sizing and printable page separators. */
+.home-editor, .home-editor > *, .home-paper-content, .home-paper-content > div { min-width: 0; max-width: 100%; }
+.home-editor .home-ai-sheet { overflow-wrap: anywhere; }
+.home-ai-sheet .tableWrapper { max-width: 100%; overflow-x: auto; }
+.home-ai-sheet table { table-layout: fixed; }
+.home-ai-sheet td, .home-ai-sheet th { overflow-wrap: anywhere; min-width: 0; }
+.home-ai-sheet .auto-page-gap { margin: 0 -48px; background: var(--paper); position: relative; pointer-events: none; }
+.home-ai-sheet .auto-page-gap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 18px; background: var(--editor-desk); border-block: 1px solid var(--paper-border); }
+.home-ai-sheet .page-break { margin-inline: -48px; background: var(--editor-desk); border: none; }
+.home-writing-layout { padding-bottom: env(safe-area-inset-bottom, 0px); }
+@media (max-width: 640px) {
+  .home-editor .home-ai-sheet { min-height: calc((100vw - 16px) * 297 / 210); font-size: 13pt; line-height: 1.6; }
+  .home-ai-sheet .auto-page-gap, .home-ai-sheet .page-break { margin-inline: -16px; }
+  .home-editor-commands { max-height: calc(100dvh - 108px); overflow-y: auto; }
+}
+@media print {
+  .home-ai-sheet .auto-page-gap { height: 0 !important; margin: 0 !important; break-before: page; }
+  .home-ai-sheet .auto-page-gap::after { display: none; }
+}
