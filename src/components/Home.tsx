@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import {
   Search,
   Menu,
@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { queueDocumentFile } from "@/lib/document-import";
 import logo from "@/assets/bersa-logo.png.asset.json";
 
 interface TemplateItem {
@@ -45,6 +47,7 @@ interface TemplateItem {
   badge?: "Nouveau" | "Premium" | undefined;
   badgeColor?: string;
   prompt: string;
+  content?: string | null;
 }
 
 const TEMPLATES: TemplateItem[] = [
@@ -86,47 +89,24 @@ interface RecentDoc {
   type: "pdf" | "docx";
 }
 
-const STARTER_FILES: RecentDoc[] = [
-  {
-    id: "1",
-    title: "Mémoire_UNIKIN.pdf",
-    date: "Aujourd'hui 14:32",
-    size: "2.4 Mo",
-    type: "pdf",
-  },
-  {
-    id: "2",
-    title: "CV_ANAPI.docx",
-    date: "Hier, 09:15",
-    size: "1.1 Mo",
-    type: "docx",
-  },
-  {
-    id: "3",
-    title: "Statuts_ASBL_RDC.pdf",
-    date: "22 sept.",
-    size: "3.6 Mo",
-    type: "pdf",
-  },
-];
-
 export function Home() {
   const navigate = useNavigate();
+  const router = useRouter();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"recents" | "appareil">("recents");
-  const [filesList, setFilesList] = useState<RecentDoc[]>(STARTER_FILES);
+  const [filesList, setFilesList] = useState<RecentDoc[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [templates, setTemplates] = useState<TemplateItem[]>(TEMPLATES);
 
   useEffect(() => {
-    void supabase.from("document_templates").select("id, title, badge, prompt").eq("published", true).order("created_at").then(({ data }) => {
+    void supabase.from("document_templates").select("id, title, badge, prompt, content_html").eq("published", true).order("created_at").then(({ data }) => {
       if (!data?.length) return;
-      setTemplates([...TEMPLATES, ...data.map((t): TemplateItem => ({
-        id: t.id, label: t.title, icon: FileBadge, prompt: t.prompt,
+      setTemplates(data.map((t): TemplateItem => ({
+        id: t.id, label: t.title, icon: FileBadge, prompt: t.prompt, content: t.content_html,
         badge: t.badge === "Nouveau" || t.badge === "Premium" ? (t.badge as "Nouveau" | "Premium") : undefined,
         badgeColor: t.badge === "Premium" ? "bg-[#FFD700] text-[#854d0e]" : "bg-[#FF5A5A]",
-      }))]);
+      })));
     });
   }, []);
 
@@ -135,15 +115,18 @@ export function Home() {
   // Chargement des documents réels de l'utilisateur
   useEffect(() => {
     async function loadUserDocs() {
-      if (!user) return;
+      if (!user) { setFilesList([]); return; }
+      const key = `bersa_recent_${user.id}`;
+      try { setFilesList(JSON.parse(sessionStorage.getItem(key) || "[]")); } catch {}
       try {
         const { data } = await supabase
           .from("user_docs")
           .select("id, title, updated_at")
+          .eq("user_id", user.id)
           .order("updated_at", { ascending: false })
           .limit(8);
 
-        if (data && data.length > 0) {
+        if (data) {
           const mapped: RecentDoc[] = data.map((doc) => ({
             id: doc.id,
             title: doc.title || "Document sans titre",
@@ -151,10 +134,11 @@ export function Home() {
               day: "numeric",
               month: "short",
             }),
-            size: "1.2 Mo",
+            size: "",
             type: doc.title?.toLowerCase().endsWith(".pdf") ? "pdf" : "docx",
           }));
           setFilesList(mapped);
+          sessionStorage.setItem(key, JSON.stringify(mapped));
         }
       } catch {
         // En cas de déconnexion, les modèles par défaut restent visibles
@@ -165,16 +149,16 @@ export function Home() {
 
   // Ouverture d'un modèle : transmet l'instruction à l'Atelier
   const handleOpenTemplate = (tmpl: TemplateItem) => {
-    sessionStorage.setItem("bersa-assistant-prompt", tmpl.prompt);
+    if (tmpl.content) {
+      sessionStorage.setItem("bersa-document-html", tmpl.content);
+      sessionStorage.setItem("bersa-document-title", tmpl.label);
+    } else { sessionStorage.setItem("bersa-assistant-prompt", tmpl.prompt); }
     navigate({ to: "/redaction" });
   };
 
   // Ouverture d'un document existant dans l'Atelier
   const handleOpenDoc = (file: RecentDoc) => {
-    sessionStorage.setItem(
-      "bersa-writing-request",
-      `Document sélectionné : ${file.title}\n\nPrêt pour la révision et la mise en forme dans l'Atelier BERSA.\n`
-    );
+    sessionStorage.setItem("bersa-document-id", file.id);
     navigate({ to: "/redaction" });
   };
 
@@ -182,20 +166,8 @@ export function Home() {
   const handleDeviceImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const isPdf = file.name.toLowerCase().endsWith(".pdf");
-    const newDoc: RecentDoc = {
-      id: `dev-${Date.now()}`,
-      title: file.name,
-      date: "À l'instant",
-      size: `${(file.size / (1024 * 1024)).toFixed(1)} Mo`,
-      type: isPdf ? "pdf" : "docx",
-    };
-    setFilesList((prev) => [newDoc, ...prev]);
-    setActiveTab("recents");
-    sessionStorage.setItem(
-      "bersa-writing-request",
-      `Document importé depuis votre appareil : ${file.name}\n\nVous pouvez désormais utiliser l'Assistant pour enrichir, corriger ou reformuler ce document.\n`
-    );
+    queueDocumentFile(file);
+    e.target.value = "";
     navigate({ to: "/redaction" });
   };
 
@@ -204,7 +176,7 @@ export function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-white text-[#0A2342] font-sans pb-32 max-w-md md:max-w-xl mx-auto relative select-none">
+    <div className="min-h-screen w-full min-w-0 bg-white text-[#0A2342] font-sans pb-32 max-w-md md:max-w-xl mx-auto relative select-none">
       {/* 1. EN-TÊTE AVEC LOGO OFFICIEL BERSA */}
       <header className="px-4 pt-3 pb-2 flex items-center justify-between gap-2.5">
         <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -224,7 +196,7 @@ export function Home() {
         </Link>
 
         {/* Barre de recherche pilule */}
-        <div className="flex-1 max-w-[170px] sm:max-w-none relative">
+        <div className="flex-1 min-w-0 max-w-[170px] sm:max-w-none relative">
           <div className="flex items-center bg-[#F2F4F7] rounded-full px-3 py-2 text-xs text-gray-500 gap-1.5 border border-transparent focus-within:border-[#0A84FF] focus-within:bg-white transition-all">
             <Search className="w-4 h-4 text-gray-400 shrink-0" />
             <input
@@ -365,7 +337,7 @@ export function Home() {
                 key={tmpl.id}
                 type="button"
                 onClick={() => handleOpenTemplate(tmpl)}
-                className="relative bg-white rounded-2xl p-2.5 pt-3.5 flex flex-col items-center justify-between border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-md transition-all active:scale-[0.97] min-h-[128px]"
+                className="relative bg-white rounded-2xl p-2.5 pt-3.5 flex flex-col items-center justify-between border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-md transition-all active:scale-[0.97] min-h-[108px] min-w-0"
               >
                 {/* Découpe d'angle bleu ciel */}
                 <div className="absolute top-0 right-0 w-8 h-8 overflow-hidden rounded-tr-2xl pointer-events-none">
@@ -440,6 +412,7 @@ export function Home() {
 
         {/* Liste des cartes fichiers */}
         <div className="space-y-2.5">
+          {filteredFiles.length === 0 && <p className="py-4 text-sm text-muted-foreground">Aucun document récent.</p>}
           {filteredFiles.map((file) => (
             <div
               key={file.id}
@@ -472,14 +445,11 @@ export function Home() {
 
       {/* 4. GROS BOUTON 3D FLOTTANT : + RÉDIGER */}
       <div className="fixed bottom-[86px] left-0 right-0 max-w-md md:max-w-xl mx-auto px-6 z-40 pointer-events-none">
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/redaction" })}
+        <Button asChild
           className="pointer-events-auto w-full h-[62px] rounded-full bg-gradient-to-b from-[#2B9BFF] via-[#0A84FF] to-[#0060C0] text-white font-extrabold text-[23px] flex items-center justify-center gap-2 shadow-[0_14px_30px_rgba(10,132,255,0.48)] active:scale-[0.98] transition-transform border-t border-white/40 ring-1 ring-white/20"
         >
-          <Plus className="w-7 h-7 stroke-[3]" />
-          <span>Rédiger</span>
-        </button>
+          <Link to="/redaction" preload="intent" onPointerEnter={() => void router.preloadRoute({ to: "/redaction" })}><Plus className="w-7 h-7 stroke-[3]" /><span>Rédiger</span></Link>
+        </Button>
       </div>
 
       {/* 5. NAVIGATION INFÉRIEURE FIXE */}

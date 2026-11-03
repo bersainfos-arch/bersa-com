@@ -47,6 +47,7 @@ const menuItems: MenuItem[] = [
 ];
 export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -75,19 +76,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/* GAUCHE : Bouton retour ← + Logo officiel BERSA */}
             <div className="flex items-center gap-2">
               <Button
-                asChild
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 text-white hover:bg-white/10 rounded-full shrink-0"
-                title="Retour à l'accueil"
-                aria-label="Retour à l'accueil"
+                title="Retour"
+                aria-label="Retour"
+                onClick={() => {
+                  const index = Number(window.history.state?.__TSR_index ?? 0);
+                  if (index > 0) window.history.back();
+                  else void navigate({ to: "/", replace: true });
+                }}
               >
-                <Link to="/accueil">
-                  <ArrowLeft className="h-5 w-5" />
-                </Link>
+                <ArrowLeft className="h-5 w-5" />
               </Button>
 
-              <Link to="/accueil" className="flex items-center gap-2 min-w-0">
+              <Link to="/" className="flex items-center gap-2 min-w-0">
                 <img
                   src={logo.url}
                   alt="Logo BERSA"

@@ -10,7 +10,8 @@ import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table
 import Highlight from "@tiptap/extension-highlight";
 import { toast } from "sonner";
 import { Send, Loader2, Mic, Square, Trash2, X, FileAudio, Paperclip, RotateCcw, Sparkles, ChevronDown, ChevronUp, History, PenTool, Copy, Check, FileDown, Plus, Save, Download, Folder } from "lucide-react";
-import { HomeMessagesModal } from "@/components/HomeMessagesModal";
+import { importDocumentFile, takeDocumentFile, sanitizeDocumentHtml } from "@/lib/document-import";
+import { AutoPages } from "@/lib/editor-pagination";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { EditorRibbon, type PageSettings } from "@/components/EditorRibbon";
@@ -119,7 +120,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, []);
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote],
+    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages],
     content: "<p></p>",
     onUpdate: ({ editor: e }) => {
       renumberFootnotes(e);
@@ -137,11 +138,34 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
   useEffect(() => {
     if (!editor) return;
-    const request = sessionStorage.getItem("bersa-writing-request");
-    if (request) {
-      editor.commands.setContent(paragraphs(request));
-      sessionStorage.removeItem("bersa-writing-request");
-    }
+    let cancelled = false;
+    const id = sessionStorage.getItem("bersa-document-id");
+    const html = sessionStorage.getItem("bersa-document-html");
+    const file = takeDocumentFile();
+    const title = sessionStorage.getItem("bersa-document-title");
+    if (title) setDocFileName(title);
+    for (const key of ["bersa-document-id", "bersa-document-html", "bersa-document-title"]) sessionStorage.removeItem(key);
+    const open = async () => {
+      try {
+        if (file) {
+          const result = await importDocumentFile(file);
+          if (cancelled) return;
+          editor.commands.setContent(result.html);
+          setDocFileName(file.name.replace(/\.[^.]+$/, ""));
+          const { data } = await supabase.auth.getUser();
+          if (data.user) {
+            const { error } = await supabase.from("user_docs").insert({title: file.name, content: result.html, category: "general", user_id: data.user.id});
+            if (error) toast.error("Fichier ouvert, mais non enregistré en ligne.");
+          }
+        } else if (id) {
+          const { data, error } = await supabase.from("user_docs").select("content,title").eq("id", id).single();
+          if (error || !data) throw new Error("Document indisponible.");
+          if (!cancelled) { editor.commands.setContent(sanitizeDocumentHtml(data.content)); setDocFileName(data.title); }
+        } else if (html) editor.commands.setContent(sanitizeDocumentHtml(html));
+      } catch (error) { toast.error(error instanceof Error ? error.message : "Ouverture impossible."); }
+    };
+    void open();
+    return () => { cancelled = true; };
   }, [editor]);
   useEffect(() => {
     const assistantPrompt = sessionStorage.getItem("bersa-assistant-prompt");
@@ -356,15 +380,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       if (match) setQuota({ used: Number(match[1]), limit: Number(match[2]) });
     } finally {
       setBusy(false);
-        async function addFiles(list: FileList | null) {
-    if (!list) return;
-    for (const file of Array.from(list).slice(0, Math.max(0, 3 - files.length))) {
-      try {
-        const attachment = await readAttachment(file);
-        setFiles(previous => [...previous, attachment]);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Fichier illisible.");
-      }
+
     }
   }
     }
