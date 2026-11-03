@@ -380,11 +380,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       if (match) setQuota({ used: Number(match[1]), limit: Number(match[2]) });
     } finally {
       setBusy(false);
-
     }
   }
-    }
-  }   
   async function save() {
     if (!editor) return;
     const title = prompt("Titre du document", "Texte assisté");
