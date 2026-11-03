@@ -439,7 +439,9 @@ export type Database = {
       document_templates: {
         Row: {
           badge: string
+          content_html: string | null
           created_at: string
+          file_name: string | null
           id: string
           prompt: string
           published: boolean
@@ -447,7 +449,9 @@ export type Database = {
         }
         Insert: {
           badge?: string
+          content_html?: string | null
           created_at?: string
+          file_name?: string | null
           id?: string
           prompt: string
           published?: boolean
@@ -455,7 +459,9 @@ export type Database = {
         }
         Update: {
           badge?: string
+          content_html?: string | null
           created_at?: string
+          file_name?: string | null
           id?: string
           prompt?: string
           published?: boolean

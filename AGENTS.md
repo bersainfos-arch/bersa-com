@@ -11,7 +11,7 @@
 
 - Keep the home announcements slideshow in a browser-safe HomeNews component with category filters; only display supplied media to avoid inventing events.
 
-- Embed the browser-safe HomeEditor without AppShell on the home feed; keep the feed header and fixed navigation outside it so document commands cannot overlap navigation.
+- Keep HomeEditor browser-safe with document commands separate from the AppShell header so navigation cannot overlap document tools.
 - Sanitize technology branding only in static interface copy and metadata through the translation layer; never rewrite user documents, messages, request payloads, or internal identifiers.
 - Keep secondary app navigation in AppShell's accessible dropdown and reserve space below the home paper viewport for the persistent commands, so navigation and commands never cover document text.
 - Keep opening phase timing in a pure module so the two-step signup transition can be tested without authentication.
@@ -26,3 +26,7 @@
 - Keep currency conversion dependent on configured exchange rates; never synthesize payment rates.
 - Keep static interface translations in lazy-loaded locale dictionaries; the compile-time UI transform must never translate document content, user publications, state values or API payloads.
 - Persist language preferences in auth user metadata and user-scoped local storage; only these non-privileged preferences may be user-editable, and account preferences take precedence when signing in.
+- The public `/` is the compact document home; `/redaction` owns the sole HomeEditor, while `/accueil` is Discover without home-only bottom navigation, to prevent duplicate workspaces.
+- Import Word/PDF lazily through document-import; sanitize imported HTML before display, and transfer device files in memory rather than storing names as fake document content.
+- Published document templates store editable imported Word HTML in Lovable Cloud; browser-local templates are not the public catalog.
+- Automatic editor page separators are ProseMirror decorations, not document text, so pagination does not modify saved content or undo history.

@@ -42,3 +42,12 @@
 - [x] Admin statistiques réelles
 - [ ] Paiement automatique — en attente des clés d'un service de paiement
 - [x] Basculer l'IA (Assistant, dictée) sur la clé Gemini gratuite, sans crédit Lovable
+
+## Current request: speed and real documents
+- [x] New home at opening; direct writing link and no repeated opening phrases
+- [x] Back through previous steps with final fallback to new home
+- [x] Remove home navigation and duplicate workshop access from Discover
+- [x] Import and publish editable Word templates; replace sample cards when published
+- [x] Open real recent documents and import device Word/PDF content
+- [x] Automatic page separators and mobile workspace sizing
+- [ ] Verify signed-in home → editor → import and back, and template publication

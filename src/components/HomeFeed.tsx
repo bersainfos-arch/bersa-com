@@ -7,7 +7,6 @@ import {
   Loader2, Copy, ShieldAlert, MessageSquare, Bell, ArrowRight,
   PenTool, Award, Check
 } from "lucide-react";
-import { HomeEditor } from "@/components/HomeEditor";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { HomeMessagesModal } from "@/components/HomeMessagesModal";
@@ -433,7 +432,7 @@ export function HomeFeed() {
         {/* ============================================================ */}
         <header className="sticky top-0 z-40 bg-white/95 px-3 py-2 shadow-xs backdrop-blur-md border-b border-slate-200">
           <div className="mx-auto flex max-w-xl items-center justify-between gap-2">
-            <Link to="/accueil" className="flex items-center gap-2 shrink-0">
+            <Link to="/" className="flex items-center gap-2 shrink-0">
               <img
                 src={logo.url}
                 alt="Logo BERSA"
@@ -583,33 +582,6 @@ export function HomeFeed() {
             </div>
           </div>
         </header>
-                <section className="mx-auto max-w-2xl px-3 py-3" aria-label="Mon atelier de rédaction">
-          <div className="rounded-xl border border-royal/20 bg-gradient-to-r from-royal/5 via-background to-gold/10 p-4 text-center shadow-sm">
-            <h2 className="font-display text-base font-bold text-royal">Mon atelier de rédaction BERSA</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Rédigez vos travaux avec l'Assistant, insérez vos documents et exportez en Word.</p>
-            <Button asChild className="mt-3 bg-royal hover:bg-royal/90 text-white font-semibold shadow">
-              <Link to="/redaction">
-                <FileText className="h-4 w-4 mr-2" />
-                Ouvrir mon atelier de rédaction
-              </Link>
-            </Button>
-          </div>
-        </section>
-        <nav className="home-bottom-navigation" aria-label="Navigation principale">
-          {([
-            { to: "/accueil", label: "Accueil", icon: Home },
-            { to: "/redaction", label: "Rédaction", icon: FileText },
-            { to: "/formations", label: "Formation", icon: GraduationCap },
-            { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },
-            { to: "/opportunites", label: "Opportunités", icon: Briefcase },
-          ] as const).map(({ to, label, icon: Icon }) => (
-            <Button key={to} asChild variant="ghost" className="home-bottom-link">
-              <Link to={to} aria-label={label} activeOptions={{ exact: true }} activeProps={{ className: "home-bottom-active" }}>
-                <Icon className="h-5 w-5" /><span>{label}</span>
-              </Link>
-            </Button>
-          ))}
-        </nav>
         {/* ============================================================ */}
         {/* 5. FLUX DE PUBLICATIONS, LIVRES & FORMATIONS                  */}
         {/* ============================================================ */}

@@ -92,6 +92,13 @@
       "when": 1793654111508,
       "tag": "0012_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793682585836,
+      "tag": "0013_word_template_content",
+      "breakpoints": true
     }
   ]
 }

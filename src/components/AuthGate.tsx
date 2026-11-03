@@ -8,7 +8,6 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/bersa-logo.png.asset.json";
-import { OpeningPresentation } from "@/components/OpeningPresentation";
 import { authIdentifier } from "@/lib/auth-identifier";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -273,7 +272,6 @@ function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
-  const [postLoginIntroDone, setPostLoginIntroDone] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -324,22 +322,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
       <Frame>
         <CompleteProfile user={user} onDone={() => setHasProfile(true)} />
       </Frame>
-    );
-  }
-
-  const sessionKey = `bersa_intro_seen_${user.id}`;
-  const alreadySeen = typeof window !== "undefined" && sessionStorage.getItem(sessionKey) === "true";
-
-  if (!postLoginIntroDone && !alreadySeen) {
-    return (
-      <OpeningPresentation
-        onDone={() => {
-          if (typeof window !== "undefined") {
-            sessionStorage.setItem(sessionKey, "true");
-          }
-          setPostLoginIntroDone(true);
-        }}
-      />
     );
   }
 
