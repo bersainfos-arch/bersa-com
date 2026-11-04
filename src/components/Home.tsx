@@ -149,6 +149,7 @@ export function Home() {
 
   // Ouverture d'un modèle : transmet l'instruction à l'Atelier
   const handleOpenTemplate = (tmpl: TemplateItem) => {
+    if (tmpl.id === "cv") { navigate({ to: "/cv-studio" }); return; }
     if (tmpl.content) {
       sessionStorage.setItem("bersa-document-html", tmpl.content);
       sessionStorage.setItem("bersa-document-title", tmpl.label);
