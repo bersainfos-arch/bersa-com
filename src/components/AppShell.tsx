@@ -40,6 +40,7 @@ const menuItems: MenuItem[] = [
   { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },
   { to: "/opportunites", label: "Opportunités", icon: Briefcase },
   { to: "/documents", label: "Documents", icon: FileText },
+  { to: "/cv-studio", label: "Modèles CV", icon: User },
   { to: "/anti-plagiat", label: "Anti-plagiat", icon: ShieldAlert },
   { to: "/abonnements", label: "Abonnements", icon: Crown },
   { to: "/parametres", label: "Paramètres", icon: Settings },
