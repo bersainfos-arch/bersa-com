@@ -53,7 +53,7 @@ function CvStudio() {
   };
   const exportPdf = () => {
     const w = window.open("", "_blank");
-    if (!w) return toast.error("Autorisez les fenêtres pour exporter en PDF.");
+    if (!w) { toast.error("Autorisez les fenêtres pour exporter en PDF."); return; }
     w.document.write(`<html><head><title>${fileName}</title><style>@page{size:A4;margin:0}body{margin:0}</style></head><body>${html}</body></html>`);
     w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
   };
