@@ -6,6 +6,8 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { sanitizeDocumentHtml } from "@/lib/document-import";
 
 export interface DocRef { id: string; title: string; }
 
@@ -18,7 +20,7 @@ async function fetchDoc(id: string): Promise<Full> {
 }
 
 const safeName = (t: string) => (t || "document").replace(/[\\/:*?"<>|]+/g, "-").slice(0, 80);
-const toHtml = (c: string) => (/<\w+[^>]*>/.test(c) ? c : c.split(/\n/).map((l) => `<p>${l.replace(/[<>&]/g, (m) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[m]!))}</p>`).join(""));
+const toHtml = (c: string) => sanitizeDocumentHtml(/<\w+[^>]*>/.test(c) ? c : c.split(/\n/).map((l) => `<p>${l.replace(/[<>&]/g, (m) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[m] ?? m))}</p>`).join(""));
 const toText = (c: string) => { const d = document.createElement("div"); d.innerHTML = toHtml(c); return d.innerText; };
 
 function makeFile(doc: Full, fmt: "doc" | "txt" | "html"): File {
@@ -69,7 +71,7 @@ export function HomeDocActions({ doc, onOpen, onChanged }: { doc: DocRef; onOpen
   const move = run(async (d) => {
     const folder = window.prompt("Déplacer vers le dossier", d.category || "Général")?.trim(); if (!folder) return;
     const { error } = await supabase.from("user_docs").update({ category: folder }).eq("id", doc.id);
-    error ? toast.error("Déplacement impossible.") : toast.success(`Déplacé vers « ${folder} ».`);
+    error ? toast.error("Déplacement impossible.") : (toast.success(`Déplacé vers « ${folder} ».`), onChanged());
   });
   const remove = async () => {
     if (!window.confirm(`Supprimer « ${doc.title} » définitivement ?`)) return;
@@ -86,9 +88,9 @@ export function HomeDocActions({ doc, onOpen, onChanged }: { doc: DocRef; onOpen
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" onClick={(e) => e.stopPropagation()} aria-label="Options du document" className="shrink-0 rounded-full p-2 text-gray-500 hover:bg-gray-100">
+          <Button type="button" variant="ghost" size="icon" onClick={(e) => e.stopPropagation()} aria-label={`Options de ${doc.title}`} className="shrink-0 text-muted-foreground">
             <MoreVertical className="h-5 w-5" />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60" onClick={(e) => e.stopPropagation()}>
           <DropdownMenuItem onClick={onOpen}><FolderOpen className="mr-2 h-4 w-4" />Ouvrir</DropdownMenuItem>
@@ -103,22 +105,22 @@ export function HomeDocActions({ doc, onOpen, onChanged }: { doc: DocRef; onOpen
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           <DropdownMenuItem onClick={rename}><Pencil className="mr-2 h-4 w-4" />Renommer</DropdownMenuItem>
-          <DropdownMenuItem onClick={share}><Share2 className="mr-2 h-4 w-4" />Partager (WhatsApp, Bluetooth…)</DropdownMenuItem>
+          <DropdownMenuItem onClick={share}><Share2 className="mr-2 h-4 w-4" />Partager…</DropdownMenuItem>
           <DropdownMenuItem onClick={openWith}><ExternalLink className="mr-2 h-4 w-4" />Ouvrir avec une autre application</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={move}><FolderOpen className="mr-2 h-4 w-4" />Déplacer</DropdownMenuItem>
           <DropdownMenuItem onClick={duplicate("Copier vers")}><Copy className="mr-2 h-4 w-4" />Copier vers un dossier</DropdownMenuItem>
-          <DropdownMenuItem onClick={shortcut}><Smartphone className="mr-2 h-4 w-4" />Ajouter à l’écran d’accueil</DropdownMenuItem>
-          <DropdownMenuItem onClick={run((d) => setProps(d))}><History className="mr-2 h-4 w-4" />Historique et propriétés</DropdownMenuItem>
+          <DropdownMenuItem onClick={shortcut}><Smartphone className="mr-2 h-4 w-4" />Épingler sur cet appareil</DropdownMenuItem>
+          <DropdownMenuItem onClick={run((d) => setProps(d))}><History className="mr-2 h-4 w-4" />Dates et propriétés</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={remove} className="text-red-600"><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>
+          <DropdownMenuItem onClick={remove} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Supprimer</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
         <DialogContent className="max-h-[88vh] w-[96vw] max-w-3xl overflow-y-auto">
           <DialogHeader><DialogTitle className="truncate">{preview?.title}</DialogTitle></DialogHeader>
-          {preview && <div className="mx-auto w-full rounded border bg-white p-4 text-[13pt] leading-[1.6] text-black [font-family:'Times_New_Roman'] break-words" dangerouslySetInnerHTML={{ __html: sanitize(toHtml(preview.content)) }} />}
+          {preview && <div className="mx-auto w-full min-w-0 overflow-x-auto rounded border bg-card p-4 text-[13pt] leading-[1.6] text-card-foreground [font-family:'Times_New_Roman'] break-words [&_img]:max-w-full [&_table]:max-w-full" dangerouslySetInnerHTML={{ __html: toHtml(preview.content) }} />}
         </DialogContent>
       </Dialog>
       <Dialog open={!!props} onOpenChange={(o) => !o && setProps(null)}>

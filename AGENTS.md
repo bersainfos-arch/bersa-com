@@ -30,3 +30,5 @@
 - Import Word/PDF lazily through document-import; sanitize imported HTML before display, and transfer device files in memory rather than storing names as fake document content.
 - Published document templates store editable imported Word HTML in Lovable Cloud; browser-local templates are not the public catalog.
 - Automatic editor page separators are ProseMirror decorations, not document text, so pagination does not modify saved content or undo history.
+- Home and the template catalogue share Home, with category ordering in home-catalog; document actions fetch the selected document on demand to avoid eager content downloads.
+- CV previews scale through ResizeObserver to the available width; exported A4 markup stays unchanged so mobile sizing cannot alter document forms.
