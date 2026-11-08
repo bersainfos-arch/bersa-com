@@ -1,4 +1,13 @@
 # BERSA roadmap (reconstruction)
+## Corrections demandées, dans l’ordre
+- [ ] Accueil : recherche, photo, quatre cartes, catalogue et menus des documents
+- [ ] CV : aperçus sans débordement et espaces superflus
+- [ ] Fichiers, bibliothèque, formations et opportunités : affiches et options de partage
+- [ ] Découvrir : médias, auteurs, options, réactions réelles
+- [ ] Atelier : commandes, pièces jointes, exports et mise en forme
+- [ ] Anti-plagiat : analyse rigoureuse et rapport sourcé (aucune détection inventée)
+- [ ] Gestion : classement des modèles par domaine
+
 - [ ] Unifier l’ouverture et Rédaction sur le papier avec Assistant, sans deuxième atelier
 - [ ] Vérifier et verrouiller la gestion et les abonnements au seul administrateur propriétaire
 - [ ] Accueil en trois espaces : haut préservé, atelier Word visible et cinq destinations fixes en bas
