@@ -25,6 +25,7 @@ import {
   LogOut,
   ChevronRight,
   Upload,
+  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -38,6 +39,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { queueDocumentFile } from "@/lib/document-import";
+import { HomeDocActions } from "@/components/HomeDocActions";
+import { signedCommunity } from "@/lib/community";
+import { homeCards, TEMPLATE_DOMAINS, templateDomain } from "@/lib/home-catalog";
 import logo from "@/assets/bersa-logo.png.asset.json";
 
 interface TemplateItem {
@@ -68,7 +72,7 @@ const TEMPLATES: TemplateItem[] = [
     label: "Requête Juridique",
     icon: Scale,
     badge: "Nouveau",
-    badgeColor: "bg-[#FF5A5A]",
+    badgeColor: "bg-muted",
     prompt: "Rédige une requête juridique formelle conforme au droit applicable.",
   },
   {
@@ -76,7 +80,7 @@ const TEMPLATES: TemplateItem[] = [
     label: "Business Plan",
     icon: BarChart3,
     badge: "Premium",
-    badgeColor: "bg-[#FFD700] text-[#854d0e]",
+    badgeColor: "bg-muted text-foreground",
     prompt: "Élabore un plan d'affaires structuré : résumé opérationnel, analyse marché et prévisions.",
   },
 ];
@@ -89,11 +93,23 @@ interface RecentDoc {
   type: "pdf" | "docx";
 }
 
-export function Home() {
+export function Home({ catalog = false }: { catalog?: boolean }) {
   const navigate = useNavigate();
   const router = useRouter();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [domain, setDomain] = useState("Tous");
+  const [avatar, setAvatar] = useState("");
+  const [refresh, setRefresh] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setAvatar("");
+    if (user) void supabase.from("profiles").select("avatar_url").eq("id", user.id).single().then(async ({ data }) => {
+      if (!data?.avatar_url) return;
+      try { const url = /^https:\/\//.test(data.avatar_url) ? data.avatar_url : await signedCommunity(data.avatar_url); if (active) setAvatar(url); } catch {}
+    });
+    return () => { active = false; };
+  }, [user]);
   const [activeTab, setActiveTab] = useState<"recents" | "appareil">("recents");
   const [filesList, setFilesList] = useState<RecentDoc[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +121,7 @@ export function Home() {
       setTemplates(data.map((t): TemplateItem => ({
         id: t.id, label: t.title, icon: FileBadge, prompt: t.prompt, content: t.content_html,
         badge: t.badge === "Nouveau" || t.badge === "Premium" ? (t.badge as "Nouveau" | "Premium") : undefined,
-        badgeColor: t.badge === "Premium" ? "bg-[#FFD700] text-[#854d0e]" : "bg-[#FF5A5A]",
+        badgeColor: t.badge === "Premium" ? "bg-muted text-foreground" : "bg-muted",
       })));
     });
   }, []);
@@ -145,7 +161,7 @@ export function Home() {
       }
     }
     void loadUserDocs();
-  }, [user]);
+  }, [user, refresh]);
 
   // Ouverture d'un modèle : transmet l'instruction à l'Atelier
   const handleOpenTemplate = (tmpl: TemplateItem) => {
@@ -172,41 +188,46 @@ export function Home() {
     navigate({ to: "/redaction" });
   };
 
+  const orderedTemplates = [...templates].sort((a,b) => TEMPLATE_DOMAINS.indexOf(templateDomain(a.label)) - TEMPLATE_DOMAINS.indexOf(templateDomain(b.label)));
+  const matchingTemplates = orderedTemplates.filter(t => t.label.toLowerCase().includes(searchQuery.toLowerCase()) && (domain === "Tous" || templateDomain(t.label) === domain));
+  const displayedTemplates = catalog ? matchingTemplates : homeCards(matchingTemplates);
   const filteredFiles = filesList.filter((f) =>
     f.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="min-h-screen w-full min-w-0 bg-white text-[#0A2342] font-sans pb-32 max-w-md md:max-w-xl mx-auto relative select-none">
+    <div className="min-h-screen w-full min-w-0 bg-card text-foreground font-sans pb-32 max-w-md md:max-w-4xl mx-auto relative select-none">
       {/* 1. EN-TÊTE AVEC LOGO OFFICIEL BERSA */}
-      <header className="px-4 pt-3 pb-2 flex items-center justify-between gap-2.5">
+      <header className="px-4 pt-3 pb-2 flex flex-wrap items-center justify-between gap-2.5">
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
             src={logo.url}
             alt="Logo officiel BERSA"
-            className="w-11 h-11 object-contain rounded-xl shadow-xs"
+            className="w-11 h-11 object-contain rounded-lg shadow-xs"
           />
-          <div className="flex flex-col leading-tight">
-            <span className="text-[#0A2342] font-extrabold text-[21px] tracking-tight">
+          <div className="flex w-[76px] flex-col leading-tight">
+            <span className="text-foreground font-extrabold text-[21px] tracking-normal">
               BERSA
             </span>
-            <span className="text-gray-500 text-[11px] font-medium -mt-0.5">
+            <span className="text-muted-foreground text-[8px] font-medium -mt-0.5 whitespace-nowrap">
               Berceau du savoir
             </span>
           </div>
         </Link>
 
         {/* Barre de recherche pilule */}
-        <div className="flex-1 min-w-0 max-w-[170px] sm:max-w-none relative">
-          <div className="flex items-center bg-[#F2F4F7] rounded-full px-3 py-2 text-xs text-gray-500 gap-1.5 border border-transparent focus-within:border-[#0A84FF] focus-within:bg-white transition-all">
-            <Search className="w-4 h-4 text-gray-400 shrink-0" />
+        <div className="order-last w-full min-w-0 relative">
+          <div className="flex items-center bg-muted rounded-full px-3 py-2 text-xs text-muted-foreground gap-1.5 border border-transparent focus-within:border-[#0A84FF] focus-within:bg-card transition-all">
+            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
             <input
-              type="text"
+              type="search"
+              aria-label="Rechercher documents et modèles"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Recherche"
-              className="bg-transparent border-none outline-none w-full text-xs text-[#0A2342] placeholder:text-gray-400"
+              placeholder="Rechercher documents et modèles"
+              className="bg-transparent border-none outline-none w-full text-xs text-foreground placeholder:text-muted-foreground"
             />
+            {searchQuery && <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" aria-label="Effacer la recherche" onClick={() => setSearchQuery("")}><X className="h-4 w-4" /></Button>}
           </div>
         </div>
 
@@ -214,22 +235,22 @@ export function Home() {
         <div className="flex items-center gap-1.5 shrink-0">
           <Link
             to="/profil"
-            className="w-10 h-10 rounded-full bg-gray-200 border border-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-300 transition-colors"
+            className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
             title="Mon profil"
           >
-            <User className="w-5 h-5 text-gray-600" />
+            {avatar ? <img src={avatar} alt="Votre photo de profil" className="h-full w-full rounded-full object-cover" onError={() => setAvatar("")} /> : <User className="w-5 h-5 text-muted-foreground" />}
           </Link>
 
           {/* Menu principal à 3 traits */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
+              <Button
                 type="button"
-                className="p-1.5 text-[#0A2342] hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 text-foreground hover:bg-muted rounded-lg transition-colors"
                 aria-label="Menu principal"
               >
                 <Menu className="w-6 h-6 stroke-[2.2]" />
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60 p-1.5 font-sans z-50">
               <DropdownMenuLabel className="text-xs text-muted-foreground uppercase px-2 py-1">
@@ -237,49 +258,49 @@ export function Home() {
               </DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link to="/redaction" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <PenLine className="h-4 w-4 text-[#0A84FF]" />
+                  <PenLine className="h-4 w-4 text-foreground" />
                   <span>Atelier de rédaction</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/formations" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <GraduationCap className="h-4 w-4 text-indigo-500" />
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
                   <span>Formations</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/bibliotheque" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <BookOpen className="h-4 w-4 text-emerald-500" />
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
                   <span>Bibliothèque</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/opportunites" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <Award className="h-4 w-4 text-amber-500" />
+                  <Award className="h-4 w-4 text-muted-foreground" />
                   <span>Opportunités</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/documents" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <Files className="h-4 w-4 text-blue-500" />
+                  <Files className="h-4 w-4 text-muted-foreground" />
                   <span>Mes documents</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/anti-plagiat" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <ShieldAlert className="h-4 w-4 text-rose-500" />
+                  <ShieldAlert className="h-4 w-4 text-muted-foreground" />
                   <span>Anti-plagiat</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/abonnements" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <CreditCard className="h-4 w-4 text-violet-500" />
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span>Abonnements</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/parametres" className="flex items-center gap-2.5 py-2 cursor-pointer font-medium">
-                  <Settings className="h-4 w-4 text-slate-500" />
+                  <Settings className="h-4 w-4 text-muted-foreground" />
                   <span>Paramètres</span>
                 </Link>
               </DropdownMenuItem>
@@ -290,9 +311,9 @@ export function Home() {
                   <DropdownMenuItem asChild>
                     <Link
                       to="/gestion"
-                      className="flex items-center gap-2.5 py-2 cursor-pointer font-bold text-amber-700 bg-amber-50/80 rounded"
+                      className="flex items-center gap-2.5 py-2 cursor-pointer font-bold text-muted-foreground bg-muted rounded"
                     >
-                      <ShieldCheck className="h-4 w-4 text-amber-600" />
+                      <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                       <span>Espace de gestion</span>
                     </Link>
                   </DropdownMenuItem>
@@ -305,7 +326,7 @@ export function Home() {
                   await supabase.auth.signOut();
                   navigate({ to: "/" });
                 }}
-                className="flex items-center gap-2.5 py-2 cursor-pointer text-red-600"
+                className="flex items-center gap-2.5 py-2 cursor-pointer text-muted-foreground"
               >
                 <LogOut className="h-4 w-4" />
                 <span>Se déconnecter</span>
@@ -315,79 +336,37 @@ export function Home() {
         </div>
       </header>
 
-      {/* 2. MODÈLES DE DOCUMENTS */}
       <section className="px-4 mt-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[#0A2342] font-bold text-[19px] tracking-tight">
-            Modèles de documents
-          </h2>
-          <Link
-            to="/redaction"
-            className="text-[#0A84FF] font-semibold text-[15px] flex items-center gap-0.5 hover:underline"
-          >
-            Voir tout <ChevronRight className="w-4 h-4 stroke-[2.5]" />
-          </Link>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h2 className="min-w-0 text-foreground font-bold text-lg leading-tight">Modèles de documents et affiches</h2>
+          <Link to={catalog ? "/" : "/modeles"} className="shrink-0 text-primary font-semibold text-sm flex items-center">{catalog ? "Accueil" : "Voir tout"}<ChevronRight className="w-4 h-4" /></Link>
         </div>
-
-        {/* Grille 4 colonnes proportionnelles */}
-        <div className="grid grid-cols-4 gap-2.5">
-          {templates.map((tmpl) => {
-            const Icon = tmpl.icon;
-            return (
-              <button
-                key={tmpl.id}
-                type="button"
-                onClick={() => handleOpenTemplate(tmpl)}
-                className="relative bg-white rounded-2xl p-2.5 pt-3.5 flex flex-col items-center justify-between border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:shadow-md transition-all active:scale-[0.97] min-h-[108px] min-w-0"
-              >
-                {/* Découpe d'angle bleu ciel */}
-                <div className="absolute top-0 right-0 w-8 h-8 overflow-hidden rounded-tr-2xl pointer-events-none">
-                  <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-[#A8D0F0]/60" />
-                </div>
-
-                {/* Badge */}
-                {tmpl.badge === "Nouveau" && (
-                  <span className="absolute -top-2 right-2 bg-[#FF5A5A] text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                    Nouveau
-                  </span>
-                )}
-                {tmpl.badge === "Premium" && (
-                  <span className="absolute -top-2 right-1.5 bg-[#FFD700] text-[#854d0e] text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm flex items-center gap-0.5 border border-[#eab308]/40">
-                    <Star className="w-2.5 h-2.5 fill-[#854d0e]" />
-                    Premium
-                  </span>
-                )}
-
-                {/* Icône */}
-                <div className="flex-1 flex items-center justify-center my-1">
-                  <Icon className="w-11 h-11 text-[#0A2342] stroke-[1.8]" />
-                </div>
-
-                {/* Label */}
-                <span className="text-[11px] font-bold text-[#0A2342] text-center leading-tight">
-                  {tmpl.label}
-                </span>
-              </button>
-            );
-          })}
+        {catalog && <div className="mb-4 flex gap-2 overflow-x-auto pb-2">{["Tous", ...TEMPLATE_DOMAINS].map(d => <Button key={d} size="sm" variant={domain === d ? "default" : "outline"} className="shrink-0" onClick={() => setDomain(d)}>{d}</Button>)}</div>}
+        <div className={catalog ? "grid grid-cols-2 gap-3 sm:grid-cols-4" : "grid grid-cols-4 gap-2"}>
+          {displayedTemplates.map(tmpl => { const Icon = tmpl.icon; return <Button key={tmpl.id} variant="outline" onClick={() => handleOpenTemplate(tmpl)} className="h-28 min-w-0 flex flex-col gap-2 rounded-lg p-2 whitespace-normal">
+            <Icon className="size-8 shrink-0 text-primary" />
+            <span className="w-full break-words text-center text-[10px] font-semibold leading-tight">{tmpl.label}</span>
+          </Button>; })}
         </div>
+        {!displayedTemplates.length && <p className="py-4 text-sm text-muted-foreground">Aucun modèle publié dans cette catégorie.</p>}
+        {catalog && <Link to="/cv-studio" className="mt-4 inline-flex items-center gap-2 text-primary text-sm font-semibold"><Briefcase className="size-4" />Tous les modèles CV</Link>}
       </section>
 
       {/* 3. ONGLETS RÉCENTS / APPAREIL */}
       <section className="px-4 mt-6">
         <div className="flex items-center gap-2 mb-4">
-          <button
+          <Button
             type="button"
             onClick={() => setActiveTab("recents")}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
               activeTab === "recents"
-                ? "bg-[#0A84FF] text-white shadow-sm"
-                : "bg-[#E5E7EB] text-gray-700 hover:bg-gray-300"
+                ? "bg-muted text-primary-foreground shadow-sm"
+                : "bg-muted text-muted-foreground hover:bg-muted"
             }`}
           >
             Récents
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => {
               setActiveTab("appareil");
@@ -395,13 +374,13 @@ export function Home() {
             }}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "appareil"
-                ? "bg-[#0A84FF] text-white shadow-sm"
-                : "bg-[#E5E7EB] text-gray-700 hover:bg-gray-300"
+                ? "bg-muted text-primary-foreground shadow-sm"
+                : "bg-muted text-muted-foreground hover:bg-muted"
             }`}
           >
             <Upload className="w-3.5 h-3.5" />
             Appareil
-          </button>
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -417,65 +396,65 @@ export function Home() {
           {filteredFiles.map((file) => (
             <div
               key={file.id}
-              onClick={() => handleOpenDoc(file)}
-              className="bg-white rounded-2xl p-3.5 flex items-center gap-3.5 border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)] hover:shadow-md cursor-pointer transition-all active:scale-[0.99]"
+              className="bg-card rounded-lg p-3.5 flex items-center gap-3.5 border border-border shadow-sm hover:shadow-md cursor-pointer transition-all active:scale-[0.99]"
             >
               {/* Icône avec coin plié */}
-              <div
-                className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-black text-xl text-white shrink-0 shadow-sm ${
-                  file.type === "pdf" ? "bg-[#FF5A5A]" : "bg-[#0A84FF]"
+              <Button variant="ghost" size="icon" aria-label={`Ouvrir ${file.title}`} onClick={() => handleOpenDoc(file)}
+                className={`relative w-12 h-12 rounded-lg flex items-center justify-center font-black text-xl text-primary-foreground shrink-0 shadow-sm ${
+                  file.type === "pdf" ? "bg-muted" : "bg-muted"
                 }`}
               >
-                <div className="absolute top-0 right-0 w-3 h-3 bg-white/35 rounded-bl-sm" />
+                <div className="absolute top-0 right-0 w-3 h-3 bg-card/35 rounded-bl-sm" />
                 <span>{file.type === "pdf" ? "P" : "W"}</span>
-              </div>
+              </Button>
 
               {/* Titre et détails */}
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-[#0A2342] text-[15px] truncate">
+              <Button variant="ghost" onClick={() => handleOpenDoc(file)} className="h-auto flex-1 min-w-0 flex-col items-start p-0 text-left">
+                <h3 className="font-bold text-foreground text-[15px] truncate w-full">
                   {file.title}
                 </h3>
-                <p className="text-gray-400 text-xs font-medium mt-0.5">
+                <p className="text-muted-foreground text-xs font-medium mt-0.5">
                   {file.date} {file.size ? `• ${file.size}` : ""}
                 </p>
-              </div>
+              </Button>
+              <HomeDocActions doc={file} onOpen={() => handleOpenDoc(file)} onChanged={() => setRefresh(n => n+1)} />
             </div>
           ))}
         </div>
       </section>
 
       {/* 4. GROS BOUTON 3D FLOTTANT : + RÉDIGER */}
-      <div className="fixed bottom-[86px] left-0 right-0 max-w-md md:max-w-xl mx-auto px-6 z-40 pointer-events-none">
+      <div className="fixed bottom-[86px] left-0 right-0 max-w-md md:max-w-4xl mx-auto px-6 z-40 pointer-events-none">
         <Button asChild
-          className="pointer-events-auto w-full h-[62px] rounded-full bg-gradient-to-b from-[#2B9BFF] via-[#0A84FF] to-[#0060C0] text-white font-extrabold text-[23px] flex items-center justify-center gap-2 shadow-[0_14px_30px_rgba(10,132,255,0.48)] active:scale-[0.98] transition-transform border-t border-white/40 ring-1 ring-white/20"
+          className="pointer-events-auto w-full h-[62px] rounded-full bg-primary text-primary-foreground font-extrabold text-[23px] flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-transform border-t border-border ring-1 ring-border"
         >
           <Link to="/redaction" preload="intent" onPointerEnter={() => void router.preloadRoute({ to: "/redaction" })}><Plus className="w-7 h-7 stroke-[3]" /><span>Rédiger</span></Link>
         </Button>
       </div>
 
       {/* 5. NAVIGATION INFÉRIEURE FIXE */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md md:max-w-xl mx-auto bg-white border-t border-gray-100 h-[68px] px-2 flex items-center justify-around z-30 shadow-[0_-4px_16px_rgba(0,0,0,0.03)]">
-        <Link to="/" className="flex flex-col items-center justify-center gap-1 text-[#0A84FF] w-12">
-          <HomeIcon className="w-6 h-6 fill-[#0A84FF]" />
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md md:max-w-4xl mx-auto bg-card border-t border-border h-[68px] px-2 flex items-center justify-around z-30 shadow-sm">
+        <Link to="/" className="flex flex-col items-center justify-center gap-1 text-foreground w-12">
+          <HomeIcon className="w-6 h-6 fill-primary" />
           <span className="text-[10px] font-bold">Accueil</span>
         </Link>
-        <Link to="/documents" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-12">
+        <Link to="/documents" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-12">
           <FileText className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Fichier</span>
         </Link>
-        <Link to="/bibliotheque" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-14">
+        <Link to="/bibliotheque" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-14">
           <BookOpen className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Bibliothèque</span>
         </Link>
-        <Link to="/formations" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-14">
+        <Link to="/formations" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-14">
           <GraduationCap className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Formation</span>
         </Link>
-        <Link to="/opportunites" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-16">
+        <Link to="/opportunites" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-16">
           <Award className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium truncate">Opportunités</span>
         </Link>
-        <Link to="/accueil" className="flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-[#0A84FF] transition-colors w-12">
+        <Link to="/accueil" className="flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground transition-colors w-12">
           <Compass className="w-6 h-6 stroke-[1.8]" />
           <span className="text-[10px] font-medium">Découvrir</span>
         </Link>
