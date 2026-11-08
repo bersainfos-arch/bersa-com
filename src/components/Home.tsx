@@ -345,7 +345,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
         <div className={catalog ? "grid grid-cols-2 gap-3 sm:grid-cols-4" : "grid grid-cols-4 gap-2"}>
           {displayedTemplates.map(tmpl => { const Icon = tmpl.icon; return <Button key={tmpl.id} variant="outline" onClick={() => handleOpenTemplate(tmpl)} className="h-28 min-w-0 flex flex-col gap-2 rounded-lg p-2 whitespace-normal">
             <Icon className="size-8 shrink-0 text-primary" />
-            <span className="w-full break-words text-center text-[10px] font-semibold leading-tight">{tmpl.label}</span>
+            <span className="w-full text-center text-[10px] font-semibold leading-tight">{tmpl.label}</span>
           </Button>; })}
         </div>
         {!displayedTemplates.length && <p className="py-4 text-sm text-muted-foreground">Aucun modèle publié dans cette catégorie.</p>}
@@ -360,7 +360,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
             onClick={() => setActiveTab("recents")}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
               activeTab === "recents"
-                ? "bg-muted text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-muted text-muted-foreground hover:bg-muted"
             }`}
           >
@@ -374,7 +374,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
             }}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "appareil"
-                ? "bg-muted text-primary-foreground shadow-sm"
+                ? "bg-primary text-primary-foreground shadow-sm"
                 : "bg-muted text-muted-foreground hover:bg-muted"
             }`}
           >

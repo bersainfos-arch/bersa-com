@@ -1,7 +1,7 @@
 # BERSA roadmap (reconstruction)
 ## Corrections demandées, dans l’ordre
-- [ ] Accueil : recherche, photo, quatre cartes, catalogue et menus des documents
-- [ ] CV : aperçus sans débordement et espaces superflus
+- [x] Accueil : recherche, photo reliée au profil, quatre cartes, catalogue et menus des documents
+- [x] CV : aperçus ajustés, vignettes compactes, sauvegarde locale vérifiée à 360px
 - [ ] Fichiers, bibliothèque, formations et opportunités : affiches et options de partage
 - [ ] Découvrir : médias, auteurs, options, réactions réelles
 - [ ] Atelier : commandes, pièces jointes, exports et mise en forme
