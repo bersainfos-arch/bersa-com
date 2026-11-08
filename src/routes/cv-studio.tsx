@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ArrowDown, ArrowLeft, ArrowUp, Crown, Download, FileText, ImagePlus, Plus, Printer, Save, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { CvPreview } from "@/components/CvPreview";
 import {
   CV_CATEGORIES, CV_TEMPLATES, SAMPLE_CV, renderCvHtml,
   type CvData, type CvEducation, type CvExperience, type CvTemplate,
@@ -49,7 +50,9 @@ function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   const j = i + dir;
   if (j < 0 || j >= arr.length) return arr;
   const c = [...arr];
-  [c[i], c[j]] = [c[j]!, c[i]!];
+  const current = c[i]; const target = c[j];
+  if (current === undefined || target === undefined) return arr;
+  c[i] = target; c[j] = current;
   return c;
 }
 
@@ -203,8 +206,8 @@ function CvStudio() {
             <StringList label="Langues" items={data.languages} onChange={(v) => set("languages", v)} />
             <StringList label="Loisirs" items={data.hobbies} onChange={(v) => set("hobbies", v)} />
           </div>
-          <div className="min-w-0 overflow-x-auto rounded-md border bg-muted p-2">
-            <div className="mx-auto w-[794px] max-w-none shadow" dangerouslySetInnerHTML={{ __html: html }} />
+          <div className="min-w-0 self-start rounded-md border bg-muted p-2">
+            <CvPreview html={html} />
           </div>
         </div>
       </div>
@@ -229,8 +232,8 @@ function CvStudio() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {list.map((t) => (
             <button key={t.id} onClick={() => setSel(t)} className="group overflow-hidden rounded-lg border bg-card text-left transition hover:shadow-md">
-              <div className="relative h-52 overflow-hidden bg-muted">
-                <div className="pointer-events-none origin-top-left" style={{ width: 794, transform: "scale(0.2)" }} dangerouslySetInnerHTML={{ __html: renderCvHtml(t, SAMPLE_CV) }} />
+              <div className="relative overflow-hidden bg-muted">
+                <CvPreview compact html={renderCvHtml(t, SAMPLE_CV)} />
                 {t.premium && <span className="absolute right-1 top-1 flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground"><Crown className="h-3 w-3" /> Premium</span>}
               </div>
               <div className="p-2"><div className="truncate text-xs font-semibold">{t.name}</div><div className="flex items-center gap-1 text-[10px] text-muted-foreground"><FileText className="h-3 w-3" />{t.category}</div></div>
