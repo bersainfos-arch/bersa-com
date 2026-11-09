@@ -790,6 +790,28 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               )}
                </div>
                 )}
+          {/* Badge du document joint visible dans l'item de demande façon ChatGPT */}
+          {files.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 px-2 pb-1 pt-1 border-b border-border/40">
+              {files.map((f, idx) => (
+                <span
+                  key={idx}
+                  className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary"
+                >
+                  <FileText className="h-3 w-3 shrink-0" />
+                  <span className="max-w-[150px] truncate">{f.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                    className="ml-1 text-muted-foreground hover:text-destructive font-bold text-xs"
+                    title="Retirer ce document"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           {/* Zone de saisie supérieure auto-agrandissante */}
           <textarea
             value={promptInput}
