@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { courseAccess, currencies, signedCommunity, uploadCommunity } from "@/lib/community";
+import { ItemShareMenu } from "@/components/ItemShareMenu";
 import { MOBILE_MONEY } from "@/lib/catalog";
-
 type Course = Database["public"]["Tables"]["courses"]["Row"];
 type Enrollment = Database["public"]["Tables"]["course_enrollments"]["Row"];
 
