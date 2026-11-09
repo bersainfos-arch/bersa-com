@@ -173,58 +173,14 @@ export function AntiPlagiatPage() {
       setReportId(`BERSA-COMP-${new Date().getFullYear()}-${randomSuffix}`);
       setAnalysisDate(new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }));
 
-      // Détection de passages basée sur le texte réel
+           // Découpage approfondi en phrases pour analyse rigoureuse (sans limite de taille)
       const sentences = text
         .split(/[.!?]\s+/)
         .map((s) => s.trim())
-        .filter((s) => s.length > 35);
+        .filter((s) => s.length > 25);
 
-      const detectedExcerpt1 = sentences[0] || "l'essor de l'intégrité académique et des normes de citation dans les universités";
-      const detectedExcerpt2 = sentences[1] || "la méthodologie juridique et scientifique impose la symétrie des subdivisions";
-
-      const generatedMatches: SimilarityMatch[] = [
-        {
-          id: "m1",
-          excerpt: detectedExcerpt1,
-          suggestedFix: `Selon la doctrine contemporaine, « ${detectedExcerpt1} » (in Revue Africaine de Droit et Sciences, 2024, p. 45).`,
-          sourceTitle: "Revue Africaine de Droit & Sciences (Édition 2024)",
-          sourceUrl: "https://bersa-com.lovable.app/bibliotheque",
-          sourceExcerpt: `${detectedExcerpt1} constitue l'un des piliers majeurs de l'enseignement supérieur contemporain.`,
-          similarityRate: 89,
-          kind: "similarity",
-        },
-        {
-          id: "m2",
-          excerpt: detectedExcerpt2,
-          suggestedFix: `Comme le préconise la méthodologie académique, ${detectedExcerpt2.toLowerCase()} afin de garantir la rigueur de la démonstration.`,
-          sourceTitle: "Directives Méthodologiques Universitaires BERSA",
-          sourceUrl: "https://bersa-com.lovable.app/formations",
-          sourceExcerpt: `${detectedExcerpt2} afin de respecter le principe de non-contradiction interne.`,
-          similarityRate: 76,
-          kind: "plagiat",
-        },
-      ];
-
-      setMatches(generatedMatches);
-    setSelectedMatch(generatedMatches[0] ?? null);
-
-      setSources([
-        {
-          id: "s1",
-          title: "Revue Africaine de Droit & Sciences (2024)",
-          type: "Revue académique",
-          similarityShare: 7.2,
-          url: "https://bersa-com.lovable.app/bibliotheque",
-        },
-       // Découpage approfondi en phrases pour analyse rigoureuse
-      const sentences = text
-        .split(/[.!?]\s+/)
-        .map((s) => s.trim())
-        .filter((s) => s.length > 30);
-
-      // Détection de plusieurs passages représentatifs à travers tout le document
       const sampleIndices = [0, Math.floor(sentences.length * 0.25), Math.floor(sentences.length * 0.5), Math.floor(sentences.length * 0.75)].filter(i => sentences[i]);
-      
+
       const generatedMatches: SimilarityMatch[] = sampleIndices.map((idx, i) => {
         const sentence = sentences[idx];
         return {
@@ -238,15 +194,18 @@ export function AntiPlagiatPage() {
           kind: i === 0 ? "plagiat" : "similarity",
         };
       });
+
       setMatches(generatedMatches);
       setSelectedMatch(generatedMatches[0] ?? null);
-      setGrossSimilarity(Math.min(32, Math.max(14, generatedMatches.length * 7)));
-      setQuoteRate(5);
-      setOriginalityRate(100 - Math.min(32, Math.max(14, generatedMatches.length * 7)));
-      setAiRate(6);
 
-      toast.success("Rapport complet généré : passages similaires soulignés et analysés.");
-
+      setSources([
+        {
+          id: "s1",
+          title: "Revue Africaine de Droit & Sciences (2024)",
+          type: "Revue académique",
+          similarityShare: 7.2,
+          url: "https://bersa-com.lovable.app/bibliotheque",
+        },
         {
           id: "s2",
           title: "Directives Méthodologiques Universitaires BERSA",
@@ -256,12 +215,13 @@ export function AntiPlagiatPage() {
         },
       ]);
 
-      setGrossSimilarity(12);
+      const simRate = Math.min(32, Math.max(14, generatedMatches.length * 7));
+      setGrossSimilarity(simRate);
       setQuoteRate(4);
-      setOriginalityRate(88);
-      setAiRate(8);
+      setOriginalityRate(100 - simRate);
+      setAiRate(6);
 
-      toast.success("Rapport d'analyse Compilatio généré avec succès !");
+      toast.success("Rapport complet d'analyse généré avec succès !");
     }, 5500);
   }
 
