@@ -69,11 +69,11 @@ const TEMPLATES: TemplateItem[] = [
   },
   {
     id: "juridique",
-    label: "Requête Juridique",
+    label: "Documents juridiques",
     icon: Scale,
     badge: "Nouveau",
     badgeColor: "bg-muted",
-    prompt: "Rédige une requête juridique formelle conforme au droit applicable.",
+    prompt: "Rédige un document juridique formel conforme au droit applicable.",
   },
   {
     id: "business",
@@ -198,25 +198,25 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
   return (
     <div className="min-h-screen w-full min-w-0 bg-card text-foreground font-sans pb-32 max-w-md md:max-w-4xl mx-auto relative select-none">
       {/* 1. EN-TÊTE AVEC LOGO OFFICIEL BERSA */}
-      <header className="px-4 pt-3 pb-2 flex flex-wrap items-center justify-between gap-2.5">
+      <header className="px-3 pt-3 pb-2 flex items-center gap-2">
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
             src={logo.url}
             alt="Logo officiel BERSA"
-            className="w-11 h-11 object-contain rounded-lg shadow-xs"
+            className="w-9 h-9 object-contain rounded-lg shadow-xs"
           />
-          <div className="flex w-[76px] flex-col leading-tight">
-            <span className="text-foreground font-extrabold text-[21px] tracking-normal">
+          <div className="flex w-[64px] flex-col leading-tight">
+            <span className="text-foreground font-extrabold text-[18px] tracking-normal">
               BERSA
             </span>
-            <span className="text-muted-foreground text-[8px] font-medium -mt-0.5 whitespace-nowrap">
+            <span className="text-muted-foreground text-[7px] font-medium -mt-0.5 whitespace-nowrap">
               Berceau du savoir
             </span>
           </div>
         </Link>
 
         {/* Barre de recherche pilule */}
-        <div className="order-last w-full min-w-0 relative">
+        <div className="flex-1 min-w-0 relative">
           <div className="flex items-center bg-muted rounded-full px-3 py-2 text-xs text-muted-foreground gap-1.5 border border-transparent focus-within:border-[#0A84FF] focus-within:bg-card transition-all">
             <Search className="w-4 h-4 text-muted-foreground shrink-0" />
             <input
@@ -224,7 +224,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
               aria-label="Rechercher documents et modèles"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Rechercher documents et modèles"
+              placeholder="Rechercher…"
               className="bg-transparent border-none outline-none w-full text-xs text-foreground placeholder:text-muted-foreground"
             />
             {searchQuery && <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" aria-label="Effacer la recherche" onClick={() => setSearchQuery("")}><X className="h-4 w-4" /></Button>}
@@ -235,7 +235,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
         <div className="flex items-center gap-1.5 shrink-0">
           <Link
             to="/profil"
-            className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
+            className="w-9 h-9 shrink-0 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
             title="Mon profil"
           >
             {avatar ? <img src={avatar} alt="Votre photo de profil" className="h-full w-full rounded-full object-cover" onError={() => setAvatar("")} /> : <User className="w-5 h-5 text-muted-foreground" />}
@@ -246,7 +246,9 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
-                className="p-1.5 text-foreground hover:bg-muted rounded-lg transition-colors"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 bg-transparent p-1.5 text-foreground hover:bg-muted rounded-lg transition-colors"
                 aria-label="Menu principal"
               >
                 <Menu className="w-6 h-6 stroke-[2.2]" />
