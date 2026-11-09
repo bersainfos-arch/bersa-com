@@ -345,9 +345,11 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
         </div>
         {catalog && <div className="mb-4 flex gap-2 overflow-x-auto pb-2">{["Tous", ...TEMPLATE_DOMAINS].map(d => <Button key={d} size="sm" variant={domain === d ? "default" : "outline"} className="shrink-0" onClick={() => setDomain(d)}>{d}</Button>)}</div>}
         <div className={catalog ? "grid grid-cols-2 gap-3 sm:grid-cols-4" : "grid grid-cols-4 gap-2"}>
-          {displayedTemplates.map(tmpl => { const Icon = tmpl.icon; return <Button key={tmpl.id} variant="outline" onClick={() => handleOpenTemplate(tmpl)} className="h-28 min-w-0 flex flex-col gap-2 rounded-lg p-2 whitespace-normal">
-            <Icon className="size-8 shrink-0 text-primary" />
-            <span className="w-full text-center text-[10px] font-semibold leading-tight">{tmpl.label}</span>
+          {displayedTemplates.map(tmpl => { const Icon = tmpl.icon; return <Button key={tmpl.id} variant="ghost" onClick={() => handleOpenTemplate(tmpl)} className="relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-xl p-2.5 whitespace-normal bg-royal-gradient text-primary-foreground shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            <span className="absolute -right-4 -top-4 size-14 rounded-full bg-gold/25" />
+            <span className="grid size-9 place-items-center rounded-lg bg-white/15 ring-1 ring-gold/50"><Icon className="size-5 text-gold" /></span>
+            <span className="w-full text-left text-[10px] font-bold leading-tight">{tmpl.label}</span>
+            <span className="text-[8px] uppercase tracking-wide text-gold">{templateDomain(tmpl.label)}</span>
           </Button>; })}
         </div>
         {!displayedTemplates.length && <p className="py-4 text-sm text-muted-foreground">Aucun modèle publié dans cette catégorie.</p>}
@@ -403,7 +405,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
               {/* Icône avec coin plié */}
               <Button variant="ghost" size="icon" aria-label={`Ouvrir ${file.title}`} onClick={() => handleOpenDoc(file)}
                 className={`relative w-12 h-12 rounded-lg flex items-center justify-center font-black text-xl text-primary-foreground shrink-0 shadow-sm ${
-                  file.type === "pdf" ? "bg-muted" : "bg-muted"
+                  file.type === "pdf" ? "bg-doc-pdf text-white" : "bg-doc-word text-white"
                 }`}
               >
                 <div className="absolute top-0 right-0 w-3 h-3 bg-card/35 rounded-bl-sm" />
