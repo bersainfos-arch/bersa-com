@@ -9,8 +9,32 @@ import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import Highlight from "@tiptap/extension-highlight";
 import { toast } from "sonner";
-import { PenTool, Sparkles, Save, ChevronUp, ChevronDown, Paperclip, History, Mic, Square, Loader2, RotateCcw, FileDown, Copy, Check, X,FileText, Undo2, Redo2,} from "lucide-react";
-import { Send, Loader2, Mic, Square, Trash2, X, FileAudio, Paperclip, RotateCcw, Sparkles, ChevronDown, ChevronUp, History, PenTool, Copy, Check, FileDown, Plus, Save, Download, Folder } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Mic,
+  Square,
+  Trash2,
+  X,
+  FileAudio,
+  Paperclip,
+  RotateCcw,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  History,
+  PenTool,
+  Copy,
+  Check,
+  FileDown,
+  Plus,
+  Save,
+  Download,
+  Folder,
+  FileText,
+  Undo2,
+  Redo2,
+} from "lucide-react";
 import { importDocumentFile, takeDocumentFile, sanitizeDocumentHtml } from "@/lib/document-import";
 import { AutoPages } from "@/lib/editor-pagination";
 import { AppShell } from "@/components/AppShell";
