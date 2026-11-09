@@ -308,6 +308,10 @@ function Opportunites() {
             {visible.map((r) => {
               const kind = KINDS.find((k) => k.v === r.kind);
               return (
+                <Card key={r.id} className="relative overflow-hidden border border-slate-200 transition hover:shadow-md">
+                  <div className="absolute top-3 right-3 z-10">
+                    <ItemShareMenu title={r.title} type="opportunite" />
+                  </div>
                 <Card key={r.id} className="flex flex-col">
                   <CardHeader className="gap-1">
                     <div className="flex flex-wrap items-center gap-2">
