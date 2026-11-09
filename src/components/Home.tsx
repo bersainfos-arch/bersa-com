@@ -364,8 +364,8 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
             onClick={() => setActiveTab("recents")}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
               activeTab === "recents"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-muted text-muted-foreground hover:bg-muted"
+                ? "bg-[#0A84FF] text-white shadow-sm"
+                : "bg-muted text-foreground hover:bg-muted/80"
             }`}
           >
             Récents
@@ -378,14 +378,13 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
             }}
             className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-1.5 ${
               activeTab === "appareil"
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "bg-muted text-muted-foreground hover:bg-muted"
+                ? "bg-[#0A84FF] text-white shadow-sm"
+                : "bg-muted text-foreground hover:bg-muted/80"
             }`}
           >
             <Upload className="w-3.5 h-3.5" />
             Appareil
           </Button>
-          <input
             ref={fileInputRef}
             type="file"
             accept=".docx,.pdf,.txt"
