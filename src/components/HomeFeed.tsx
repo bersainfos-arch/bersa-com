@@ -570,6 +570,15 @@ export function HomeFeed() {
         {/* ============================================================ */}
         {/* 5. FLUX DE PUBLICATIONS, LIVRES & FORMATIONS                  */}
         {/* ============================================================ */}
+         <div className="mx-auto max-w-xl px-3 pt-3 flex items-center justify-between">
+          <a
+          href="/"
+            className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition"
+          >
+          ← Accueil
+          </a>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Communauté BERSA</span>
+        </div>
         <main className="mx-auto max-w-xl px-3 pt-3">
           {/* Boîte de publication style Facebook */}
           <div className="mb-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
