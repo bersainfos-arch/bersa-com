@@ -44,6 +44,20 @@ export function AdminTemplateManager() {
         <input aria-label="Nom du modèle" className="min-w-0 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Nom du modèle" value={title} onChange={(e) => setTitle(e.target.value)} />
         <select aria-label="Mention du modèle" className="rounded-md border bg-background px-3 py-2 text-sm" value={badge} onChange={(e) => setBadge(e.target.value)}>
           <option value="">Normal</option><option value="Nouveau">Nouveau</option><option value="Premium">Premium</option>
+         <select
+          aria-label="Domaine du modèle"
+          className="rounded-md border bg-background px-3 py-2 text-sm font-medium"
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
+        >
+          <option value="Folio CV">Folio CV</option>
+          <option value="Lettres administratives">Lettres administratives</option>
+          <option value="Business">Business</option>
+          <option value="Actes juridiques">Documents juridiques</option>
+          <option value="Affiches">Affiches</option>
+          <option value="Couverture">Couverture</option>
+          <option value="Thèses & Mémoires">Thèses & Mémoires</option>
+          <option value="Rapports">Rapports professionnels</option>
         </select>
         <label className="flex min-w-0 cursor-pointer items-center gap-2 rounded-md border p-3 text-sm">
           <Upload className="h-4 w-4 shrink-0" /><span className="truncate">{fileName || "Ajouter un modèle Word (.docx)"}</span>
