@@ -125,21 +125,6 @@ export function HomeFeed() {
         });
 
         const list: FeedPost[] = [];
-        list.push({
-          id: "post-welcome",
-          type: "welcome",
-          authorName: "Direction Générale BERSA",
-          authorSubtitle: "Berceau du Savoir • Officiel",
-          isVerified: true,
-          title: "Bienvenue dans le Studio de Rédaction BERSA",
-          content:
-            "Transformez vos idées en résultats académiques et scientifiques d'excellence. Utilisez notre atelier de rédaction et rédigez des documents parfaits avec notre Assistant.",
-          likes: 42,
-          isLiked: userLikesSet.has("post-welcome"),
-          comments: commentsByPost["post-welcome"] || [],
-          date: "Annonce officielle",
-          linkTo: "/redaction",
-        });
 
         (postsRes?.data || []).forEach((p: any) => {
           list.push({
@@ -170,7 +155,7 @@ export function HomeFeed() {
             price: `${b.price} ${b.currency}`,
             content: b.summary || "Ouvrage disponible dans la Bibliothèque BERSA.",
             mediaUrl: b.cover_path || undefined,
-            likes: 12,
+            likes: 0,
             isLiked: userLikesSet.has(`book-${b.id}`),
             comments: commentsByPost[`book-${b.id}`] || [],
             date: "Publication d'ouvrage",
@@ -190,7 +175,7 @@ export function HomeFeed() {
             price: c.price === 0 ? "Gratuit" : `${c.price} ${c.currency}`,
             content: c.description || "Formation certifiante disponible sur BERSA.",
             mediaUrl: c.cover_path || undefined,
-            likes: 19,
+            likes: 0,
             isLiked: userLikesSet.has(`course-${c.id}`),
             comments: commentsByPost[`course-${c.id}`] || [],
             date: "Nouvelle formation",
@@ -207,7 +192,7 @@ export function HomeFeed() {
             isVerified: true,
             title: o.title,
             content: o.description || "Nouvelle opportunité sélectionnée par BERSA.",
-            likes: 8,
+            likes: 0,
             isLiked: userLikesSet.has(`opp-${o.id}`),
             comments: commentsByPost[`opp-${o.id}`] || [],
             date: "Opportunité académique",
