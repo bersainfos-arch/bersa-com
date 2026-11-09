@@ -344,13 +344,29 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
           <Link to={catalog ? "/" : "/modeles"} className="shrink-0 text-primary font-semibold text-sm flex items-center">{catalog ? "Accueil" : "Voir tout"}<ChevronRight className="w-4 h-4" /></Link>
         </div>
         {catalog && <div className="mb-4 flex gap-2 overflow-x-auto pb-2">{["Tous", ...TEMPLATE_DOMAINS].map(d => <Button key={d} size="sm" variant={domain === d ? "default" : "outline"} className="shrink-0" onClick={() => setDomain(d)}>{d}</Button>)}</div>}
-        <div className={catalog ? "grid grid-cols-2 gap-3 sm:grid-cols-4" : "grid grid-cols-4 gap-2"}>
-          {displayedTemplates.map(tmpl => { const Icon = tmpl.icon; return <Button key={tmpl.id} variant="ghost" onClick={() => handleOpenTemplate(tmpl)} className="relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-xl p-2.5 whitespace-normal bg-royal-gradient text-primary-foreground shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
-            <span className="absolute -right-4 -top-4 size-14 rounded-full bg-gold/25" />
-            <span className="grid size-9 place-items-center rounded-lg bg-white/15 ring-1 ring-gold/50"><Icon className="size-5 text-gold" /></span>
-            <span className="w-full text-left text-[10px] font-bold leading-tight">{tmpl.label}</span>
-            <span className="text-[8px] uppercase tracking-wide text-gold">{templateDomain(tmpl.label)}</span>
-          </Button>; })}
+          <div className={catalog ? "grid grid-cols-2 gap-3 sm:grid-cols-4" : "grid grid-cols-4 gap-2"}>
+          {displayedTemplates.map(tmpl => {
+            const Icon = tmpl.icon;
+            return (
+              <Button
+                key={tmpl.id}
+                variant="ghost"
+                onClick={() => handleOpenTemplate(tmpl)}
+                className="relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-2xl p-2.5 whitespace-normal bg-gradient-to-br from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white shadow-[0_6px_20px_rgba(10,35,66,0.22)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10 ring-1 ring-gold/20"
+              >
+                <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
+                <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
+                  <Icon className="size-5 text-gold" />
+                </span>
+                <span className="w-full text-left text-[11px] font-bold leading-tight line-clamp-2 text-white">
+                  {tmpl.label}
+                </span>
+                <span className="text-[8px] uppercase tracking-wider font-semibold text-gold/90">
+                  {templateDomain(tmpl.label)}
+                </span>
+              </Button>
+            );
+          })}
         </div>
         {!displayedTemplates.length && <p className="py-4 text-sm text-muted-foreground">Aucun modèle publié dans cette catégorie.</p>}
         {catalog && <Link to="/cv-studio" className="mt-4 inline-flex items-center gap-2 text-primary text-sm font-semibold"><Briefcase className="size-4" />Tous les modèles CV</Link>}
