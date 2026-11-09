@@ -132,48 +132,69 @@ export function CourseCatalog() {
             const en = enrollments.find((e) => e.course_id === c.id);
             const access = en && courseAccess(en.status);
             return (
-              <article key={c.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md">
-                <div className="relative aspect-video w-full overflow-hidden bg-gradient-to-br from-[#0a192f] to-[#1e3a8a]">
-                  {images[c.id] ? (
-                    <img src={images[c.id]} alt={c.title} className="h-full w-full object-contain bg-slate-900/10" />
+             <article key={c.id} className="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs transition hover:shadow-md flex flex-col justify-between">
+                <div>
+                  <div className="relative aspect-video w-full overflow-hidden bg-slate-950 flex items-center justify-center">
+                    {images[c.id] ? (
+                      <img
+                        src={images[c.id]}
+                        alt={c.title}
+                        className="h-full w-full object-contain bg-slate-900/40"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-white bg-gradient-to-br from-[#0a192f] to-[#1e3a8a]">
+                        <span className="text-2xl">🎓</span>
+                        <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-300">Formation BERSA</span>
+                        <span className="line-clamp-2 px-2 text-xs font-medium text-slate-200">{c.domain}</span>
+                      </div>
+                    )}
 
-                  ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center p-3 text-center text-white">
-                      <span className="text-2xl">🎓</span>
-                      <span className="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-300">Formation BERSA</span>
-                      <span className="line-clamp-2 px-2 text-xs font-medium text-slate-200">{c.domain}</span>
+                    {/* Prix Gratuit ou Payant */}
+                    <span className="absolute bottom-2 right-2 rounded-md bg-black/80 px-2 py-0.5 text-xs font-bold text-amber-400 backdrop-blur-xs">
+                      {c.price === 0 ? "Gratuit" : `${c.price} ${c.currency}`}
+                    </span>
+
+                    {/* Menu à 3 points ⋮ */}
+                    <div className="absolute top-2 right-2 bg-black/60 rounded-full p-0.5 text-white backdrop-blur-xs">
+                      <ItemShareMenu title={c.title} type="formation" />
                     </div>
-                  )}
-                  <span className="absolute bottom-2 right-2 rounded-md bg-black/75 px-2 py-0.5 text-xs font-bold text-amber-400 backdrop-blur-xs">
-                    {c.price === 0 ? "Gratuit" : `${c.price} ${c.currency}`}
-                  </span>
+                  </div>
+
+                  <div className="p-4">
+                    <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-800">{c.domain}</span>
+                    <h2 className="mt-2 line-clamp-2 text-base font-bold text-slate-900 leading-snug">{c.title}</h2>
+                    <p className="mt-1 line-clamp-3 text-xs text-slate-600 leading-relaxed">{c.description}</p>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-800">{c.domain}</span>
-                  <h2 className="mt-2 line-clamp-2 text-base font-bold text-slate-900 leading-snug">{c.title}</h2>
-                  <p className="mt-1 line-clamp-2 text-xs text-slate-600 leading-relaxed">{c.description}</p>
-                  <div className="mt-4 flex flex-col gap-2">
+
+                {/* Actions : S'inscrire / Suivre et Télécharger */}
+                <div className="p-4 pt-0">
+                  <div className="flex flex-col gap-2">
                     {access || c.user_id === user?.id ? (
                       <>
-                        <Button className="w-full bg-[#0a192f] text-white hover:bg-[#1e3a8a]" onClick={() => void download(c)}>
-                          Suivre / Télécharger
+                        <Button className="w-full bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-semibold" onClick={() => void download(c)}>
+                          📥 Suivre / Télécharger
                         </Button>
-                        <a href="/redaction" className="inline-flex w-full items-center justify-center rounded-md border border-amber-500 bg-amber-50 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100">
-                          ✍️ Pratiquer dans l'Atelier Word A4
+                        <a href="/redaction" className="inline-flex w-full items-center justify-center rounded-md border border-amber-500 bg-amber-50 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100">
+                          ✍️ Pratiquer dans l'Atelier
                         </a>
                       </>
                     ) : en ? (
-                      <p className="text-center text-xs font-medium text-amber-700">
+                      <p className="text-center text-xs font-medium text-amber-700 py-1.5 bg-amber-50 rounded">
                         {en.status === "pending" ? "Paiement en cours de vérification" : "Inscription refusée"}
                       </p>
                     ) : (
-                      <Button className="w-full bg-[#0a192f] text-white hover:bg-[#1e3a8a]" disabled={busy} onClick={() => (c.price === 0 ? void enroll(c) : setChoice(c))}>
-                        S'inscrire à la formation
+                      <Button
+                        className="w-full bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-semibold"
+                        disabled={busy}
+                        onClick={() => (c.price === 0 ? void enroll(c) : setChoice(c))}
+                      >
+                        {c.price === 0 ? "S'inscrire (Gratuit)" : "S'inscrire à la formation"}
                       </Button>
                     )}
                   </div>
                 </div>
-              </article>
+              </article> 
             );
           })}
       </div>
@@ -199,11 +220,16 @@ export function CourseCatalog() {
             <Input name="title" aria-label="Titre de la formation" placeholder="Titre" required maxLength={200} />
             <Input name="domain" aria-label="Domaine" placeholder="Domaine" required />
             <Textarea name="description" aria-label="Présentation et exigences" placeholder="Programme et exigences" required maxLength={10000} />
-            <div className="flex gap-2">
-              <Input name="price" aria-label="Prix" type="number" min="0" step="0.01" defaultValue="0" required />
-              <select name="currency" aria-label="Devise" className="rounded border bg-background px-2 text-xs">
-                {currencies.map((c) => (<option key={c}>{c}</option>))}
-              </select>
+            {/* Choix Gratuit ou Payant */}
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-slate-700">Tarification de la formation</label>
+              <div className="flex gap-2">
+                <Input name="price" aria-label="Prix (0 pour gratuit)" type="number" min="0" step="0.01" defaultValue="0" placeholder="0 = Gratuit" required />
+                <select name="currency" aria-label="Devise" className="rounded-md border bg-background px-2 text-xs">
+                  {currencies.map((c) => (<option key={c}>{c}</option>))}
+                </select>
+              </div>
+              <p className="text-[11px] text-slate-500">Laissez à 0 pour rendre la formation entièrement gratuite.</p>
             </div>
             <label className="block text-xs font-medium text-slate-700">Support de cours (PDF, DOCX...)<Input name="file" type="file" required className="mt-1" /></label>
             <label className="block text-xs font-medium text-slate-700">Affiche de formation (optionnelle)<Input name="cover" type="file" accept="image/png,image/jpeg,image/webp" className="mt-1" /></label>
