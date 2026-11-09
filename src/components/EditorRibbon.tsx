@@ -373,8 +373,19 @@ export function EditorRibbon({
         {/* ONGLET INSÉRER */}
         {activeMenu === "Insérer" && (
           <div className="flex flex-wrap items-center gap-1">
-            {btn(<Table className="h-4 w-4" />, "Tableau 3x3", () => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run())}
-            {btn(<Image className="h-4 w-4" />, "Image locale", () => {
+            {btn(<Table className="h-4 w-4" />, "Tableau 3x3", () =>
+              editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            )}
+            {btn(<Plus className="h-4 w-4" />, "+ Ligne", () =>
+              editor?.chain().focus().addRowAfter().run()
+            )}
+            {btn(<Plus className="h-4 w-4" />, "+ Colonne", () =>
+              editor?.chain().focus().addColumnAfter().run()
+            )}
+            {btn(<Trash2 className="h-4 w-4" />, "Suppr. Tableau", () =>
+              editor?.chain().focus().deleteTable().run()
+            )}
+            {btn(<Image className="h-4 w-4" />, "Insérer Image", () => {
               const inp = document.createElement("input");
               inp.type = "file";
               inp.accept = "image/*";
@@ -387,15 +398,17 @@ export function EditorRibbon({
               };
               inp.click();
             })}
-             {btn(<Link2 className="h-4 w-4" />, "Lien", () => {
+            {btn(<Link2 className="h-4 w-4" />, "Lien", () => {
               const url = prompt("Adresse URL (ex: https://...) :");
               if (url) {
                 const valid = safeLink(url);
                 if (valid) editor?.chain().focus().setLink({ href: valid }).run();
-                else toast.error("Adresse URL invalide (doit commencer par http:// ou https://).");
+                else toast.error("Adresse URL invalide.");
               }
             })}
-            {btn(<FilePlus className="h-4 w-4" />, "Saut de page", () => editor?.chain().focus().insertContent({ type: "pageBreak" }).run())}
+            {btn(<FilePlus className="h-4 w-4" />, "Saut de page", () =>
+              editor?.chain().focus().insertContent({ type: "pageBreak" }).run()
+            )}
             {btn(<PlusCircle className="h-4 w-4" />, "Page de garde", () => {
               const cover = `<div class="cover-page" style="text-align:center;padding:5cm 0;border-bottom:2px solid #ccc;"><h1>TITRE DU TRAVAIL SCIENTIFIQUE</h1><h3>Sous-titre ou mention de recherche</h3><p style="margin-top:4cm;">Présenté par l'Auteur<br/>Directeur : Prof. Jules-Eminence NZUNDU NZALALEMBA</p><p style="margin-top:3cm;">BERSA — Berceau du Savoir</p></div><div class="page-break"></div>`;
               editor?.chain().focus().insertContent(cover).run();
@@ -407,32 +420,6 @@ export function EditorRibbon({
             })}
           </div>
         )}
-                    {/* Outils Tableaux façon WPS Word */}
-            {btn(<Table className="h-4 w-4" />, "Tableau 3x3", () =>
-              editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-            )}
-            {btn(<Plus className="h-4 w-4" />, "+ Ligne", () =>
-              editor?.chain().focus().addRowAfter().run()
-            )}
-            {btn(<Plus className="h-4 w-4" />, "+ Colonne", () =>
-              editor?.chain().focus().addColumnAfter().run()
-            )}
-
-            {/* Insertion et retouche d'image */}
-            {btn(<Image className="h-4 w-4" />, "Insérer image", () => {
-              const inp = document.createElement("input");
-              inp.type = "file";
-              inp.accept = "image/*";
-              inp.onchange = () => {
-                const f = inp.files?.[0];
-                if (!f) return;
-                const r = new FileReader();
-                r.onload = () => editor?.chain().focus().setImage({ src: String(r.result) }).run();
-                r.readAsDataURL(f);
-              };
-              inp.click();
-            })}
-        
         {/* ONGLET MISE EN PAGE */}
         {activeMenu === "Mise en page" && (
           <div className="flex flex-wrap items-center gap-2">
