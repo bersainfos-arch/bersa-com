@@ -430,11 +430,14 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
       {/* 4. GROS BOUTON 3D FLOTTANT : + RÉDIGER */}
       <div className="fixed bottom-[86px] left-0 right-0 max-w-md md:max-w-4xl mx-auto px-6 z-40 pointer-events-none">
         <Button asChild
-          className="pointer-events-auto w-full h-[62px] rounded-full bg-primary text-primary-foreground font-extrabold text-[23px] flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-transform border-t border-border ring-1 ring-border"
+          className="pointer-events-auto w-full h-[62px] rounded-full bg-gradient-to-b from-[#2B9BFF] via-[#0A84FF] to-[#0060C0] text-white font-extrabold text-[23px] flex items-center justify-center gap-2 shadow-[0_14px_30px_rgba(10,132,255,0.48)] active:scale-[0.98] transition-transform border-t border-white/40 ring-1 ring-white/20"
         >
-          <Link to="/redaction" preload="intent" onPointerEnter={() => void router.preloadRoute({ to: "/redaction" })}><Plus className="w-7 h-7 stroke-[3]" /><span>Rédiger</span></Link>
+          <Link to="/redaction" preload="intent" onPointerEnter={() => void router.preloadRoute({ to: "/redaction" })}>
+            <Plus className="w-7 h-7 stroke-[3]" />
+            <span>Rédiger</span>
+          </Link>
         </Button>
-      </div>
+      </div>    
 
       {/* 5. NAVIGATION INFÉRIEURE FIXE */}
       <nav className="fixed bottom-0 left-0 right-0 max-w-md md:max-w-4xl mx-auto bg-card border-t border-border h-[68px] px-2 flex items-center justify-around z-30 shadow-sm">
