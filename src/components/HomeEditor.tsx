@@ -9,6 +9,7 @@ import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import Highlight from "@tiptap/extension-highlight";
 import { toast } from "sonner";
+import { PenTool, Sparkles, Save, ChevronUp, ChevronDown, Paperclip, History, Mic, Square, Loader2, RotateCcw, FileDown, Copy, Check, X,FileText, Undo2, Redo2,} from "lucide-react";
 import { Send, Loader2, Mic, Square, Trash2, X, FileAudio, Paperclip, RotateCcw, Sparkles, ChevronDown, ChevronUp, History, PenTool, Copy, Check, FileDown, Plus, Save, Download, Folder } from "lucide-react";
 import { importDocumentFile, takeDocumentFile, sanitizeDocumentHtml } from "@/lib/document-import";
 import { AutoPages } from "@/lib/editor-pagination";
@@ -495,21 +496,46 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         <div className="no-print mx-auto mb-1.5 flex w-full max-w-[794px] flex-col gap-1.5 px-1 sm:px-0 min-w-0">
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/90 px-2.5 py-1.5 text-xs backdrop-blur-sm">
             
-            {/* 1. Outils Word renommés « Mise en forme » avec flèche plus grande */}
-            <button
-              type="button"
-              onClick={() => setRibbonOpen(!ribbonOpen)}
-              className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
-              title="Afficher ou masquer la mise en forme Word"
-            >
-              <PenTool className="h-4 w-4 text-primary" />
-              <span>Mise en forme</span>
-              {ribbonOpen ? (
-                <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
-              ) : (
-                <ChevronDown className="h-5 w-5 text-primary stroke-[2.5]" />
-              )}
-            </button>
+            {/* 1. Outils Word « Mise en forme » avec boutons Annuler et Rétablir */}
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setRibbonOpen(!ribbonOpen)}
+                className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
+                title="Afficher ou masquer la mise en forme Word"
+              >
+                <PenTool className="h-4 w-4 text-primary" />
+                <span>Mise en forme</span>
+                {ribbonOpen ? (
+                  <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-primary stroke-[2.5]" />
+                )}
+              </button>
+
+              <div className="flex items-center gap-0.5 border-l border-border/60 pl-1.5 ml-1">
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().undo().run()}
+                  disabled={!editor?.can().undo()}
+                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary disabled:opacity-30 transition"
+                  title="Annuler (Ctrl+Z)"
+                  aria-label="Annuler"
+                >
+                  <Undo2 className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor?.chain().focus().redo().run()}
+                  disabled={!editor?.can().redo()}
+                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary disabled:opacity-30 transition"
+                  title="Rétablir (Ctrl+Y)"
+                  aria-label="Rétablir"
+                >
+                  <Redo2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div> 
 
             {/* Droite : Améliorer + Enregistrer */}
             <div className="flex items-center gap-1.5">
