@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { importDocumentFile } from "@/lib/document-import";
 
 interface Tpl { id: string; title: string; badge: string; prompt: string; published: boolean; file_name: string | null }
+
 export function AdminTemplateManager() {
   const [list, setList] = useState<Tpl[]>([]);
   const [title, setTitle] = useState("");
@@ -15,16 +16,19 @@ export function AdminTemplateManager() {
   const [html, setHtml] = useState("");
   const [fileName, setFileName] = useState("");
   const [busy, setBusy] = useState(false);
+
   const load = async () => {
     const { data, error } = await supabase.from("document_templates").select("id, title, badge, prompt, published, file_name").order("created_at", { ascending: false });
     if (error) { toast.error("Chargement des modèles impossible."); return; }
     setList(data ?? []);
   };
+
   useEffect(() => { void load(); }, []);
+
   const add = async () => {
     if (busy || !title.trim() || (!html && !prompt.trim())) return;
     setBusy(true);
-      const { error } = await supabase.from("document_templates").insert({
+    const { error } = await supabase.from("document_templates").insert({
       title: title.trim(),
       badge: `${domain}${badge ? ` · ${badge}` : ""}`,
       prompt: prompt.trim(),
@@ -32,42 +36,49 @@ export function AdminTemplateManager() {
       file_name: fileName || null,
       published: true
     });
-    const { error } = await supabase.from("document_templates").insert({ title: title.trim(), badge, prompt: prompt.trim(), content_html: html || null, file_name: fileName || null, published: true });
     setBusy(false);
     if (error) { toast.error("Enregistrement impossible."); return; }
     toast.success("Modèle enregistré et publié.");
     setTitle(""); setPrompt(""); setBadge(""); setHtml(""); setFileName(""); void load();
   };
+
   const toggle = async (t: Tpl) => {
     const { error } = await supabase.from("document_templates").update({ published: !t.published }).eq("id", t.id);
     if (error) toast.error("Publication impossible."); else void load();
   };
+
   const remove = async (id: string) => {
     const { error } = await supabase.from("document_templates").delete().eq("id", id);
     if (error) toast.error("Suppression impossible."); else void load();
   };
+
   return (
     <section className="min-w-0 py-4">
       <h2 className="font-semibold">Modèles de documents</h2>
       <div className="mt-3 grid gap-2">
         <input aria-label="Nom du modèle" className="min-w-0 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Nom du modèle" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <select aria-label="Mention du modèle" className="rounded-md border bg-background px-3 py-2 text-sm" value={badge} onChange={(e) => setBadge(e.target.value)}>
-          <option value="">Normal</option><option value="Nouveau">Nouveau</option><option value="Premium">Premium</option>
-         <select
-          aria-label="Domaine du modèle"
-          className="rounded-md border bg-background px-3 py-2 text-sm font-medium"
-          value={domain}
-          onChange={(e) => setDomain(e.target.value)}
-        >
-          <option value="Folio CV">Folio CV</option>
-          <option value="Lettres administratives">Lettres administratives</option>
-          <option value="Business">Business</option>
-          <option value="Actes juridiques">Documents juridiques</option>
-          <option value="Affiches">Affiches</option>
-          <option value="Couverture">Couverture</option>
-          <option value="Thèses & Mémoires">Thèses & Mémoires</option>
-          <option value="Rapports">Rapports professionnels</option>
-        </select>
+        <div className="grid grid-cols-2 gap-2">
+          <select aria-label="Mention du modèle" className="rounded-md border bg-background px-3 py-2 text-sm" value={badge} onChange={(e) => setBadge(e.target.value)}>
+            <option value="">Normal</option>
+            <option value="Nouveau">Nouveau</option>
+            <option value="Premium">Premium</option>
+          </select>
+          <select
+            aria-label="Domaine du modèle"
+            className="rounded-md border bg-background px-3 py-2 text-sm font-medium"
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+          >
+            <option value="Folio CV">Folio CV</option>
+            <option value="Lettres administratives">Lettres administratives</option>
+            <option value="Business">Business</option>
+            <option value="Actes juridiques">Documents juridiques</option>
+            <option value="Affiches">Affiches</option>
+            <option value="Couverture">Couverture</option>
+            <option value="Thèses & Mémoires">Thèses & Mémoires</option>
+            <option value="Rapports">Rapports professionnels</option>
+          </select>
+        </div>
         <label className="flex min-w-0 cursor-pointer items-center gap-2 rounded-md border p-3 text-sm">
           <Upload className="h-4 w-4 shrink-0" /><span className="truncate">{fileName || "Ajouter un modèle Word (.docx)"}</span>
           <input aria-label="Modèle Word" type="file" accept=".docx" className="sr-only" disabled={busy} onChange={async e => {
