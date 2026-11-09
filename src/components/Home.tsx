@@ -203,13 +203,13 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
           <img
             src={logo.url}
             alt="Logo officiel BERSA"
-            className="w-11 h-11 object-contain rounded-lg shadow-xs"
+            className="w-9 h-9 object-contain rounded-lg shadow-xs"
           />
-          <div className="flex w-[76px] flex-col leading-tight">
-            <span className="text-foreground font-extrabold text-[21px] tracking-normal">
+          <div className="flex w-[64px] flex-col leading-tight">
+            <span className="text-foreground font-extrabold text-[18px] tracking-normal">
               BERSA
             </span>
-            <span className="text-muted-foreground text-[8px] font-medium -mt-0.5 whitespace-nowrap">
+            <span className="text-muted-foreground text-[7px] font-medium -mt-0.5 whitespace-nowrap">
               Berceau du savoir
             </span>
           </div>
@@ -235,7 +235,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
         <div className="flex items-center gap-1.5 shrink-0">
           <Link
             to="/profil"
-            className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
+            className="w-9 h-9 shrink-0 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:bg-muted transition-colors"
             title="Mon profil"
           >
             {avatar ? <img src={avatar} alt="Votre photo de profil" className="h-full w-full rounded-full object-cover" onError={() => setAvatar("")} /> : <User className="w-5 h-5 text-muted-foreground" />}
