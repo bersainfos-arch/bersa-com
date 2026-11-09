@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ItemShareMenu } from "@/components/ItemShareMenu";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -120,15 +121,15 @@ function Page() {
             ))}
           </div>
           {list.length === 0 && <p className="mt-6 text-muted-foreground">Aucun ouvrage dans ce rayon pour le moment.</p>}
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((b) => (
-              <div key={b.id} className="flex gap-3 rounded-xl border bg-card p-4">
-                <div className="flex h-20 w-14 shrink-0 items-center justify-center rounded bg-royal-gradient text-gold">{covers[b.id] ? <img src={covers[b.id]} alt={`Couverture de ${b.title}`} className="h-full w-full object-contain" /> : <BookOpen className="h-5 w-5" />}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold">{b.title}</div>{b.subtitle && <p className="text-sm">{b.subtitle}</p>}
+              <div key={b.id} className="min-w-0 overflow-hidden rounded-xl border bg-card p-3">
+                <div className="mb-2 flex items-start gap-2"><div className="min-w-0 flex-1 break-words font-semibold">{b.title}</div><ItemShareMenu id={`livre-${b.id}`} title={b.title} path="/bibliotheque" /></div>
+                {covers[b.id] ? <img src={covers[b.id]} alt={`Couverture de ${b.title}`} className="block h-auto w-full rounded-lg" loading="lazy" /> : <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg bg-royal-gradient text-gold"><BookOpen className="h-8 w-8" /></div>}
+                <div className="mt-2 min-w-0 break-words">{b.subtitle && <p className="text-sm">{b.subtitle}</p>}
                   {b.author && <div className="text-sm">{b.author}</div>}
                   <div className="text-xs text-muted-foreground">{b.domain}</div>
-                  {b.summary && <details className="mt-2 text-xs"><summary className="cursor-pointer">Résumé et détails</summary><p className="mt-1 whitespace-pre-wrap">{b.summary}</p><p>{b.publication_place} · {b.publisher} · {b.page_count ? `${b.page_count} pages` : ""}</p></details>}
+                  {b.summary && <details className="mt-2 text-xs"><summary className="cursor-pointer">Résumé et détails</summary><p className="mt-1 line-clamp-[15] whitespace-pre-wrap">{b.summary}</p><p>{b.publication_place} · {b.publisher} · {b.page_count ? `${b.page_count} pages` : ""}</p></details>}
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <span className="font-bold text-primary">{b.price_usd ? `${b.price_usd} ${b.currency}` : t("free")}</span>
                      {paid.includes(b.id) || b.user_id === user?.id || !b.price_usd ? <Button size="sm" onClick={() => void download(b.id)}>Télécharger</Button> : pending.includes(b.id) ? <span className="text-xs text-muted-foreground">Paiement en vérification</span> : purchasable(b) ? <OrderDialog kind="livre" item={b.title} bookId={b.id} price={b.price_usd} onSaved={() => setReload(n => n + 1)} trigger={<Button size="sm" variant="outline">Acheter</Button>} /> : <span className="text-xs text-muted-foreground">Vente non disponible</span>}
