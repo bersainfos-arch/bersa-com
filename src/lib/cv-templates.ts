@@ -100,35 +100,35 @@ export const CV_TEMPLATES: CvTemplate[] = [...modern, ...classic];
 const PLACEHOLDER_PHOTO =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120"><rect width="100" height="120" fill="#cbd5e1"/><circle cx="50" cy="45" r="22" fill="#f1f5f9"/><path d="M10 120c4-26 22-38 40-38s36 12 40 38z" fill="#f1f5f9"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a2342"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient></defs><rect width="120" height="140" fill="url(#g)"/><circle cx="60" cy="52" r="26" fill="#f8fafc"/><path d="M18 140c6-30 24-44 42-44s36 14 42 44z" fill="#f8fafc"/></svg>`,
   );
 
-const LOREM = "Décrivez ici vos missions principales et les résultats obtenus.";
+const LOREM = "Conduite de projets stratégiques, encadrement d'équipe et optimisation des processus opérationnels avec atteinte des objectifs fixés.";
 
 export const SAMPLE_CV: CvData = {
-  photo: "",
+  photo: PLACEHOLDER_PHOTO,
   showPhoto: true,
-  firstName: "Prénom",
-  lastName: "NOM",
-  title: "Mon métier",
-  summary: "Décrivez en quelques lignes votre parcours, vos compétences clés et vos objectifs professionnels.",
-  address: "Mon adresse postale",
-  email: "exemple@gmail.com",
-  phone: "",
-  birth: "",
-  license: "",
-  website: "",
-  skills: ["Compétence 1", "Compétence 2", "Compétence 3", "Compétence 4"],
-  languages: ["Français : courant", "Anglais : intermédiaire"],
-  hobbies: ["Loisir 1", "Loisir 2", "Loisir 3"],
+  firstName: "Jean",
+  lastName: "KABAMBA",
+  title: "Juriste d'Affaires & Chercheur",
+  summary: "Professionnel rigoureux doté d'une solide expertise en droit des affaires et analyse stratégique. Passionné par la recherche et l'excellence documentaire, apte à diriger des projets complexes.",
+  address: "Kinshasa / Gombe, RDC",
+  email: "contact@bersa-savoir.org",
+  phone: "+243 81 000 0000",
+  birth: "Né le 12 mai 1992",
+  license: "Permis de conduire B",
+  website: "bersa-com.lovable.app",
+  skills: ["Droit des affaires & OHADA", "Rédaction juridique & scientifique", "Gestion de projet", "Négociation & Contentieux", "Méthodologie de recherche"],
+  languages: ["Français (langue maternelle)", "Anglais (courant / académique)", "Lingala (courant)"],
+  hobbies: ["Recherche documentaire", "Veille juridique", "Écriture"],
   experiences: [
-    { start: "sept. 2022", end: "En cours", role: "Poste occupé", company: "Entreprise", description: LOREM },
-    { start: "janv. 2020", end: "août 2022", role: "Poste occupé", company: "Entreprise", description: LOREM },
-    { start: "mars 2018", end: "déc. 2019", role: "Poste occupé", company: "Entreprise", description: LOREM },
+    { start: "2022", end: "Présent", role: "Juriste Conseil Principal", company: "Cabinet International d'Avocats", description: "Rédaction de contrats commerciaux, audit juridique et représentation auprès des instances réglementaires." },
+    { start: "2019", end: "2022", role: "Chargé d'Études & Contentieux", company: "Banque Commerciale BERSA", description: "Gestion des sûretés, suivi du contentieux financier et conformité aux normes bancaires régionales." },
+    { start: "2017", end: "2019", role: "Assistant de Recherche Universitaire", company: "Faculté de Droit", description: "Encadrement méthodologique des mémoires d'étudiants et publication d'articles de doctrine." },
   ],
   education: [
-    { start: "2016", end: "2018", degree: "Diplôme", school: "Établissement", description: "" },
-    { start: "2013", end: "2016", degree: "Diplôme", school: "Établissement", description: "" },
+    { start: "2017", end: "2018", degree: "Master II en Droit des Affaires", school: "Université de Kinshasa", description: "Major de promotion avec mémoire primé sur la gouvernance d'entreprise." },
+    { start: "2013", end: "2017", degree: "Licence en Sciences Juridiques", school: "Faculté de Droit", description: "Formation approfondie en droit privé et procédure judiciaire." },
   ],
 };
 
