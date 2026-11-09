@@ -627,7 +627,36 @@ export function HomeFeed() {
                       </div>
                       <span className="text-[10px] text-slate-400 shrink-0">{post.date}</span>
                     </div>
-
+                     {/* Profil de l'auteur avec menu 3 points */}
+                    <div className="flex items-center justify-between pb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-900 text-xs border border-blue-200 shrink-0">
+                          {post.authorName.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-xs text-slate-900 truncate">
+                              {post.authorName}
+                            </span>
+                            {post.isVerified && (
+                              <CheckCircle2 className="h-3.5 w-3.5 fill-[#1d4ed8] text-white shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500 truncate">{post.authorSubtitle}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-[10px] text-slate-400">{post.date}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleSharePost(post)}
+                          className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                          title="Options de partage"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
                     {/* Image 16:9 proportionnée sans débordement */}
                     {post.mediaUrl && (
                       <div className="mb-2.5 w-full overflow-hidden rounded-xl bg-slate-100 border border-slate-100">
