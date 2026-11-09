@@ -585,12 +585,63 @@ export function HomeFeed() {
                 type="button"
                 onClick={() => setPublishModalOpen(true)}
                 className="flex-1 rounded-full bg-slate-100 px-3.5 py-2 text-left text-xs text-slate-500 hover:bg-slate-200/70 transition truncate"
-              >
+              > 
                 Partager une recherche ou un article, {userFirstName ?? ""} ?
               </button>
             </div>
           </div>
+         {/* Boîte de publication enrichie */}
+          <div className="mb-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-900 font-bold text-xs shrink-0 overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={userFullName} className="h-full w-full object-cover" />
+                ) : (
+                  (userFirstName ?? "A").charAt(0).toUpperCase()
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPublishModalOpen(true)}
+                className="flex-1 rounded-full bg-slate-100 px-3.5 py-2 text-left text-xs text-slate-500 hover:bg-slate-200/70 transition truncate"
+              >
+                Partager un écrit, une recherche, {userFirstName ?? ""} ?
+              </button>
+            </div>
 
+            {/* Raccourcis directs de publication : Photo, Vidéo, Document */}
+            <div className="mt-2.5 flex items-center justify-around border-t border-slate-100 pt-2 text-xs text-slate-600">
+              <button
+                type="button"
+                onClick={() => { setPostType("article"); setPublishModalOpen(true); }}
+                className="flex items-center gap-1.5 hover:text-blue-600 transition"
+              >
+                ✍️ <span className="font-medium">Texte</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPostType("article"); setPublishModalOpen(true); }}
+                className="flex items-center gap-1.5 hover:text-emerald-600 transition"
+              >
+                📷 <span className="font-medium">Photo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPostType("article"); setPublishModalOpen(true); }}
+                className="flex items-center gap-1.5 hover:text-red-600 transition"
+              >
+                🎥 <span className="font-medium">Vidéo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPostType("article"); setPublishModalOpen(true); }}
+                className="flex items-center gap-1.5 hover:text-amber-600 transition"
+              >
+                📄 <span className="font-medium">PDF</span>
+              </button>
+            </div>
+          </div>
+        
           {/* Liste des publications */}
           {loadingPosts ? (
             <div className="py-12 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
