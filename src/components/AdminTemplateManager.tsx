@@ -23,6 +23,14 @@ export function AdminTemplateManager() {
   const add = async () => {
     if (busy || !title.trim() || (!html && !prompt.trim())) return;
     setBusy(true);
+      const { error } = await supabase.from("document_templates").insert({
+      title: title.trim(),
+      badge: `${domain}${badge ? ` · ${badge}` : ""}`,
+      prompt: prompt.trim(),
+      content_html: html || null,
+      file_name: fileName || null,
+      published: true
+    });
     const { error } = await supabase.from("document_templates").insert({ title: title.trim(), badge, prompt: prompt.trim(), content_html: html || null, file_name: fileName || null, published: true });
     setBusy(false);
     if (error) { toast.error("Enregistrement impossible."); return; }
