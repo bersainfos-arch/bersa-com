@@ -11,7 +11,7 @@ export function AdminTemplateManager() {
   const [title, setTitle] = useState("");
   const [badge, setBadge] = useState("");
   const [prompt, setPrompt] = useState("");
-    const [domain, setDomain] = useState("Lettres administratives");
+  const [domain, setDomain] = useState("Lettres administratives");
   const [html, setHtml] = useState("");
   const [fileName, setFileName] = useState("");
   const [busy, setBusy] = useState(false);
