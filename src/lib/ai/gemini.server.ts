@@ -26,6 +26,10 @@ function body(contents: GeminiContent[], system?: string) {
   return JSON.stringify({
     contents,
     ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 8192,
+    },
   });
 }
 
