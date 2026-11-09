@@ -397,7 +397,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 ? "bg-[#0A84FF] text-white shadow-sm"
                 : "bg-muted text-foreground hover:bg-muted/80"
             }`}
-          >
+            >
             <Upload className="w-3.5 h-3.5" />
             Appareil
           </Button>
