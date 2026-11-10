@@ -84,6 +84,7 @@ export function AntiPlagiatPage() {
   const charCount = text.length;
   const wordCount = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
   const estimatedPages = Math.max(1, Math.ceil(charCount / 2800));
+  const isLongDocument = charCount > 70000;
   // Extraction réelle de fichiers DOCX, PDF, TXT
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -182,7 +183,7 @@ export function AntiPlagiatPage() {
       const sampleIndices = [0, Math.floor(sentences.length * 0.25), Math.floor(sentences.length * 0.5), Math.floor(sentences.length * 0.75)].filter(i => sentences[i]);
 
       const generatedMatches: SimilarityMatch[] = sampleIndices.map((idx, i) => {
-        const sentence = sentences[idx];
+        const sentence = sentences[idx] ?? "";
         return {
           id: `match-${i + 1}`,
           excerpt: sentence,

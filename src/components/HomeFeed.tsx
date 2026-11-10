@@ -5,7 +5,7 @@ import {
   CheckCircle2, Home, GraduationCap, BookOpen, Briefcase, FileText,
   Gamepad2, Send, Sparkles, Crown, ShieldCheck, User, Settings,
   Loader2, Copy, ShieldAlert, MessageSquare, Bell, ArrowRight,
-  PenTool, Award, Check
+  PenTool, Award, Check, MoreHorizontal
 } from "lucide-react";
 import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
@@ -62,7 +62,7 @@ export function HomeFeed() {
   const [msgTab, setMsgTab] = useState<"chat" | "notifications">("chat");
 
   const [publishModalOpen, setPublishModalOpen] = useState(false);
-  const [postType, setPostType] = useState<"discussion" | "fun">("discussion");
+  const [postType, setPostType] = useState<"discussion" | "fun" | "article">("discussion");
   const [newPostText, setNewPostText] = useState("");
   const [newPostMediaUrl, setNewPostMediaUrl] = useState("");
   const [newPostVideoUrl, setNewPostVideoUrl] = useState("");
