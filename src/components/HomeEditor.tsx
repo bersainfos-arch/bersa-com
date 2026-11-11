@@ -679,7 +679,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             3 fichiers, 5 Mo chacun · Analyse : texte, PDF, Word (.docx), images PNG/JPEG/WebP.
           </p>
         )}
-
         {files.length > 0 && (
           <div className="no-print flex gap-1 overflow-x-auto py-1">
             {files.map((f, i) => (
@@ -692,9 +691,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             ))}
           </div>
         )}
-
         <div
-          className={`home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}
+          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}
           onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
             if (anchor) {
@@ -706,9 +704,19 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             }
           }}
         >
-          {settings.ruler && <div className="no-print editor-ruler mx-auto max-w-[794px]">0 ┆ 1 ┆ 2 ┆ 3 ┆ 4 ┆ 5 ┆ 6 ┆ 7 ┆ 8 ┆ 9 ┆ 10</div>}
-          <EditorContent editor={editor} className="home-paper-content" />
+          {/* Règle graduée A4 utile (0 à 16 cm de largeur d'écriture) */}
+          {settings.ruler && (
+            <div className="bersa-writer-ruler no-print mx-auto mb-2" aria-hidden="true">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="bersa-writer-ruler-tick">
+                  <span>{i + 1}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
+          <EditorContent editor={editor} className="home-paper-content" />
+        
           {footnotes.length > 0 && (
             <div className="a4-footnotes mx-auto max-w-[794px]" aria-label="Notes de bas de page">
               <hr className="a4-footnotes-rule" />
