@@ -180,10 +180,10 @@ export function EditorRibbon({
           </Button>
         </div>
       </div>
-
-      {/* Boîte à outils contextuelle selon l'onglet actif */}
-      <div className="p-2 flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-none min-h-[46px] bg-background/50">
-
+      
+      {/* Boîte à outils horizontale défilable sans empilement désordonné */}
+      <div className="p-2 flex items-center gap-2 overflow-x-auto scrollbar-thin min-h-[46px] bg-background/50 whitespace-nowrap">
+    
         {/* 1. FICHIER */}
         {activeMenu === "Fichier" && (
           <div className="flex items-center gap-1.5">
@@ -301,7 +301,50 @@ export function EditorRibbon({
             {iconOnly(<Indent className="w-4 h-4" />, () => editor.chain().focus().indent?.().run(), false, "Augmenter le retrait")}
             {iconOnly(<Indent className="w-4 h-4" />, () => (editor.chain().focus() as any).indent?.().run(), false, "Augmenter le retrait")}
             {iconOnly(<Outdent className="w-4 h-4" />, () => (editor.chain().focus() as any).outdent?.().run(), false, "Diminuer le retrait")}
-          </div>
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {/* Outil d'Espacement et Interligne (WPS / Word) */}
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] text-muted-foreground font-semibold">Interligne :</span>
+              <select
+                className="h-8 px-2 text-xs rounded-md border border-input bg-background font-medium"
+                value={settings.lineSpacing || "1.5"}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSettings((s) => ({ ...s, lineSpacing: val }));
+                  const sheet = document.querySelector(".home-ai-sheet") as HTMLElement;
+                  if (sheet) sheet.style.lineHeight = val;
+                  toast.success(`Interligne réglé à ${val}`);
+                }}
+                title="Espacement des lignes (Interligne)"
+              >
+                <option value="1.0">1,0 (Simple)</option>
+                <option value="1.15">1,15 (Normal)</option>
+                <option value="1.5">1,5 (Standard académique)</option>
+                <option value="2.0">2,0 (Double)</option>
+              </select>
+
+              {/* Supprimer / Ajouter l'espace de paragraphe */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs"
+                onClick={() => {
+                  const sheet = document.querySelector(".home-ai-sheet") as HTMLElement;
+                  if (sheet) {
+                    const isZero = sheet.classList.toggle("no-para-spacing");
+                    sheet.querySelectorAll("p").forEach((p) => {
+                      (p as HTMLElement).style.marginBottom = isZero ? "0px" : "0.65em";
+                    });
+                    toast.success(isZero ? "Espace après paragraphe supprimé" : "Espace après paragraphe activé");
+                  }
+                }}
+                title="Activer ou désactiver l'espacement après les paragraphes"
+              >
+                Espacement §
+              </Button>
+            </div>
         )}
 
         {/* 3. INSERTION */}
