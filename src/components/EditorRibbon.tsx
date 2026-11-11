@@ -299,8 +299,8 @@ export function EditorRibbon({
             {iconOnly(<List className="w-4 h-4" />, () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Puces")}
             {iconOnly(<ListOrdered className="w-4 h-4" />, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numérotation")}
             {iconOnly(<Indent className="w-4 h-4" />, () => editor.chain().focus().indent?.().run(), false, "Augmenter le retrait")}
-            {iconOnly(<Outdent className="w-4 h-4" />, () => editor.chain().focus().outdent?.().run(), false, "Diminuer le retrait")}
-            {iconOnly(<Eraser className="w-4 h-4" />, () => editor.chain().focus().unsetAllMarks().clearNodes().run(), false, "Effacer la mise en forme")}
+            {iconOnly(<Indent className="w-4 h-4" />, () => (editor.chain().focus() as any).indent?.().run(), false, "Augmenter le retrait")}
+            {iconOnly(<Outdent className="w-4 h-4" />, () => (editor.chain().focus() as any).outdent?.().run(), false, "Diminuer le retrait")}
           </div>
         )}
 
