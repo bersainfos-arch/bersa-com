@@ -455,5 +455,23 @@ export function EditorRibbon({
                 {z}
               </Button>
             ))}
+            
+            <div className="h-5 w-[1px] bg-border mx-1" />
 
-            <div className="h-5 w-[1px] bg-bo
+            <Button
+              type="button"
+              size="sm"
+              variant={settings.viewMode === "lecture" ? "secondary" : "ghost"}
+              className="h-8 text-xs"
+              onClick={() => setSettings((s) => ({ ...s, viewMode: s.viewMode === "lecture" ? "page" : "lecture" }))}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              {settings.viewMode === "lecture" ? "Mode Page" : "Mode Lecture"}
+            </Button>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
