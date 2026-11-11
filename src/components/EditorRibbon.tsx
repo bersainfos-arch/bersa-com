@@ -109,7 +109,7 @@ export function EditorRibbon({
     const headings: string[] = [];
     editor.state.doc.descendants((node) => {
       if (node.type.name === "heading") {
-        const level = node.attrs.level;
+       const level = Number(node.attrs["level"]) || 1;
         headings.push(`${"  ".repeat(level - 1)}• ${node.textContent}`);
       }
     });
