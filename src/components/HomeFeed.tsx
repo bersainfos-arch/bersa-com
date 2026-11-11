@@ -13,6 +13,7 @@ import { HomeMessagesModal } from "@/components/HomeMessagesModal";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { askAssistant } from "@/lib/assistant.functions";
+import { getCommunityFeed } from "@/lib/community-feed.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -102,15 +103,16 @@ export function HomeFeed() {
     async function loadFeed() {
       try {
         setLoadingPosts(true);
-        const [booksRes, coursesRes, oppsRes, postsRes, likesRes, commentsRes] =
+        const [booksRes, coursesRes, oppsRes, feedRes, likesRes] =
           await Promise.all([
             supabase.from("books").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(6),
             supabase.from("courses").select("*").eq("status", "published").order("created_at", { ascending: false }).limit(6),
             supabase.from("opportunities").select("*").eq("status", "active").order("created_at", { ascending: false }).limit(6),
-            (supabase.from("community_posts" as any) as any).select("*").order("created_at", { ascending: false }).limit(20),
+            user ? getCommunityFeed().catch(() => ({ posts: [], comments: [] })) : Promise.resolve({ posts: [], comments: [] }),
             user ? (supabase.from("community_post_likes" as any) as any).select("post_id").eq("user_id", user.id) : Promise.resolve({ data: [] }),
-            (supabase.from("community_post_comments" as any) as any).select("*").order("created_at", { ascending: true }),
           ]);
+        const postsRes = { data: feedRes.posts as any[] };
+        const commentsRes = { data: feedRes.comments as any[] };
 
         const userLikesSet = new Set((likesRes?.data || []).map((l: any) => l.post_id));
         const commentsByPost: Record<string, PostComment[]> = {};
@@ -131,11 +133,11 @@ export function HomeFeed() {
             id: p.id,
             type: "user",
             authorName: p.author_name || "Auteur BERSA",
-            authorSubtitle: p.author_subtitle || "Membre chercheur",
-            isVerified: p.author_subtitle?.includes("Officiel"),
+            authorSubtitle: p.author_role || "Membre chercheur",
+            isVerified: p.author_role?.includes("Officiel"),
             content: p.content,
-            mediaUrl: p.media_url || undefined,
-            videoUrl: p.video_url || undefined,
+            mediaUrl: p.media_type === "video" ? undefined : p.media_url || undefined,
+            videoUrl: p.media_type === "video" ? p.media_url || undefined : undefined,
             likes: p.likes_count || 0,
             isLiked: userLikesSet.has(p.id),
             comments: commentsByPost[p.id] || [],
@@ -315,13 +317,14 @@ export function HomeFeed() {
     try {
       const { data, error } = await (supabase.from("community_posts" as any) as any)
         .insert({
-          user_id: user.id,
+          id: crypto.randomUUID(),
+          author_id: user.id,
           author_name: userFullName,
-          author_subtitle: "Berceau du Savoir • Membre actif",
+          author_role: "Berceau du Savoir • Membre actif",
+          category: postType,
           content: newPostText.trim(),
-          media_url: newPostMediaUrl.trim() || null,
-          video_url: newPostVideoUrl.trim() || null,
-          post_type: postType,
+          media_url: (newPostVideoUrl.trim() || newPostMediaUrl.trim()) || null,
+          media_type: newPostVideoUrl.trim() ? "video" : newPostMediaUrl.trim() ? "image" : null,
         })
         .select()
         .single();
