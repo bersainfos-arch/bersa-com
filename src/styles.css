@@ -384,17 +384,7 @@
     break-before: page;
   }
 }
-    height: 16px !important;
-    background: #f1f5f9 !important;
-    border-top: 1px dashed #cbd5e1 !important;
-    border-bottom: 1px dashed #cbd5e1 !important;
-  }
-  .home-command-bar,
-  .home-subscribe-bar {
-    display: none !important;
-  }
-}
-  
+
 /* Barre desktop standard */
 .home-command-bar {
   position: sticky;
