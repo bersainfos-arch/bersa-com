@@ -155,7 +155,8 @@
   background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
   background-size: 16px 16px;
   min-height: calc(100vh - 180px);
-  padding: 24px 16px 80px;
+  padding: 24px 16px 120px;
+  overflow-x: clip;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -331,7 +332,8 @@
 /* Adaptation responsive sur smartphone Android / tactile */
 @media (max-width: 768px) {
   .bersa-writer-workspace {
-    padding: 12px 6px 60px;
+    padding: 12px 6px 110px;
+    overflow-x: clip;
   }
   .bersa-writer-ruler {
     display: none; /* Règle masquée sur petit écran */
