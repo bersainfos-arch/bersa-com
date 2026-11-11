@@ -243,9 +243,8 @@ export function EditorRibbon({
             {iconOnly(<Italic className="w-4 h-4" />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"), "Italique (Ctrl+I)")}
             {iconOnly(<Underline className="w-4 h-4" />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"), "Souligné (Ctrl+U)")}
             {iconOnly(<Strikethrough className="w-4 h-4" />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"), "Barré")}
-            {iconOnly(<Subscript className="w-4 h-4" />, () => editor.chain().focus().toggleSubscript?.().run(), editor.isActive("subscript"), "Indice")}
-            {iconOnly(<Superscript className="w-4 h-4" />, () => editor.chain().focus().toggleSuperscript?.().run(), editor.isActive("superscript"), "Exposant")}
-
+            {iconOnly(<Subscript className="w-4 h-4" />, () => (editor.chain().focus() as any).toggleSubscript?.().run(), editor.isActive("subscript"), "Indice")}
+            {iconOnly(<Superscript className="w-4 h-4" />, () => (editor.chain().focus() as any).toggleSuperscript?.().run(), editor.isActive("superscript"), "Exposant")}        
             <div className="h-5 w-[1px] bg-border mx-1" />
 
             {/* Styles rapides */}
