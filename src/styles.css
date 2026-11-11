@@ -226,14 +226,13 @@
   pointer-events: none;
 }
 
-/* Retrait de première ligne automatique de 1,25 cm et espacement 0 pt */
+/* Paragraphes Word standard : alignés à gauche/justifiés, aucun alinéa forcé, espacement naturel */
 .home-ai-sheet p {
-  text-indent: 1.25cm;
+  text-indent: 0 !important;
   margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  margin-bottom: 0.65em !important;
   text-align: justify;
 }
-
 .home-ai-sheet p:empty::before {
   content: "\00a0";
 }
