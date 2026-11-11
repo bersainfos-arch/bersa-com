@@ -557,8 +557,8 @@ img, video, canvas, iframe, table { max-width: 100%; }
   background-position: 0 calc(var(--rest) + var(--pad-y)),
     calc(var(--pad-x) - var(--mark)) var(--rest), var(--pad-x) var(--rest),
     calc(100% - var(--pad-x) + var(--mark)) var(--rest), calc(100% - var(--pad-x)) var(--rest),
-    calc(var(--pad-x) - var(--mark)) calc(100% - 1px), var(--pad-x) calc(100% - var(--mark)),
-    calc(100% - var(--pad-x) + var(--mark)) calc(100% - 1px), calc(100% - var(--pad-x)) calc(100% - var(--mark));
+    calc(var(--pad-x) - var(--mark)) 100%, var(--pad-x) 100%,
+    calc(100% - var(--pad-x) + var(--mark)) 100%, calc(100% - var(--pad-x)) 100%;
 }
 .home-editor .home-ai-sheet .auto-page-gap::before {
   content: attr(data-page); position: absolute; left: calc(var(--pad-x) - 1.6em);
