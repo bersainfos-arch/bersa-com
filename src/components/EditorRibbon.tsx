@@ -342,11 +342,12 @@ export function EditorRibbon({
                 }}
                 title="Activer ou désactiver l'espacement après les paragraphes"
               >
-                Espacement §
+               Espacement §
               </Button>
             </div>
+          </div>
         )}
-
+        
         {/* 3. INSERTION */}
         {activeMenu === "Insertion" && (
           <div className="flex flex-wrap items-center gap-1.5">
