@@ -3,9 +3,28 @@ export function queueDocumentFile(file: File) { pendingFile = file; }
 export function takeDocumentFile() { const file = pendingFile; pendingFile = null; return file; }
 export function sanitizeDocumentHtml(html: string) {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script,style,iframe,object,embed,form,input,button,link,meta").forEach(el => el.remove());
-  for (const el of doc.body.querySelectorAll("*")) for (const attr of Array.from(el.attributes)) {
-    if (attr.name.startsWith("on") || attr.name === "style" || ((attr.name === "href" || attr.name === "src") && !/^(https?:|data:image\/(png|jpeg|webp);base64,|#)/i.test(attr.value))) el.removeAttribute(attr.name);
+  // Suppression des scripts et balises dangereuses, mais conservation des styles visuels
+  doc.querySelectorAll("script,iframe,object,embed,form,input,button,link,meta").forEach(el => el.remove());
+  
+  for (const el of doc.body.querySelectorAll("*")) {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.startsWith("on")) {
+        el.removeAttribute(attr.name);
+      } else if (attr.name === "style") {
+        // Préserver uniquement les styles sûrs (alignement, marges, interligne, couleurs)
+        const safeStyles = attr.value
+          .split(";")
+          .filter(rule => /^(text-align|font-weight|font-style|color|background-color|margin|padding|border|line-height)/i.test(rule.trim()))
+          .join("; ");
+        if (safeStyles) {
+          el.setAttribute("style", safeStyles);
+        } else {
+          el.removeAttribute("style");
+        }
+      } else if ((attr.name === "href" || attr.name === "src") && !/^(https?:|data:image\/(png|jpeg|webp);base64,|#)/i.test(attr.value)) {
+        el.removeAttribute(attr.name);
+      }
+    }
   }
   return doc.body.innerHTML;
 }
