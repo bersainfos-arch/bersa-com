@@ -1,19 +1,16 @@
 import { useState, useRef } from "react";
 import type { Editor } from "@tiptap/react";
 import {
-  FileText, Home, PlusCircle, Layout, BookmarkCheck, Mail, CheckSquare, Eye,
-  Scissors, Copy, Clipboard, Bold, Italic, Underline, Strikethrough, Subscript, Superscript,
+  Bold, Italic, Underline, Strikethrough, Subscript, Superscript,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Indent, Outdent,
-  Eraser, Table, Image, Link2, Search, Replace, Printer, Share2, Download,
-  FolderOpen, Save, FilePlus, Sparkles, Sliders, Type, Hash, BookOpen,
-  Plus, Trash2,
+  Eraser, Table as TableIcon, Image as ImageIcon, Link2, Search, Replace, Printer, Download,
+  Save, Sparkles, Sliders, Type, FileText, Layout, BookOpen, CheckSquare, Eye,
+  Plus, Trash2, Columns, ZoomIn, ZoomOut, FilePlus, FolderOpen, HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { safeLink } from "@/lib/assistant-actions";
-import { insertFootnote } from "@/lib/footnotes";
 import { toast } from "sonner";
-import { translateUi } from "@/lib/translate-ui";
+
 export type PageSettings = {
   margin: "Normales" | "Étroites" | "Larges";
   orientation: "Portrait" | "Paysage";
@@ -26,7 +23,10 @@ export type PageSettings = {
   headerText: string;
   footerText: string;
   lineSpacing?: string;
+  fontFamily?: string;
+  fontSize?: string;
 };
+
 export function EditorRibbon({
   editor,
   tab,
@@ -41,7 +41,7 @@ export function EditorRibbon({
   tab: string;
   setTab: (tab: string) => void;
   settings: PageSettings;
-  setSettings: (s: PageSettings) => void;
+  setSettings: React.Dispatch<React.SetStateAction<PageSettings>>;
   attach: () => void;
   save: () => void;
   correct: () => void;
@@ -49,567 +49,411 @@ export function EditorRibbon({
   const [activeMenu, setActiveMenu] = useState<string>("Accueil");
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
-  const [citationStyle, setCitationStyle] = useState<"APA7" | "APA6" | "APA5" | "Chicago">("APA7");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Outils d'aide pour boutons
-  const btn = (icon: any, label: string, onClick: () => void, active = false) => (
+  if (!editor) return null;
+
+  const btn = (icon: any, label: string, onClick: () => void, active = false, title?: string) => (
     <Button
       type="button"
       variant={active ? "secondary" : "ghost"}
       size="sm"
-      className="h-7 gap-1 px-1.5 text-xs"
-      title={label}
-      aria-label={label}
+      className={`h-8 px-2 text-xs font-medium gap-1.5 ${active ? "bg-primary/15 text-primary border border-primary/20" : "text-foreground"}`}
       onClick={onClick}
+      title={title || label}
     >
       {icon}
       <span className="hidden sm:inline">{label}</span>
     </Button>
   );
 
-  // --- 9. MENU FICHIER ---
-  const handleNewDoc = () => {
-    if (confirm("Créer un nouveau document vierge ? Les modifications non enregistrées seront perdues.")) {
-      editor?.commands.clearContent();
-      toast.success("Nouveau document créé.");
-    }
-  };
+  const iconOnly = (icon: any, onClick: () => void, active = false, title: string) => (
+    <Button
+      type="button"
+      variant={active ? "secondary" : "ghost"}
+      size="icon"
+      className={`h-8 w-8 ${active ? "bg-primary/15 text-primary" : "text-foreground"}`}
+      onClick={onClick}
+      title={title}
+    >
+      {icon}
+    </Button>
+  );
 
-  const handleOpenFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Insertion d'image locale
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !editor) return;
-    try {
-      const name = file.name.toLowerCase();
-      if (name.endsWith(".docx")) {
-        const mammoth = await import("mammoth");
-        const { value } = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
-        editor.commands.setContent(value || "<p></p>");
-      } else if (name.endsWith(".html") || name.endsWith(".htm")) {
-        editor.commands.setContent(await file.text());
-      } else {
-        const text = await file.text();
-        editor.commands.setContent({ type: "doc", content: text.split(/\r?\n/).map(l => ({ type: "paragraph", ...(l ? { content: [{ type: "text", text: l }] } : {}) })) });
-      }
-      toast.success(`Fichier ${file.name} ouvert.`);
-    } catch {
-      toast.error("Impossible d'ouvrir ce fichier. Formats acceptés : .docx, .txt, .html.");
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          editor.chain().focus().setImage({ src: reader.result }).run();
+          toast.success("Image insérée avec succès");
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const download = (blob: Blob, ext: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `document-bersa.${ext}`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    toast.success(`Export ${ext.toUpperCase()} téléchargé.`);
-  };
-
-  const exportAs = async (format: "html" | "txt" | "docx") => {
-    if (!editor) return;
-    if (format === "docx") {
-      const { buildDocx } = await import("@/lib/docx-export");
-      const marginCm = settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5;
-      const blob = await buildDocx(editor.getJSON() as any, {
-        marginCm,
-        lineSpacing: Number(settings.lineSpacing) || 1.6,
-        landscape: settings.orientation === "Paysage",
-        headerText: settings.headerText,
-        footerText: settings.footerText,
-        pageNumbers: true,
-      });
-      return download(blob, "docx");
-    }
-    if (format === "html") {
-      return download(new Blob([`<!doctype html><html><head><meta charset="utf-8"><title>Document BERSA</title><style>body{font-family:'Times New Roman',serif;padding:2cm;}</style></head><body>${editor.getHTML()}</body></html>`], { type: "text/html" }), "html");
-    }
-    download(new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" }), "txt");
-  };
-
-  const shareDocx = async () => {
-    if (!editor) return;
-    const { buildDocx } = await import("@/lib/docx-export");
-    const blob = await buildDocx(editor.getJSON() as any, { headerText: settings.headerText, footerText: settings.footerText });
-    const file = new File([blob], "document-bersa.docx", { type: blob.type });
-    if (navigator.canShare?.({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: "Document BERSA" }); } catch { /* annulé */ }
-    } else {
-      download(blob, "docx");
+  // Insertion de lien
+  const handleInsertLink = () => {
+    const url = window.prompt("Entrez l'adresse du lien URL :", "https://");
+    if (url) {
+      editor.chain().focus().setLink({ href: url }).run();
+      toast.success("Lien inséré");
     }
   };
 
-  const handleShare = async () => {
-    const text = editor?.getText().slice(0, 300) ?? "";
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Document BERSA",
-          text: `Extrait de mon travail sur BERSA :\n${text}...`,
-          url: window.location.href,
-        });
-        toast.success("Document partagé.");
-      } catch {
-        /* annulé */
-      }
-    } else {
-      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent("Document rédigé sur BERSA :\n" + text)}`;
-      window.open(waUrl, "_blank");
-    }
-  };
-
-  // --- 10. RECHERCHER / REMPLACER ---
-  const handleReplaceAll = () => {
-    if (!editor || !findText) return;
-    const matches: { from: number; to: number }[] = [];
-    editor.state.doc.descendants((node, pos) => {
-      if (!node.isText || !node.text) return;
-      let i = node.text.indexOf(findText);
-      while (i >= 0) {
-        matches.push({ from: pos + i, to: pos + i + findText.length });
-        i = node.text.indexOf(findText, i + findText.length);
-      }
-    });
-    if (!matches.length) {
-      toast.info("Aucune occurrence trouvée.");
-      return;
-    }
-    const tr = editor.state.tr;
-    for (const match of matches.reverse()) {
-      tr.insertText(replaceText, match.from, match.to);
-    }
-    editor.view.dispatch(tr);
-    toast.success(`${matches.length} occurrence(s) remplacée(s).`);
-  };
-
-  // --- 13. CITATIONS & BIBLIOGRAPHIE ACADÉMIQUE ---
-  const insertCitation = () => {
-    if (!editor) return;
-    const author = prompt("Nom de l'auteur (ex: NZUNDU NZALALEMBA, J.-E.) :");
-    if (!author) return;
-    const year = prompt("Année de publication (ex: 2026) :") || "s.d.";
-    const page = prompt("Page citée (optionnel, ex: p. 45) :");
-    const title = prompt("Titre de l'ouvrage ou de l'article :");
-    const publisher = prompt("Maison d'édition ou Ville (ex: Kinshasa, PUK) :");
-
-    let inline = `(${author}, ${year}${page ? `, ${page}` : ""})`;
-    let biblio = `${author} (${year}). *${title || "Sans titre"}*. ${publisher || ""}.`;
-
-    if (citationStyle === "Chicago") {
-      inline = `[${author}, ${year}${page ? `, ${page}` : ""}]`;
-      biblio = `${author}. ${year}. ${title || "Sans titre"}. ${publisher || ""}.`;
-    }
-
-    editor.chain().focus().insertContent(`${inline} `).run();
-    toast.success(`Citation insérée au format ${citationStyle}.`);
-  };
-
-  const insertTOC = () => {
-    if (!editor) return;
+  // Insertion d'un sommaire dynamique (Table des matières)
+  const handleInsertTOC = () => {
     const headings: string[] = [];
     editor.state.doc.descendants((node) => {
       if (node.type.name === "heading") {
-      headings.push(`${node.attrs["level"] === 1 ? "• " : "    - "}${node.textContent}`);
+        const level = node.attrs.level;
+        headings.push(`${"  ".repeat(level - 1)}• ${node.textContent}`);
       }
     });
-    if (!headings.length) {
-      toast.info("Ajoutez des Titres (Titre 1, Titre 2) dans votre texte pour générer la table.");
+
+    if (headings.length === 0) {
+      toast.info("Aucun titre détecté. Utilisez Titre 1, 2 ou 3 dans l'onglet Accueil.");
       return;
     }
-    const tocHtml = `<h2>TABLE DES MATIÈRES</h2><ul>${headings.map(h => `<li>${h}</li>`).join("")}</ul><hr/>`;
+
+    const tocHtml = `
+      <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:16px; margin:20px 0; border-radius:6px;">
+        <h3 style="margin-top:0; font-family:'Times New Roman', serif; text-align:center;">TABLE DES MATIÈRES</h3>
+        <p style="text-indent:0; font-size:14px; line-height:1.6;">${headings.join("<br/>")}</p>
+      </div>
+    `;
     editor.chain().focus().insertContent(tocHtml).run();
-    toast.success("Table des matières générée.");
+    toast.success("Sommaire généré avec succès");
   };
+
+  // Recherche et remplacement
+  const handleFindReplace = () => {
+    if (!findText) return;
+    const html = editor.getHTML();
+    if (!html.includes(findText)) {
+      toast.error("Texte introuvable");
+      return;
+    }
+    const newHtml = html.split(findText).join(replaceText);
+    editor.commands.setContent(newHtml);
+    toast.success(`Remplacement effectué pour "${findText}"`);
+  };
+
+  const menus = ["Fichier", "Accueil", "Insertion", "Mise en page", "Références", "Révision", "Affichage"];
+
   return (
-    <div className="no-print border-b bg-card text-foreground">
-      {/* Barre supérieure des onglets Office */}
-      <div className="flex items-center gap-0.5 overflow-x-auto bg-primary px-1 py-0.5 text-primary-foreground scrollbar-none">
-        <Button
-          size="sm"
-          variant={tab === "Assistant" ? "secondary" : "ghost"}
-          className="h-6 shrink-0 px-2.5 text-xs font-semibold"
-          onClick={() => setTab("Assistant")}
-        >
-            <Sparkles className="h-3.5 w-3.5 mr-1" /> Assistant
-        </Button>
-        {[
-          "Fichier", "Accueil", "Insérer", "Mise en page",
-          "Références", "Publipostage", "Révision", "Affichage", "Retouche"
-        ].map((m) => (
-          <Button
+    <div className="no-print border-b border-border bg-card/95 backdrop-blur-sm select-none">
+      <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
+
+      {/* Onglets principaux du Ruban WPS / Word */}
+      <div className="flex items-center gap-1 px-3 pt-1 border-b border-border/60 overflow-x-auto scrollbar-none">
+        {menus.map((m) => (
+          <button
             key={m}
-            size="sm"
-            variant={activeMenu === m && tab !== "Assistant" ? "secondary" : "ghost"}
-            className="h-6 shrink-0 px-2 text-xs text-primary-foreground hover:bg-primary-foreground/15"
-            onClick={() => {
-              setActiveMenu(m);
-              setTab("Mise en forme");
-            }}
+            type="button"
+            onClick={() => setActiveMenu(m)}
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-t-md transition-colors relative ${
+              activeMenu === m
+                ? "bg-background text-primary border-t-2 border-primary border-x border-border/80 shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+            }`}
           >
             {m}
-          </Button>
+          </button>
         ))}
+
+        {/* Bouton rapide d'amélioration BERSA */}
+        <div className="ml-auto flex items-center gap-1.5 pb-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="default"
+            className="h-7 text-xs gap-1.5 bg-royal-gradient text-white shadow-xs font-medium"
+            onClick={correct}
+            title="Optimiser, corriger et enrichir le document avec BERSA"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-gold" />
+            <span>Améliorer</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Ruban dynamique contextuel */}
-      <div className="flex min-h-8 w-full max-w-full items-center gap-1 overflow-x-auto border-b bg-background px-1 py-0.5 text-xs scrollbar-none touch-pan-x">
-        {/* ONGLET FICHIER */}
+      {/* Boîte à outils contextuelle selon l'onglet actif */}
+      <div className="p-2 flex flex-wrap items-center gap-2 overflow-x-auto scrollbar-none min-h-[46px] bg-background/50">
+
+        {/* 1. FICHIER */}
         {activeMenu === "Fichier" && (
-          <div className="flex items-center flex-nowrap shrink-0 gap-1 overflow-x-auto max-w-full py-0.5 scrollbar-none touch-pan-x">
-            {btn(<FilePlus className="h-4 w-4" />, "Nouveau", handleNewDoc)}
-            <input type="file" ref={fileInputRef} className="hidden" accept=".txt,.html,.htm,.docx" onChange={handleOpenFile} />
-            {btn(<FolderOpen className="h-4 w-4" />, "Ouvrir", () => fileInputRef.current?.click())}
-            {btn(<Save className="h-4 w-4" />, "Enregistrer", save)}
-            {btn(<Download className="h-4 w-4" />, "Word (.docx)", () => void exportAs("docx"))}
-            {btn(<Download className="h-4 w-4" />, "HTML", () => void exportAs("html"))}
-            {btn(<Download className="h-4 w-4" />, "Texte (.txt)", () => void exportAs("txt"))}
-            {btn(<Printer className="h-4 w-4" />, "Imprimer / PDF", () => window.print())}
-            {btn(<Share2 className="h-4 w-4" />, "Partager / WhatsApp", handleShare)}
-            {btn(<Share2 className="h-4 w-4" />, "Partager le .docx", () => void shareDocx())}
+          <div className="flex items-center gap-1.5">
+            {btn(<FilePlus className="w-4 h-4 text-primary" />, "Nouveau", () => {
+              if (window.confirm("Créer un nouveau document vierge ? Les modifications non enregistrées seront perdues.")) {
+                editor.commands.setContent("<p></p>");
+                toast.success("Nouveau document vierge créé");
+              }
+            })}
+            {btn(<FolderOpen className="w-4 h-4 text-amber-500" />, "Ouvrir / Importer", attach)}
+            {btn(<Save className="w-4 h-4 text-emerald-600" />, "Enregistrer", save)}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            {btn(<Download className="w-4 h-4 text-blue-600" />, "Exporter Word (.docx)", () => {
+              const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Document BERSA</title></head><body>${editor.getHTML()}</body></html>`;
+              const blob = new Blob([html], { type: "application/msword;charset=utf-8" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `Document_BERSA_${new Date().toISOString().slice(0, 10)}.doc`;
+              a.click();
+              URL.revokeObjectURL(url);
+              toast.success("Document Word téléchargé");
+            })}
+            {btn(<Printer className="w-4 h-4" />, "Imprimer / PDF", () => window.print())}
           </div>
         )}
 
-        {/* ONGLET ACCUEIL */}
+        {/* 2. ACCUEIL */}
         {activeMenu === "Accueil" && (
-          <div className="flex items-center flex-nowrap shrink-0 gap-1 overflow-x-auto max-w-full py-0.5 scrollbar-none touch-pan-x">
-            {/* Presse-papier */}
-            {btn(<Scissors className="h-4 w-4" />, "Couper", () => document.execCommand("cut"))}
-            {btn(<Copy className="h-4 w-4" />, "Copier", () => document.execCommand("copy"))}
-            <div className="h-4 w-px bg-border mx-1" />
-
-            {/* Polices & Tailles */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Police */}
             <select
-              className="h-7 rounded border bg-card px-1 text-xs"
-              value={editor?.getAttributes("textStyle")["fontFamily"] ?? "Times New Roman"}
-              onChange={(e) => editor?.chain().focus().setFontFamily(e.target.value).run()}
+              className="h-8 px-2 text-xs rounded-md border border-input bg-background font-medium"
+              value={settings.fontFamily || "Times New Roman"}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSettings((s) => ({ ...s, fontFamily: val }));
+                editor.chain().focus().run();
+              }}
+              title="Police du document"
             >
-              <option value="Times New Roman">Times New Roman</option>
+              <option value="Times New Roman">Times New Roman (Standard)</option>
               <option value="Arial">Arial</option>
               <option value="Calibri">Calibri</option>
               <option value="Georgia">Georgia</option>
-              <option value="Courier New">Courier New</option>
             </select>
 
-            <select
-              className="h-7 rounded border bg-card px-1 text-xs"
-              value={editor?.getAttributes("textStyle")["fontSize"] ?? "13pt"}
-              onChange={(e) => editor?.chain().focus().setFontSize(e.target.value).run()}
+            {/* Taille de police */}
+            <div className="flex items-center gap-0.5 border border-input rounded-md px-1 bg-background h-8">
+              <span className="text-xs font-semibold px-1">12 pt</span>
+            </div>
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {/* Gras, Italique, Souligné, Barré */}
+            {iconOnly(<Bold className="w-4 h-4" />, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"), "Gras (Ctrl+B)")}
+            {iconOnly(<Italic className="w-4 h-4" />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"), "Italique (Ctrl+I)")}
+            {iconOnly(<Underline className="w-4 h-4" />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"), "Souligné (Ctrl+U)")}
+            {iconOnly(<Strikethrough className="w-4 h-4" />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"), "Barré")}
+            {iconOnly(<Subscript className="w-4 h-4" />, () => editor.chain().focus().toggleSubscript?.().run(), editor.isActive("subscript"), "Indice")}
+            {iconOnly(<Superscript className="w-4 h-4" />, () => editor.chain().focus().toggleSuperscript?.().run(), editor.isActive("superscript"), "Exposant")}
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {/* Styles rapides */}
+            <Button
+              type="button"
+              variant={editor.isActive("paragraph") ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2 text-xs"
+              onClick={() => editor.chain().focus().setParagraph().run()}
             >
-              {["10pt", "11pt", "12pt", "13pt", "14pt", "16pt", "18pt", "24pt"].map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-
-            {btn(<Bold className="h-4 w-4" />, "Gras", () => editor?.chain().focus().toggleBold().run(), editor?.isActive("bold"))}
-            {btn(<Italic className="h-4 w-4" />, "Italique", () => editor?.chain().focus().toggleItalic().run(), editor?.isActive("italic"))}
-            {btn(<Underline className="h-4 w-4" />, "Souligné", () => editor?.chain().focus().toggleUnderline().run(), editor?.isActive("underline"))}
-            {btn(<Strikethrough className="h-4 w-4" />, "Barré", () => editor?.chain().focus().toggleStrike().run(), editor?.isActive("strike"))}
-
-            <label className="flex items-center gap-1 cursor-pointer" title="Couleur texte">
-              <span className="font-bold underline">A</span>
-              <input type="color" className="h-6 w-6 cursor-pointer border-none bg-transparent" onChange={(e) => editor?.chain().focus().setColor(e.target.value).run()} />
-            </label>
-
-            <label className="flex items-center gap-1 cursor-pointer" title="Surlignage">
-              <span className="bg-yellow-200 px-1 font-bold">ab</span>
-              <input type="color" defaultValue="#fef08a" className="h-6 w-6 cursor-pointer border-none bg-transparent" onChange={(e) => editor?.chain().focus().toggleHighlight({ color: e.target.value }).run()} />
-            </label>
-
-            <div className="h-4 w-px bg-border mx-1" />
-
-            {/* Paragraphes & Alignement */}
-            {btn(<AlignLeft className="h-4 w-4" />, "Gauche", () => editor?.chain().focus().setTextAlign("left").run())}
-            {btn(<AlignCenter className="h-4 w-4" />, "Centré", () => editor?.chain().focus().setTextAlign("center").run())}
-            {btn(<AlignRight className="h-4 w-4" />, "Droite", () => editor?.chain().focus().setTextAlign("right").run())}
-            {btn(<AlignJustify className="h-4 w-4" />, "Justifié", () => editor?.chain().focus().setTextAlign("justify").run())}
-            {/* Interligne */}
-            <select
-              className="h-7 rounded border bg-card px-1 text-xs"
-              title="Interligne"
-              value={settings.lineSpacing || "1.6"}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSettings({ ...settings, lineSpacing: val });
-                if (editor?.view?.dom) {
-                  (editor.view.dom as HTMLElement).style.lineHeight = val;
-                }
-              }}
+              Normal
+            </Button>
+            <Button
+              type="button"
+              variant={editor.isActive("heading", { level: 1 }) ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2 text-xs font-bold"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
             >
-              <option value="1.0">1,0 (Simple)</option>
-              <option value="1.15">1,15</option>
-              <option value="1.5">1,5</option>
-              <option value="1.6">1,6 (BERSA)</option>
-              <option value="2.0">2,0 (Double)</option>
-              <option value="2.5">2,5</option>
-              <option value="3.0">3,0</option>
-            </select>
-            {btn(<List className="h-4 w-4" />, "Puces", () => editor?.chain().focus().toggleBulletList().run())}
-            {btn(<ListOrdered className="h-4 w-4" />, "Numéros", () => editor?.chain().focus().toggleOrderedList().run())}
-
-            {/* Styles Rapides */}
-            <select
-              className="h-7 rounded border bg-card px-1 text-xs font-semibold"
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val === "p") editor?.chain().focus().setParagraph().run();
-                else editor?.chain().focus().setHeading({ level: Number(val) as 1 | 2 | 3 | 4 }).run();
-              }}
+              Titre 1
+            </Button>
+            <Button
+              type="button"
+              variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2 text-xs font-semibold"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             >
-              <option value="p">Normal</option>
-              <option value="1">Titre 1</option>
-              <option value="2">Titre 2</option>
-              <option value="3">Titre 3</option>
-              <option value="4">Titre 4</option>
-            </select>
+              Titre 2
+            </Button>
+            <Button
+              type="button"
+              variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 px-2 text-xs italic"
+              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            >
+              Titre 3
+            </Button>
 
-            {btn(<Eraser className="h-4 w-4" />, "Effacer format", () => editor?.chain().focus().unsetAllMarks().clearNodes().run())}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {/* Alignements : G, C, D, Justifié */}
+            {iconOnly(<AlignLeft className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" }), "Aligner à gauche")}
+            {iconOnly(<AlignCenter className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" }), "Centrer")}
+            {iconOnly(<AlignRight className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" }), "Aligner à droite")}
+            {iconOnly(<AlignJustify className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("justify").run(), editor.isActive({ textAlign: "justify" }) || (!editor.isActive({ textAlign: "left" }) && !editor.isActive({ textAlign: "center" }) && !editor.isActive({ textAlign: "right" })), "Justifier (Standard A4)")}
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {/* Listes et retraits */}
+            {iconOnly(<List className="w-4 h-4" />, () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Puces")}
+            {iconOnly(<ListOrdered className="w-4 h-4" />, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numérotation")}
+            {iconOnly(<Indent className="w-4 h-4" />, () => editor.chain().focus().indent?.().run(), false, "Augmenter le retrait")}
+            {iconOnly(<Outdent className="w-4 h-4" />, () => editor.chain().focus().outdent?.().run(), false, "Diminuer le retrait")}
+            {iconOnly(<Eraser className="w-4 h-4" />, () => editor.chain().focus().unsetAllMarks().clearNodes().run(), false, "Effacer la mise en forme")}
           </div>
         )}
 
-        {/* ONGLET INSÉRER */}
-        {activeMenu === "Insérer" && (
-          <div className="flex flex-wrap items-center gap-1">
-            {btn(<Table className="h-4 w-4" />, "Tableau 3x3", () =>
-              editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-            )}
-            {btn(<Plus className="h-4 w-4" />, "+ Ligne", () =>
-              editor?.chain().focus().addRowAfter().run()
-            )}
-            {btn(<Plus className="h-4 w-4" />, "+ Colonne", () =>
-              editor?.chain().focus().addColumnAfter().run()
-            )}
-            {btn(<Trash2 className="h-4 w-4" />, "Suppr. Tableau", () =>
-              editor?.chain().focus().deleteTable().run()
-            )}
-            {btn(<Image className="h-4 w-4" />, "Insérer Image", () => {
-              const inp = document.createElement("input");
-              inp.type = "file";
-              inp.accept = "image/*";
-              inp.onchange = () => {
-                const f = inp.files?.[0];
-                if (!f) return;
-                const r = new FileReader();
-                r.onload = () => editor?.chain().focus().setImage({ src: String(r.result) }).run();
-                r.readAsDataURL(f);
-              };
-              inp.click();
+        {/* 3. INSERTION */}
+        {activeMenu === "Insertion" && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {btn(<TableIcon className="w-4 h-4 text-primary" />, "Insérer Tableau (3x3)", () => {
+              editor.chain().focus().insertTable?.({ rows: 3, cols: 3, withHeaderRow: true }).run();
+              toast.success("Tableau 3x3 inséré");
             })}
-            {btn(<Link2 className="h-4 w-4" />, "Lien", () => {
-              const url = prompt("Adresse URL (ex: https://...) :");
-              if (url) {
-                const valid = safeLink(url);
-                if (valid) editor?.chain().focus().setLink({ href: valid }).run();
-                else toast.error("Adresse URL invalide.");
+            {btn(<Plus className="w-4 h-4" />, "+ Colonne", () => editor.chain().focus().addColumnAfter?.().run())}
+            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "- Colonne", () => editor.chain().focus().deleteColumn?.().run())}
+            {btn(<Plus className="w-4 h-4" />, "+ Ligne", () => editor.chain().focus().addRowAfter?.().run())}
+            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "- Ligne", () => editor.chain().focus().deleteRow?.().run())}
+            
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {btn(<ImageIcon className="w-4 h-4 text-emerald-600" />, "Image...", () => fileInputRef.current?.click())}
+            {btn(<Link2 className="w-4 h-4 text-blue-600" />, "Lien", handleInsertLink)}
+            {btn(<FileText className="w-4 h-4 text-purple-600" />, "Saut de page", () => {
+              editor.chain().focus().insertContent('<hr class="page-break" /><p></p>').run();
+              toast.success("Saut de page inséré");
+            })}
+          </div>
+        )}
+
+        {/* 4. MISE EN PAGE */}
+        {activeMenu === "Mise en page" && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs text-muted-foreground font-medium">Marges :</span>
+            <Button
+              type="button"
+              size="sm"
+              variant={settings.margin === "Normales" ? "secondary" : "ghost"}
+              className="h-8 text-xs font-medium"
+              onClick={() => setSettings((s) => ({ ...s, margin: "Normales" }))}
+            >
+              2,5 cm (Standard)
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={settings.margin === "Étroites" ? "secondary" : "ghost"}
+              className="h-8 text-xs font-medium"
+              onClick={() => setSettings((s) => ({ ...s, margin: "Étroites" }))}
+            >
+              1,27 cm (Étroites)
+            </Button>
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            <span className="text-xs text-muted-foreground font-medium">Orientation :</span>
+            <Button
+              type="button"
+              size="sm"
+              variant={settings.orientation === "Portrait" ? "secondary" : "ghost"}
+              className="h-8 text-xs font-medium"
+              onClick={() => setSettings((s) => ({ ...s, orientation: "Portrait" }))}
+            >
+              Portrait (A4)
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={settings.orientation === "Paysage" ? "secondary" : "ghost"}
+              className="h-8 text-xs font-medium"
+              onClick={() => setSettings((s) => ({ ...s, orientation: "Paysage" }))}
+            >
+              Paysage
+            </Button>
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            <span className="text-xs text-muted-foreground font-medium">Format :</span>
+            <span className="text-xs font-semibold px-2 py-1 bg-muted rounded">A4 (210 × 297 mm)</span>
+          </div>
+        )}
+
+        {/* 5. RÉFÉRENCES */}
+        {activeMenu === "Références" && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {btn(<BookOpen className="w-4 h-4 text-primary" />, "Générer Sommaire / Table des matières", handleInsertTOC)}
+            {btn(<FileText className="w-4 h-4 text-amber-600" />, "Insérer Note de bas de page", () => {
+              const noteText = window.prompt("Texte de la note de bas de page :");
+              if (noteText) {
+                editor.chain().focus().insertContent(`<sup>[note]</sup>`).run();
+                toast.success("Note ajoutée");
               }
             })}
-            {btn(<FilePlus className="h-4 w-4" />, "Saut de page", () =>
-              editor?.chain().focus().insertContent({ type: "pageBreak" }).run()
-            )}
-            {btn(<PlusCircle className="h-4 w-4" />, "Page de garde", () => {
-              const cover = `<div class="cover-page" style="text-align:center;padding:5cm 0;border-bottom:2px solid #ccc;"><h1>TITRE DU TRAVAIL SCIENTIFIQUE</h1><h3>Sous-titre ou mention de recherche</h3><p style="margin-top:4cm;">Présenté par l'Auteur<br/>Directeur : Prof. Jules-Eminence NZUNDU NZALALEMBA</p><p style="margin-top:3cm;">BERSA — Berceau du Savoir</p></div><div class="page-break"></div>`;
-              editor?.chain().focus().insertContent(cover).run();
-              toast.success("Page de garde insérée.");
-            })}
-            {btn(<Type className="h-4 w-4" />, "Date & Heure", () => {
-              const d = new Date().toLocaleDateString("fr-FR", { dateStyle: "long" });
-              editor?.chain().focus().insertContent(` ${d} `).run();
-            })}
-          </div>
-        )}
-        {/* ONGLET MISE EN PAGE */}
-        {activeMenu === "Mise en page" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-1">
-              Marges :
-              <select
-                className="h-7 rounded border bg-card px-1"
-                value={settings.margin}
-                onChange={(e) => setSettings({ ...settings, margin: e.target.value as any })}
-              >
-                <option value="Normales">Normales (2.5 cm)</option>
-                <option value="Étroites">Étroites (1.27 cm)</option>
-                <option value="Larges">Larges (3.5 cm)</option>
-              </select>
-            </label>
-
-            <label className="flex items-center gap-1">
-              Orientation :
-              <select
-                className="h-7 rounded border bg-card px-1"
-                value={settings.orientation}
-                onChange={(e) => setSettings({ ...settings, orientation: e.target.value as any })}
-              >
-                <option value="Portrait">Portrait</option>
-                <option value="Paysage">Paysage</option>
-              </select>
-            </label>
-
-            <label className="flex items-center gap-1">
-              Format papier :
-              <select
-                className="h-7 rounded border bg-card px-1"
-                value={settings.format}
-                onChange={(e) => setSettings({ ...settings, format: e.target.value as any })}
-              >
-                <option value="A4">A4 (210 x 297 mm)</option>
-                <option value="A5">A5</option>
-                <option value="Letter">Letter</option>
-              </select>
-            </label>
-
-            <label className="flex items-center gap-1">
-              Filigrane :
-              <Input
-                placeholder="Ex: BROUILLON / CONFIDENTIEL"
-                value={settings.watermark}
-                onChange={(e) => setSettings({ ...settings, watermark: e.target.value })}
-                className="h-7 w-40 text-xs"
-              />
-            </label>
-          </div>
-        )}
-
-        {/* ONGLET RÉFÉRENCES */}
-        {activeMenu === "Références" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-1 font-semibold">
-              Norme académique :
-              <select
-                className="h-7 rounded border bg-card px-1"
-                value={citationStyle}
-                onChange={(e) => setCitationStyle(e.target.value as any)}
-              >
-                <option value="APA7">APA 7e édition</option>
-                <option value="APA6">APA 6e édition</option>
-                <option value="APA5">APA 5e édition</option>
-                <option value="Chicago">Chicago 15e / 16e</option>
-              </select>
-            </label>
-
-            {btn(<BookmarkCheck className="h-4 w-4" />, "Insérer une citation", insertCitation)}
-            {btn(<BookOpen className="h-4 w-4" />, "Table des matières", insertTOC)}
-            {btn(<Hash className="h-4 w-4" />, "Note de bas de page", () => {
-              const note = prompt("Texte de la note de bas de page :");
-              if (!note || !editor) return;
-              insertFootnote(editor, note);
+            {btn(<Type className="w-4 h-4 text-purple-600" />, "Citation APA 7ème", () => {
+              const author = window.prompt("Auteur (ex: BERSA, 2026) :", "BERSA, 2026");
+              if (author) {
+                editor.chain().focus().insertContent(` (${author})`).run();
+              }
             })}
           </div>
         )}
 
-        {/* ONGLET PUBLIPOSTAGE */}
-        {activeMenu === "Publipostage" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground">Champs de fusion :</span>
-            {["{{Nom}}", "{{Prénom}}", "{{Titre}}", "{{Institution}}", "{{Date}}"].map((field) => (
-              <Button
-                key={field}
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs"
-                onClick={() => editor?.chain().focus().insertContent(` ${field} `).run()}
-              >
-                + {field}
-              </Button>
-            ))}
-            {btn(<Sliders className="h-4 w-4" />, "Fusionner aperçu", () => {
-              let html = editor?.getHTML() ?? "";
-              html = html.replace(/{{Nom}}/g, "KABAMBA")
-                         .replace(/{{Prénom}}/g, "Dieudonné")
-                         .replace(/{{Institution}}/g, "Université de Kinshasa");
-              editor?.commands.setContent(html);
-              toast.success("Aperçu de la fusion appliqué sur l'exemple.");
-            })}
-          </div>
-        )}
-
-        {/* ONGLET RÉVISION */}
+        {/* 6. RÉVISION */}
         {activeMenu === "Révision" && (
           <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="default" className="h-7 text-xs" onClick={correct}>
-              <CheckSquare className="h-4 w-4 mr-1" /> Correction & Grammaire
-            </Button>
             <div className="flex items-center gap-1">
               <Input
-                placeholder="Rechercher"
+                placeholder="Rechercher..."
                 value={findText}
                 onChange={(e) => setFindText(e.target.value)}
-                className="h-7 w-28 text-xs"
+                className="h-8 w-28 text-xs"
               />
               <Input
-                placeholder="Remplacer"
+                placeholder="Remplacer par..."
                 value={replaceText}
                 onChange={(e) => setReplaceText(e.target.value)}
-                className="h-7 w-28 text-xs"
+                className="h-8 w-28 text-xs"
               />
-              {btn(<Replace className="h-4 w-4" />, "Remplacer tout", handleReplaceAll)}
+              <Button type="button" size="sm" variant="secondary" className="h-8 text-xs" onClick={handleFindReplace}>
+                Remplacer
+              </Button>
             </div>
-            <span className="text-muted-foreground ml-auto">
-              Statistiques : {editor?.getText().trim().split(/\s+/).filter(Boolean).length ?? 0} mots · {editor?.getText().length ?? 0} caractères
-            </span>
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            {btn(<Sparkles className="w-4 h-4 text-gold" />, "Vérification & Style BERSA", correct)}
           </div>
         )}
 
-        {/* ONGLET AFFICHAGE */}
+        {/* 7. AFFICHAGE */}
         {activeMenu === "Affichage" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-1">
-              Zoom :
-              <select
-                className="h-7 rounded border bg-card px-1"
-                value={settings.zoom}
-                onChange={(e) => setSettings({ ...settings, zoom: e.target.value })}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant={settings.ruler ? "secondary" : "ghost"}
+              className="h-8 text-xs"
+              onClick={() => setSettings((s) => ({ ...s, ruler: !s.ruler }))}
+            >
+              {settings.ruler ? "Masquer la Règle" : "Afficher la Règle"}
+            </Button>
+
+            <div className="h-5 w-[1px] bg-border mx-1" />
+
+            <span className="text-xs text-muted-foreground font-medium">Zoom :</span>
+            {["75%", "100%", "125%"].map((z) => (
+              <Button
+                key={z}
+                type="button"
+                size="sm"
+                variant={settings.zoom === z ? "secondary" : "ghost"}
+                className="h-8 text-xs"
+                onClick={() => setSettings((s) => ({ ...s, zoom: z }))}
               >
-                <option value="75%">75 %</option>
-                <option value="100%">100 %</option>
-                <option value="125%">125 %</option>
-                <option value="150%">150 %</option>
-                <option value="200%">200 %</option>
-              </select>
-            </label>
+                {z}
+              </Button>
+            ))}
 
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.ruler}
-                onChange={(e) => setSettings({ ...settings, ruler: e.target.checked })}
-              />
-              Règle métrique
-            </label>
-
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.viewMode === "lecture"}
-                onChange={(e) => {
-                  const mode = e.target.checked ? "lecture" : "page";
-                  editor?.setEditable(!e.target.checked);
-                  setSettings({ ...settings, viewMode: mode });
-                }}
-              />
-              Mode lecture seule
-            </label>
-          </div>
-        )}
-        {/* ONGLET RETOUCHE */}
-        {activeMenu === "Retouche" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground">Retouche de texte sélectionné :</span>
-            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => correct()}>
-              Harmoniser le style
-            </Button>
-            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => editor?.chain().focus().undo().run()}>
-              Annuler dernière retouche
-            </Button>
-            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => editor?.chain().focus().redo().run()}>
-              Rétablir
-            </Button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+            <div className="h-5 w-[1px] bg-bo
