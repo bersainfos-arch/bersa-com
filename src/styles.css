@@ -673,11 +673,15 @@ img, video, canvas, iframe, table { max-width: 100%; }
   background-size:
     var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark),
     var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark) !important;
-  background-position:
+    background-position:
+    /* Haut Gauche : trait horizontal puis vertical */
     calc(var(--pad-x) - var(--mark)) var(--pad-y), var(--pad-x) calc(var(--pad-y) - var(--mark)),
-    calc(100% - var(--pad-x) + var(--mark)) var(--pad-y), calc(100% - var(--pad-x)) calc(var(--pad-y) - var(--mark)),
-    calc(var(--pad-x) - var(--mark)) calc(100% - var(--pad-y)), var(--pad-x) calc(100% - var(--pad-y) + var(--mark)),
-    calc(100% - var(--pad-x) + var(--mark)) calc(100% - var(--pad-y)), calc(100% - var(--pad-x)) calc(100% - var(--pad-y) + var(--mark)) !important;
+    /* Haut Droit : trait horizontal puis vertical */
+    calc(100% - var(--pad-x)) var(--pad-y), calc(100% - var(--pad-x)) calc(var(--pad-y) - var(--mark)),
+    /* Bas Gauche : trait horizontal puis vertical */
+    calc(var(--pad-x) - var(--mark)) calc(100% - var(--pad-y)), var(--pad-x) calc(100% - var(--pad-y)),
+    /* Bas Droit : trait horizontal puis vertical */
+    calc(100% - var(--pad-x)) calc(100% - var(--pad-y)), calc(100% - var(--pad-x)) calc(100% - var(--pad-y)) !important;
 }
 .home-editor .home-ai-sheet p { margin: 0 0 0.65em; text-indent: 0 !important; }
 .home-editor .home-ai-sheet p[style*="text-align: center"],
