@@ -543,7 +543,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .home-ai-sheet .page-break { margin-inline: calc(-1 * var(--pad-x)) !important; }
 .home-editor .home-ai-sheet .auto-page-gap { --rest: 0px; background: transparent; }
 .home-editor .home-ai-sheet .auto-page-gap::after {
-  top: 0; bottom: 0; height: auto; border: none;
+  top: 0; bottom: 0; height: auto; border: none; background-color: var(--paper) !important;
   background-repeat: no-repeat;
   background-image:
     linear-gradient(var(--editor-desk), var(--editor-desk)),
