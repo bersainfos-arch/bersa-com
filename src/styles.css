@@ -145,79 +145,245 @@
   display: flex;
   justify-content: center;
 }
-/* Découpage du papier en pages A4 successives style WPS Word & Office Word */
-.home-ai-sheet {
+/* ========================================================
+   BERSA WRITER : FEUILLE A4 & ESPACE DE TRAVAIL PROFESSIONNEL
+   ======================================================== */
+
+/* Espace de travail gris clair façon bureau WPS / Word */
+.bersa-writer-workspace {
+  background-color: #f1f5f9;
+  background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
+  background-size: 16px 16px;
+  min-height: calc(100vh - 180px);
+  padding: 24px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Règle graduée horizontale en centimètres (A4 utile 16 cm) */
+.bersa-writer-ruler {
+  width: min(100%, 794px);
+  height: 22px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-bottom: 2px solid #94a3b8;
+  display: flex;
+  position: relative;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 9px;
+  color: #64748b;
+  user-select: none;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.bersa-writer-ruler-tick {
+  flex: 1;
+  border-left: 1px solid #cbd5e1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  padding-left: 2px;
+  padding-bottom: 1px;
+}
+
+/* Feuille A4 standard : 210 × 297 mm (794 × 1123 px à 96 DPI) */
+.home-ai-sheet,
+.a4-page {
   width: min(100%, 794px);
   min-height: 1123px;
   background-color: #ffffff !important;
-  background: #ffffff !important;
   color: #111827 !important;
-  border-radius: 3px;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 18px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
-  padding: 48px 48px !important;
-  margin: 0 auto 18px auto;
-  position: relative;
+  margin: 0 auto 32px auto;
+  /* Marges physiques réelles de 2,5 cm (94 px) */
+  padding: 94px 94px !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
   box-sizing: border-box;
-  font-family: "Times New Roman", Times, serif;
-  font-size: 13pt;
-  line-height: 1.6;
+  position: relative;
+
+  /* Typographie par défaut : Times New Roman 12 pt (16 px), interligne 1.5 */
+  font-family: "Times New Roman", Times, "Liberation Serif", serif !important;
+  font-size: 16px !important; /* 12 pt */
+  line-height: 1.5 !important;
+  text-align: justify !important;
+  text-justify: inter-word;
+  hyphens: auto;
   outline: none;
 }
 
-/* Coupure de feuille réelle : crée la séparation visuelle entre deux pages */
-.home-ai-sheet hr.page-break,
-.home-ai-sheet .a4-page-break {
-  display: block;
-  break-after: page;
-  height: 18px !important;
-  margin: 32px -48px !important;
-  background: #E5E7EB !important; /* Couleur du bureau qui sépare les 2 feuilles */
-  border-top: 1px solid #D1D5DB !important;
-  border-bottom: 1px solid #D1D5DB !important;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+/* Repères de marges d'angles discrets (2,5 cm) */
+.home-ai-sheet::before {
+  content: "";
+  position: absolute;
+  top: 94px;
+  left: 94px;
+  right: 94px;
+  bottom: 94px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.35);
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+  pointer-events: none;
 }
 
-@media (max-width: 640px) {
-  html, body {
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
+/* Retrait de première ligne automatique de 1,25 cm et espacement 0 pt */
+.home-ai-sheet p {
+  text-indent: 1.25cm;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  text-align: justify;
+}
+
+.home-ai-sheet p:empty::before {
+  content: "\00a0";
+}
+
+/* Titres académiques sans retrait de paragraphe */
+.home-ai-sheet h1,
+.home-ai-sheet h2,
+.home-ai-sheet h3,
+.home-ai-sheet h4 {
+  text-indent: 0 !important;
+  font-family: "Times New Roman", Times, serif !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+  page-break-after: avoid;
+  break-after: avoid;
+}
+
+.home-ai-sheet h1 { font-size: 20px !important; margin: 18px 0 10px !important; text-align: center; }
+.home-ai-sheet h2 { font-size: 18px !important; margin: 16px 0 8px !important; text-align: left; }
+.home-ai-sheet h3 { font-size: 16px !important; margin: 12px 0 6px !important; text-decoration: underline; }
+
+/* Tableaux professionnels Word */
+.home-ai-sheet table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 14px 0 !important;
+  font-size: 14px !important;
+  text-indent: 0 !important;
+}
+
+.home-ai-sheet th,
+.home-ai-sheet td {
+  border: 1px solid #1e293b !important;
+  padding: 6px 10px !important;
+  text-align: left;
+  vertical-align: top;
+}
+
+.home-ai-sheet th {
+  background-color: #f1f5f9 !important;
+  font-weight: 700;
+}
+
+/* Séparation visuelle nette entre deux pages A4 successives */
+.home-ai-sheet .auto-page-gap,
+.home-ai-sheet hr.page-break {
+  display: block;
+  break-after: page;
+  height: 24px !important;
+  margin: 40px -94px !important;
+  background: #cbd5e1 !important;
+  border: none !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.home-ai-sheet .auto-page-gap::after,
+.home-ai-sheet hr.page-break::after {
+  content: "PAGE SUIVANTE";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #475569;
+  background: #e2e8f0;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Barre d'état inférieure bureautique fixe */
+.bersa-writer-statusbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: #f8fafc;
+  border-top: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+  color: #475569;
+  z-index: 40;
+  user-select: none;
+}
+
+/* Adaptation responsive sur smartphone Android / tactile */
+@media (max-width: 768px) {
+  .bersa-writer-workspace {
+    padding: 12px 6px 60px;
   }
-  .home-paper-desk {
-    padding: 6px 6px 120px 6px;
-    height: calc(100dvh - 95px);
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
+  .bersa-writer-ruler {
+    display: none; /* Règle masquée sur petit écran */
   }
-  .home-paper-content {
+  .home-ai-sheet,
+  .a4-page {
     width: 100% !important;
-    max-width: 100% !important;
+    min-height: auto !important;
+    padding: 28px 18px !important; /* Marges réduites proportionnelles */
+    font-size: 14px !important;
+  }
+  .home-ai-sheet p {
+    text-indent: 0.8cm; /* Retrait proportionnel mobile */
+  }
+  .home-ai-sheet::before {
+    display: none;
+  }
+  .home-ai-sheet .auto-page-gap,
+  .home-ai-sheet hr.page-break {
+    margin: 24px -18px !important;
+  }
+}
+
+/* Rendu fidèle à l'impression / Export PDF */
+@media print {
+  .no-print,
+  .bersa-writer-statusbar,
+  .bersa-writer-ruler {
+    display: none !important;
+  }
+  .bersa-writer-workspace {
+    background: transparent !important;
     padding: 0 !important;
   }
-    /* Format de feuille mobile façon WPS Word : largeur totale fluide, marges réelles et capacité infinie */
   .home-ai-sheet {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 100% !important;
-    height: auto !important;
-    background-color: #ffffff !important;
-    background: #ffffff !important;
-    color: #111827 !important;
-    padding: 24px 16px !important;
-    font-family: "Times New Roman", Times, serif;
-    font-size: 12pt;
-    line-height: 1.6;
-    box-sizing: border-box !important;
-    border-radius: 2px;
+    box-shadow: none !important;
     border: none !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-    overflow-wrap: anywhere;
-    word-break: normal;
+    margin: 0 !important;
+    padding: 2.5cm !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
   }
-  .home-ai-sheet hr.page-break,
-  .home-ai-sheet .a4-page-break {
-    margin: 28px -16px !important;
+  .home-ai-sheet::before {
+    display: none !important;
+  }
+  .home-ai-sheet .auto-page-gap,
+  .home-ai-sheet hr.page-break {
+    display: none !important;
+    break-before: page;
+  }
+}
     height: 16px !important;
     background: #f1f5f9 !important;
     border-top: 1px dashed #cbd5e1 !important;
