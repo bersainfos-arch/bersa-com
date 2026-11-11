@@ -1102,6 +1102,60 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           </div>
         )}  
+                {/* ========================================================= */}
+        {/* Barre d'état inférieure permanente BERSA WRITER (Word/WPS) */}
+        {/* ========================================================= */}
+        <div className="bersa-writer-statusbar no-print">
+          {/* À gauche : Page, Mots, Caractères */}
+          <div className="flex items-center gap-2 sm:gap-3 text-[11px]">
+            <span className="font-semibold text-primary">
+              Page 1 sur {totalPages}
+            </span>
+            <span className="text-muted-foreground">•</span>
+            <span>
+              {editor?.getText().trim() ? editor.getText().trim().split(/\s+/).filter(Boolean).length : 0} mots
+            </span>
+            <span className="hidden sm:inline text-muted-foreground">•</span>
+            <span className="hidden sm:inline">
+              {editor?.getText().length || 0} caractères
+            </span>
+          </div>
+
+          {/* À droite : Langue & Zoom interactif */}
+          <div className="flex items-center gap-2 sm:gap-3 text-[11px]">
+            <span className="font-medium text-muted-foreground hidden xs:inline">Français</span>
+            <span className="hidden xs:inline text-muted-foreground">•</span>
+            <div className="flex items-center gap-1 bg-muted/60 rounded px-1 py-0.5 border border-border/50">
+              <button
+                type="button"
+                className="px-1.5 py-0.5 font-bold hover:bg-background rounded transition"
+                onClick={() => {
+                  const current = parseInt(settings.zoom) || 100;
+                  const next = Math.max(50, current - 10);
+                  setSettings(s => ({ ...s, zoom: `${next}%` }));
+                }}
+                title="Réduire le zoom (-10%)"
+              >
+                −
+              </button>
+              <span className="w-10 text-center font-bold text-foreground">
+                {settings.zoom || "100%"}
+              </span>
+              <button
+                type="button"
+                className="px-1.5 py-0.5 font-bold hover:bg-background rounded transition"
+                onClick={() => {
+                  const current = parseInt(settings.zoom) || 100;
+                  const next = Math.min(200, current + 10);
+                  setSettings(s => ({ ...s, zoom: `${next}%` }));
+                }}
+                title="Agrandir le zoom (+10%)"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
     </Frame>
   );
