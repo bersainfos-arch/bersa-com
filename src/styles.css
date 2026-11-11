@@ -283,14 +283,14 @@
 .home-ai-sheet hr.page-break {
   display: block;
   break-after: page;
-  height: 24px !important;
-  margin: 40px -94px !important;
-  background: #cbd5e1 !important;
+ height: 18px !important;
+  margin: 28px 0 !important;
+  background: #e2e8f0 !important;
   border: none !important;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  border-top: 1px dashed #cbd5e1 !important;
+  border-bottom: 1px dashed #cbd5e1 !important;
   position: relative;
-}
-
+  width: 100% !important;
 .home-ai-sheet .auto-page-gap::after,
 .home-ai-sheet hr.page-break::after {
   content: "PAGE SUIVANTE";
@@ -680,7 +680,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
     calc(var(--pad-x) - var(--mark)) calc(100% - var(--pad-y)), var(--pad-x) calc(100% - var(--pad-y) + var(--mark)),
     calc(100% - var(--pad-x) + var(--mark)) calc(100% - var(--pad-y)), calc(100% - var(--pad-x)) calc(100% - var(--pad-y) + var(--mark)) !important;
 }
-.home-editor .home-ai-sheet p { margin: 0 0 1.1em; text-indent: calc(var(--sheet-w) * 0.06); }
+.home-editor .home-ai-sheet p { margin: 0 0 0.65em; text-indent: 0 !important; }
 .home-editor .home-ai-sheet p[style*="text-align: center"],
 .home-editor .home-ai-sheet p[style*="text-align: right"],
 .home-editor .home-ai-sheet li p, .home-editor .home-ai-sheet td p, .home-editor .home-ai-sheet th p,
