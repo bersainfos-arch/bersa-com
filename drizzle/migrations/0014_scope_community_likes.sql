@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "Lecture des likes par membres" ON public.community_post_likes;
+CREATE POLICY "Lecture de ses propres likes" ON public.community_post_likes FOR SELECT TO authenticated USING (auth.uid() = user_id);
