@@ -33,12 +33,14 @@ export const AutoPages = Extension.create({
             const height = element.getBoundingClientRect().height + parseFloat(getComputedStyle(element).marginBottom || "0");
             if (node.type.name === "pageBreak") { used = 0; number++; return; }
             if (used > 0 && used + height > usable) {
-              const gap = Math.max(0, usable - used) + padding * 2 + 18;
+              const rest = Math.max(0, usable - used);
+              const gap = rest + padding * 2 + 18;
               number++;
               decos.push(Decoration.widget(pos, () => {
                 const el = document.createElement("div");
                 el.className = "auto-page-gap";
                 el.style.height = `${gap}px`;
+                el.style.setProperty("--rest", `${rest}px`);
                 el.setAttribute("contenteditable", "false");
                 el.dataset['page'] = String(number);
                 return el;

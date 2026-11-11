@@ -488,3 +488,78 @@ img, video, canvas, iframe, table { max-width: 100%; }
   .home-ai-sheet .auto-page-gap { height: 0 !important; margin: 0 !important; break-before: page; }
   .home-ai-sheet .auto-page-gap::after { display: none; }
 }
+
+/* Modèle de papier Word/WPS : mise en page proportionnelle à une vraie feuille A4.
+   Aucun texte n'est imposé ; seules les règles de présentation s'appliquent. */
+.home-paper-content { container-type: inline-size; }
+.home-editor .home-paper-content .home-ai-sheet {
+  --sheet-w: min(100cqw, 794px);
+  --pad-x: calc(var(--sheet-w) * 0.119);
+  --pad-y: calc(var(--sheet-w) * 0.1);
+  --mark: calc(var(--sheet-w) * 0.03);
+  --mark-color: color-mix(in oklab, var(--paper-ink) 28%, transparent);
+  width: var(--sheet-w) !important;
+  max-width: 100% !important;
+  min-height: calc(var(--sheet-w) * 297 / 210) !important;
+  padding: var(--pad-y) var(--pad-x) !important;
+  font-family: "Times New Roman", Times, serif;
+  font-size: max(7px, calc(var(--sheet-w) * 0.02015)) !important;
+  line-height: 1.5 !important;
+  text-align: justify;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  border-radius: 0;
+  background-image:
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)) !important;
+  background-repeat: no-repeat !important;
+  background-size:
+    var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark),
+    var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark) !important;
+  background-position:
+    calc(var(--pad-x) - var(--mark)) var(--pad-y), var(--pad-x) calc(var(--pad-y) - var(--mark)),
+    calc(100% - var(--pad-x) + var(--mark)) var(--pad-y), calc(100% - var(--pad-x)) calc(var(--pad-y) - var(--mark)),
+    calc(var(--pad-x) - var(--mark)) calc(100% - var(--pad-y)), var(--pad-x) calc(100% - var(--pad-y) + var(--mark)),
+    calc(100% - var(--pad-x) + var(--mark)) calc(100% - var(--pad-y)), calc(100% - var(--pad-x)) calc(100% - var(--pad-y) + var(--mark)) !important;
+}
+.home-editor .home-ai-sheet p { margin: 0 0 1.1em; text-indent: calc(var(--sheet-w) * 0.06); }
+.home-editor .home-ai-sheet p[style*="text-align: center"],
+.home-editor .home-ai-sheet p[style*="text-align: right"],
+.home-editor .home-ai-sheet li p, .home-editor .home-ai-sheet td p, .home-editor .home-ai-sheet th p,
+.home-editor .home-ai-sheet blockquote p { text-indent: 0; }
+.home-editor .home-ai-sheet li p, .home-editor .home-ai-sheet td p, .home-editor .home-ai-sheet th p { margin-bottom: 0.2em; }
+.home-editor .home-ai-sheet h1, .home-editor .home-ai-sheet h2, .home-editor .home-ai-sheet h3 {
+  text-align: left; text-indent: 0; line-height: 1.3; margin: 1.2em 0 0.8em; hyphens: manual;
+}
+.home-editor .home-ai-sheet h1 { font-size: 1.25em; } .home-editor .home-ai-sheet h2 { font-size: 1.1em; } .home-editor .home-ai-sheet h3 { font-size: 1em; }
+.home-editor .home-ai-sheet > :first-child { margin-top: 0; }
+.home-editor .home-ai-sheet .auto-page-gap,
+.home-editor .home-ai-sheet .page-break { margin-inline: calc(-1 * var(--pad-x)) !important; }
+.home-editor .home-ai-sheet .auto-page-gap { --rest: 0px; background: transparent; }
+.home-editor .home-ai-sheet .auto-page-gap::after {
+  top: 0; bottom: 0; height: auto; border: none; background-color: var(--paper) !important;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--editor-desk), var(--editor-desk)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color)),
+    linear-gradient(var(--mark-color), var(--mark-color)), linear-gradient(var(--mark-color), var(--mark-color));
+  background-size: 100% 18px,
+    var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark),
+    var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark);
+  background-position: 0 calc(var(--rest) + var(--pad-y)),
+    calc(var(--pad-x) - var(--mark)) var(--rest), var(--pad-x) var(--rest),
+    calc(100% - var(--pad-x) + var(--mark)) var(--rest), calc(100% - var(--pad-x)) var(--rest),
+    calc(var(--pad-x) - var(--mark)) 100%, var(--pad-x) 100%,
+    calc(100% - var(--pad-x) + var(--mark)) 100%, calc(100% - var(--pad-x)) 100%;
+}
+@media (max-width: 640px) {
+  .home-editor .home-paper-desk { padding-inline: 0 !important; }
+}
+@media print {
+  .home-editor .home-paper-content .home-ai-sheet { background-image: none !important; width: 100% !important; font-size: 12pt !important; padding: 0 !important; }
+  .home-editor .home-ai-sheet .auto-page-gap::after { display: none !important; }
+}
