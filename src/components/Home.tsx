@@ -365,23 +365,63 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 className="relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-2xl p-2.5 whitespace-normal bg-gradient-to-br from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white shadow-[0_6px_20px_rgba(10,35,66,0.22)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10 ring-1 ring-gold/20"
               >
                 <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
-                               {tmpl.id === "cv" ? (
-                  <span className="relative size-9 overflow-hidden rounded-xl bg-slate-950 ring-1 ring-gold/60 shadow-md">
-                    {CV_MODEL_PHOTOS.map((src, idx) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt="Modèle CV"
-                        className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ease-in-out ${
-                          cvSlideIndex === idx ? "opacity-100 scale-100" : "opacity-0 scale-95"
-                        }`}
-                      />
-                    ))}
-                    <span className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent h-4 flex items-center justify-center pointer-events-none">
-                      <span className="text-[7px] font-black tracking-wider text-gold uppercase drop-shadow-xs">CV</span>
+                        {tmpl.id === "cv" ? (
+                  <span
+                    title="Modèle de CV complet rempli"
+                    className="relative w-8 h-11 shrink-0 rounded-[3px] bg-white ring-1 ring-gold/70 shadow-[0_4px_12px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col pointer-events-none transition-transform group-hover:scale-105"
+                  >
+                    {/* Bandeau d'en-tête coloré avec titre et photo intégrée */}
+                    <span className="relative h-3.5 bg-gradient-to-r from-[#0A2342] to-[#1E3A8A] flex items-center px-1 gap-1">
+                      {/* Photo d'identité intégrée dans le document */}
+                      <span className="relative size-2.5 rounded-[1px] overflow-hidden bg-slate-900 ring-[0.5px] ring-white/80 shrink-0">
+                        {CV_MODEL_PHOTOS.map((src, idx) => (
+                          <img
+                            key={src}
+                            src={src}
+                            alt="Photo CV"
+                            className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ${
+                              cvSlideIndex === idx ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                        ))}
+                      </span>
+                      {/* Lignes représentant le Nom et le Titre du candidat */}
+                      <span className="flex-1 flex flex-col justify-center gap-[1.5px]">
+                        <span className="h-[2px] w-3.5 bg-gold rounded-[0.5px]" />
+                        <span className="h-[1.5px] w-2.5 bg-white/80 rounded-[0.5px]" />
+                      </span>
+                    </span>
+
+                    {/* Corps du CV en 2 colonnes remplies */}
+                    <span className="flex-1 flex p-[2px] gap-[2px] bg-white">
+                      {/* Colonne latérale gauche (coordonnées + compétences) */}
+                      <span className="w-[8px] bg-slate-100 rounded-[1px] p-[1px] flex flex-col gap-[1.5px]">
+                        <span className="h-[1.5px] w-full bg-[#0A2342] rounded-[0.5px]" />
+                        <span className="h-[1px] w-[5px] bg-slate-400 rounded-[0.5px]" />
+                        <span className="h-[1px] w-[6px] bg-slate-400 rounded-[0.5px]" />
+                        <span className="h-[1.5px] w-full bg-gold/90 rounded-[0.5px] mt-[1px]" />
+                        <span className="h-[1px] w-[4px] bg-slate-400 rounded-[0.5px]" />
+                        <span className="h-[1px] w-[5px] bg-slate-400 rounded-[0.5px]" />
+                      </span>
+
+                      {/* Colonne principale droite (Expériences professionnelles + Formations) */}
+                      <span className="flex-1 flex flex-col gap-[1.5px] pl-[1px]">
+                        <span className="h-[1.5px] w-4 bg-[#0A2342] rounded-[0.5px]" />
+                        <span className="h-[1px] w-full bg-slate-300 rounded-[0.5px]" />
+                        <span className="h-[1px] w-3 bg-slate-300 rounded-[0.5px]" />
+                        <span className="h-[1.5px] w-4 bg-[#0A2342] rounded-[0.5px] mt-[1px]" />
+                        <span className="h-[1px] w-full bg-slate-300 rounded-[0.5px]" />
+                        <span className="h-[1px] w-2.5 bg-slate-300 rounded-[0.5px]" />
+                      </span>
+                    </span>
+
+                    {/* Badge A4 discret en bas */}
+                    <span className="absolute bottom-0 right-0 bg-gold/90 text-[5px] font-black leading-none px-[2px] py-[0.5px] text-[#0A2342] rounded-tl-[2px]">
+                      A4
                     </span>
                   </span>
                 ) : (
+                
                   <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
                     <Icon className="size-5 text-gold" />
                   </span>
