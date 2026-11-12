@@ -61,11 +61,11 @@ const TEMPLATES: TemplateItem[] = [
     icon: FileBadge,
     prompt: "Rédige une lettre administrative officielle respectant les normes professionnelles.",
   },
-  {
+    {
     id: "cv",
-    label: "CV & Motivation",
+    label: "Modèles de CV Pro",
     icon: Briefcase,
-    prompt: "Conçois un CV percutant et une lettre de motivation ciblée.",
+    prompt: "Conçois un CV moderne et percutant dans le Studio CV BERSA.",
   },
   {
     id: "juridique",
