@@ -542,7 +542,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     };
   }, [editor]);
 
-  return (
       const documentMenuActions = {
     onSave: () => void handleSaveDocument(),
     onSaveAsWord: () => void (async () => {
@@ -624,12 +623,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     },
   };
 
-  return (
+    return (
     <Frame minimal title={docFileName} onTitleChange={setDocFileName} documentActions={documentMenuActions}>
-
-    <Frame>
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
-               {/* Barre au-dessus du papier : Mise en forme, Améliorer & Enregistrer */}
+       {/* Barre au-dessus du papier : Mise en forme, Améliorer & Enregistrer */}
         <div className="no-print mx-auto mb-1.5 flex w-full max-w-[794px] flex-col gap-1.5 px-1 sm:px-0 min-w-0">
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/90 px-2.5 py-1.5 text-xs backdrop-blur-sm">
             
