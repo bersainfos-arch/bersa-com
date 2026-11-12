@@ -165,7 +165,7 @@ export function AppShell({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={6} className="w-64 p-2 bg-white text-slate-900 shadow-xl border border-slate-200 rounded-xl">
-                                    {/* Actions du document actif (comme dans les 3 points des documents récents) */}
+                  {/* Actions du document actif (comme dans les 3 points des documents récents) */}
                   {documentActions && (
                     <>
                       <DropdownMenuLabel className="font-serif text-xs font-bold text-[#0a192f] uppercase tracking-wider px-2 py-1 flex items-center justify-between">
