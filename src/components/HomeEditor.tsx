@@ -61,6 +61,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [error, setError] = useState("");
   const [files, setFiles] = useState<Attachment[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
+  const openFileInput = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "" });
   const [recording, setRecording] = useState(false);
   const [audio, setAudio] = useState<File | null>(null);
@@ -238,6 +239,21 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }, 2000);
     return () => clearInterval(saveTimer);
   }, [editor]);
+  const handleOpenLocalFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+    try {
+      const result = await importDocumentFile(file);
+      editor.commands.setContent(result.html);
+      const cleanTitle = file.name.replace(/\.[^.]+$/, "");
+      setDocFileName(cleanTitle);
+      toast.success(`« ${file.name} » ouvert dans l'atelier pour retouche.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible d'ouvrir ce document.");
+    } finally {
+      e.target.value = "";
+    }
+  };
 
   // Navigation fluide entre l'appel et la note
   const scrollToTarget = (targetId: string) => {
@@ -527,6 +543,90 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, [editor]);
 
   return (
+      const documentMenuActions = {
+    onSave: () => void handleSaveDocument(),
+    onSaveAsWord: () => void (async () => {
+      if (!editor) return;
+      const html = `<html><head><meta charset="utf-8"><title>${docFileName}</title></head><body style="font-family:'Times New Roman';font-size:13pt;line-height:1.6">${editor.getHTML()}</body></html>`;
+      const blob = new Blob([html], { type: "application/msword" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${docFileName || "Document_BERSA"}.doc`;
+      a.click();
+      toast.success("Document Word téléchargé.");
+    })(),
+    onSaveAsPdf: () => void (async () => {
+      if (!editor) return;
+      const w = window.open("", "_blank");
+      if (!w) { toast.error("Autorisez les fenêtres pour exporter en PDF."); return; }
+      w.document.write(`<html><head><meta charset="utf-8"><title>${docFileName}</title><style>@page{size:A4;margin:2cm}body{font-family:'Times New Roman';font-size:13pt;line-height:1.6}</style></head><body>${editor.getHTML()}</body></html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 300);
+    })(),
+    onSaveAsTxt: () => void (async () => {
+      if (!editor) return;
+      const blob = new Blob([editor.getText()], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${docFileName || "Document_BERSA"}.txt`;
+      a.click();
+      toast.success("Fichier texte téléchargé.");
+    })(),
+    onSaveAsHtml: () => void (async () => {
+      if (!editor) return;
+      const blob = new Blob([editor.getHTML()], { type: "text/html" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${docFileName || "Document_BERSA"}.html`;
+      a.click();
+      toast.success("Page web HTML téléchargée.");
+    })(),
+    onNewDoc: () => {
+      if (!editor) return;
+      if (confirm("Créer un nouveau document vierge ? Les modifications non enregistrées seront effacées.")) {
+        editor.commands.setContent("<p></p>");
+        setDocFileName("Mon_Document_BERSA");
+        toast.success("Feuille blanche A4 prête.");
+      }
+    },
+    onOpenFile: () => openFileInput.current?.click(),
+    onRename: () => {
+      const next = prompt("Nouveau nom du document :", docFileName)?.trim();
+      if (next) { setDocFileName(next); toast.success("Document renommé."); }
+    },
+    onShare: () => {
+      if (navigator.share && editor) {
+        navigator.share({ title: docFileName, text: editor.getText().slice(0, 3000) }).catch(() => {});
+      } else {
+        toast.info("Lien de partage copié.");
+      }
+    },
+    onDuplicate: async () => {
+      if (!editor) return;
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return;
+      await supabase.from("user_docs").insert({
+        user_id: data.user.id,
+        title: `${docFileName} (Copie)`,
+        content: editor.getHTML(),
+        word_count: editor.getText().split(/\s+/).filter(Boolean).length,
+        category: "general"
+      });
+      toast.success("Copie enregistrée dans vos documents.");
+    },
+    onDelete: () => {
+      if (!editor) return;
+      if (confirm("Voulez-vous effacer tout le texte de la feuille ?")) {
+        editor.commands.setContent("<p></p>");
+        toast.info("Feuille vidée.");
+      }
+    },
+  };
+
+  return (
+    <Frame minimal title={docFileName} onTitleChange={setDocFileName} documentActions={documentMenuActions}>
+
     <Frame>
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
                {/* Barre au-dessus du papier : Mise en forme, Améliorer & Enregistrer */}
@@ -686,6 +786,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         )}
         
         <input ref={fileInput} type="file" multiple className="hidden" onChange={e => { void addFiles(e.target.files); e.target.value = ""; }} />
+        <input
+  ref={openFileInput}
+  type="file"
+  accept=".docx,.doc,.pdf,.txt,.md,.csv,.html,.htm"
+  className="hidden"
+  onChange={handleOpenLocalFile}
+/>
 
         {tab === "Insérer" && (
           <p className="no-print px-2 py-1 text-[11px] text-muted-foreground">
