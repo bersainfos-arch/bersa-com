@@ -47,6 +47,18 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
+  { to: "/redaction", label: "Rédaction", icon: PenLine },
+  { to: "/formations", label: "Formation", icon: GraduationCap },
+  { to: "/bibliotheque", label: "Bibliothèque", icon: BookOpen },
+  { to: "/opportunites", label: "Opportunités", icon: Briefcase },
+  { to: "/documents", label: "Documents", icon: FileText },
+  { to: "/cv-studio", label: "Modèles CV", icon: User },
+  { to: "/anti-plagiat", label: "Anti-plagiat", icon: ShieldAlert },
+  { to: "/abonnements", label: "Abonnements", icon: Crown },
+  { to: "/parametres", label: "Paramètres", icon: Settings },
+  { to: "/gestion", label: "Gestion", icon: ShieldCheck, adminOnly: true },
+];
+
 export interface DocumentMenuActions {
   onSave?: () => void;
   onSaveAsWord?: () => void;
