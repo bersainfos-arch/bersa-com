@@ -56,7 +56,7 @@ export async function importDocumentFile(file: File): Promise<{ html: string }> 
     const pdfjs = await import("pdfjs-dist");
     try {
       const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-      pdfjs.GlobalWorkerOptions.workerSrc = worker.default || worker;
+            pdfjs.GlobalWorkerOptions.workerSrc = (worker.default || worker) as unknown as string;
     } catch {}
     const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
     const pages: string[] = [];
