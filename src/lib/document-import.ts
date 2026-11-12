@@ -29,31 +29,56 @@ export function sanitizeDocumentHtml(html: string) {
   return doc.body.innerHTML;
 }
 export async function importDocumentFile(file: File): Promise<{ html: string }> {
+  // 1. Fichiers Word récents .docx
   if (/\.docx$/i.test(file.name)) {
     const mammoth = await import("mammoth");
     const result = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
     if (!result.value.trim()) throw new Error("Document Word vide.");
     return { html: sanitizeDocumentHtml(result.value) };
   }
+
+  // 2. Fichiers Word classiques .doc ou HTML exportés
+  if (/\.(doc|html|htm)$/i.test(file.name)) {
+    const text = await file.text();
+    if (/<\w+[^>]*>/.test(text)) {
+      return { html: sanitizeDocumentHtml(text) };
+    }
+    try {
+      const mammoth = await import("mammoth");
+      const result = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+      if (result.value.trim()) return { html: sanitizeDocumentHtml(result.value) };
+    } catch {}
+    return { html: textHtml(text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "")) };
+  }
+
+  // 3. Fichiers PDF (extraction du texte et pagination)
   if (/\.pdf$/i.test(file.name)) {
     const pdfjs = await import("pdfjs-dist");
-    const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-    pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+    try {
+      const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+      pdfjs.GlobalWorkerOptions.workerSrc = worker.default || worker;
+    } catch {}
     const pdf = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
     const pages: string[] = [];
     try {
       for (let n = 1; n <= pdf.numPages; n++) {
         const page = await pdf.getPage(n);
         const text = await page.getTextContent();
-        pages.push(text.items.map(item => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join(""));
+        pages.push(text.items.map((item) => ("str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "")).join(""));
       }
-    } finally { await pdf.cleanup(); }
-    if (!pages.join("").trim()) throw new Error("PDF numérisé sans texte : ajoutez-le avec le trombone pour analyse.");
-    return { html: pages.map(text => textHtml(text)).join('<div class="page-break"></div>') };
+    } finally {
+      await pdf.cleanup();
+    }
+    if (!pages.join("").trim()) throw new Error("PDF numérisé sans texte modifiable.");
+    return { html: pages.map((t) => textHtml(t)).join('<div class="page-break"></div>') };
   }
+
+  // 4. Fichiers texte
   if (/\.(txt|md|csv)$/i.test(file.name)) return { html: textHtml(await file.text()) };
-  throw new Error("Choisissez Word (.docx), PDF ou texte.");
+
+  throw new Error("Choisissez un fichier Word (.docx, .doc), PDF ou texte.");
 }
+
 function textHtml(text: string) {
   return text.split(/\n/).map(line => `<p>${line.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>`).join("");
 }
