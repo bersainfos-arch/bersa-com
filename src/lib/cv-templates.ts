@@ -90,7 +90,7 @@ const modern: CvTemplate[] = Array.from({ length: 100 }, (_, i) => {
     accent: P.a,
     font: FONTS_MODERN[i % FONTS_MODERN.length]!,
     premium: i % 2 === 1,
-    defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length],
+        defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length]!,
   };
 });
 
@@ -104,7 +104,7 @@ const classic: CvTemplate[] = Array.from({ length: 20 }, (_, i) => ({
   accent: CLASSIC_COLORS[i % CLASSIC_COLORS.length]!,
   font: FONTS_CLASSIC[i % FONTS_CLASSIC.length]!,
   premium: i >= 10,
-  defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length],
+  defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length]!,
 }));
 
 export const CV_TEMPLATES: CvTemplate[] = [...modern, ...classic];
@@ -116,9 +116,9 @@ export const PLACEHOLDER_PHOTO =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 170"><rect width="140" height="170" fill="#ffffff"/><circle cx="70" cy="58" r="30" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/><path d="M22 165c5-34 26-50 48-50s43 16 48 50z" fill="#cbd5e1"/><path d="M62 110l8 24 8-24z" fill="#94a3b8"/><rect x="1" y="1" width="138" height="168" fill="none" stroke="#e2e8f0" stroke-width="2" rx="4"/></svg>`,
   );
 
-// Données 100% vierges à l'ouverture : aucune fausse information pré-remplie
+// Données 100% vierges à l'ouverture : aucun faux nom ni faux contenu, photo par défaut conservée
 export const EMPTY_CV: CvData = {
-  photo: PLACEHOLDER_PHOTO,
+  photo: "",
   showPhoto: true,
   firstName: "",
   lastName: "",
@@ -133,12 +133,8 @@ export const EMPTY_CV: CvData = {
   skills: [],
   languages: [],
   hobbies: [],
-  experiences: [
-    { start: "", end: "", role: "", company: "", description: "" },
-  ],
-  education: [
-    { start: "", end: "", degree: "", school: "", description: "" },
-  ],
+  experiences: [],
+  education: [],
 };
 
 // Modèle de démonstration pour les vignettes de sélection (style soigné Mon CV Parfait)
