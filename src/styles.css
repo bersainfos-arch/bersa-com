@@ -278,37 +278,33 @@
   font-weight: 700;
 }
 
-/* Séparation visuelle nette entre deux pages A4 successives */
-.home-ai-sheet .auto-page-gap,
-.home-ai-sheet hr.page-break {
-  display: block;
-  break-after: page;
-  height: 18px !important;
-  margin: 20px 0 !important;
-  background: #e2e8f0 !important;
-  border: none !important;
-  border-top: 1px dashed #cbd5e1 !important;
-  border-bottom: 1px dashed #cbd5e1 !important;
-  position: relative;
+/* Séparation visuelle nette entre deux pages A4 successives sans dépassement */
+.home-ai-sheet .auto-page-gap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 24px !important;
+  margin: 24px 0 !important;
+  margin-inline: 0 !important;
   width: 100% !important;
   box-sizing: border-box !important;
+  background: #e2e8f0 !important;
+  border-top: 1px dashed #cbd5e1 !important;
+  border-bottom: 1px dashed #cbd5e1 !important;
+  user-select: none;
 }
-.home-ai-sheet .auto-page-gap::after,
-.home-ai-sheet hr.page-break::after {
-  content: "PAGE SUIVANTE";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+
+.home-ai-sheet .auto-page-gap .page-gap-badge {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: #475569;
-  background: #e2e8f0;
-  padding: 2px 10px;
+  background: #ffffff;
+  padding: 2px 12px;
   border-radius: 9999px;
   border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 /* Barre d'état inférieure bureautique fixe */
@@ -642,7 +638,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-writing-layout { padding-bottom: env(safe-area-inset-bottom, 0px); }
 @media (max-width: 640px) {
   .home-editor .home-ai-sheet { min-height: calc((100vw - 16px) * 297 / 210); font-size: 13pt; line-height: 1.6; }
-  .home-ai-sheet .auto-page-gap, .home-ai-sheet .page-break { margin-inline: -16px; }
+  .home-ai-sheet .auto-page-gap, .home-ai-sheet .page-break { margin-inline: 0 !important; }
   .home-editor-commands { max-height: calc(100dvh - 108px); overflow-y: auto; }
 }
 @media print {
@@ -701,7 +697,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .home-ai-sheet h1 { font-size: 1.25em; } .home-editor .home-ai-sheet h2 { font-size: 1.1em; } .home-editor .home-ai-sheet h3 { font-size: 1em; }
 .home-editor .home-ai-sheet > :first-child { margin-top: 0; }
 .home-editor .home-ai-sheet .auto-page-gap,
-.home-editor .home-ai-sheet .page-break { margin-inline: calc(-1 * var(--pad-x)) !important; }
+.home-editor .home-ai-sheet .page-break { margin-inline: 0 !important; width: 100% !important; box-sizing: border-box !important; }
 .home-editor .home-ai-sheet .auto-page-gap { --rest: 0px; background: transparent; }
 .home-editor .home-ai-sheet .auto-page-gap::after {
   top: 0; bottom: 0; height: auto; border: none; background-color: var(--paper) !important;
