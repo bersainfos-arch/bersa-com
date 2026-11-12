@@ -97,15 +97,15 @@ const classic: CvTemplate[] = Array.from({ length: 20 }, (_, i) => ({
 
 export const CV_TEMPLATES: CvTemplate[] = [...modern, ...classic];
 
-const PLACEHOLDER_PHOTO =
+// Photo portrait studio élégante sur fond blanc éclatant, conçue pour être remplacée d'un clic
+export const PLACEHOLDER_PHOTO =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a2342"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient></defs><rect width="120" height="140" fill="url(#g)"/><circle cx="60" cy="52" r="26" fill="#f8fafc"/><path d="M18 140c6-30 24-44 42-44s36 14 42 44z" fill="#f8fafc"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 170"><rect width="140" height="170" fill="#ffffff"/><circle cx="70" cy="58" r="30" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/><path d="M22 165c5-34 26-50 48-50s43 16 48 50z" fill="#cbd5e1"/><path d="M62 110l8 24 8-24z" fill="#94a3b8"/><rect x="1" y="1" width="138" height="168" fill="none" stroke="#e2e8f0" stroke-width="2" rx="4"/></svg>`,
   );
 
-const LOREM = "";
-
-export const SAMPLE_CV: CvData = {
+// Données 100% vierges à l'ouverture : aucune fausse information pré-remplie
+export const EMPTY_CV: CvData = {
   photo: PLACEHOLDER_PHOTO,
   showPhoto: true,
   firstName: "",
@@ -118,17 +118,59 @@ export const SAMPLE_CV: CvData = {
   birth: "",
   license: "",
   website: "",
-  skills: [""],
-  languages: [""],
-  hobbies: [""],
+  skills: [],
+  languages: [],
+  hobbies: [],
   experiences: [
-    { start: "", end: "", role: "", organisation: "", description: "" },
+    { start: "", end: "", role: "", company: "", description: "" },
   ],
   education: [
-    { start: "", end: "", niveau: "", établissement: "", description: "" },
-    { start: "", end: "", niveau: "", établissement: "", description: "" },
+    { start: "", end: "", degree: "", school: "", description: "" },
   ],
-  
+};
+
+// Modèle de démonstration pour les vignettes de sélection (style soigné Mon CV Parfait)
+export const SAMPLE_CV: CvData = {
+  photo: PLACEHOLDER_PHOTO,
+  showPhoto: true,
+  firstName: "Alexandre",
+  lastName: "DUBOIS",
+  title: "Responsable Administratif & Juridique",
+  summary: "Professionnel rigoureux doté d'une solide expertise en organisation, gestion documentaire et droit des affaires. Orienté résultats et excellence opérationnelle.",
+  address: "Paris, France",
+  email: "alexandre.dubois@email.com",
+  phone: "+33 6 12 34 56 78",
+  birth: "32 ans",
+  license: "Permis B",
+  website: "linkedin.com/in/adubois",
+  skills: ["Gestion de projet", "Droit des affaires", "Rédaction juridique", "Négociation", "Management"],
+  languages: ["Français (maternelle)", "Anglais (courant pro)"],
+  hobbies: ["Lecture", "Veille stratégique"],
+  experiences: [
+    {
+      start: "2021",
+      end: "Présent",
+      role: "Responsable Administratif",
+      company: "Cabinet Conseil & Stratégie",
+      description: "- Supervision des dossiers juridiques et administratifs\n- Optimisation des procédures de conformité",
+    },
+    {
+      start: "2018",
+      end: "2021",
+      role: "Juriste d'Entreprise",
+      company: "Groupe Industriel",
+      description: "- Rédaction et audit des contrats commerciaux\n- Suivi des contentieux et négociations",
+    },
+  ],
+  education: [
+    {
+      start: "2017",
+      end: "2018",
+      degree: "Master 2 Droit et Management",
+      school: "Université de Droit",
+      description: "Mention Bien - Mémoire d'excellence",
+    },
+  ],
 };
 
 const esc = (s: string) =>
