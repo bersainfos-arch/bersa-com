@@ -171,31 +171,6 @@ function CvStudio() {
                 </div>
               </div>
 
-              {/* Galerie des 6 photos modèles studio cliquables */}
-              <div className="mt-2.5 pt-2 border-t border-border/60">
-                <p className="text-[11px] font-medium text-muted-foreground mb-1.5">
-                  Ou choisir l'un de nos 6 modèles de photo studio :
-                </p>
-                <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                  {CV_MODEL_PHOTOS.map((src, idx) => {
-                    const isSelected = (data.photo === src) || (!data.photo && sel?.defaultPhoto === src);
-                    return (
-                      <button
-                        key={src}
-                        type="button"
-                        onClick={() => { set("photo", src); set("showPhoto", true); }}
-                        className={`relative size-11 shrink-0 overflow-hidden rounded-full border-2 transition-all hover:scale-105 ${
-                          isSelected ? "border-primary ring-2 ring-primary/40 scale-105" : "border-border opacity-75 hover:opacity-100"
-                        }`}
-                        title={`Modèle de photo ${idx + 1}`}
-                      >
-                        <img src={src} alt={`Modèle ${idx + 1}`} className="size-full object-cover" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 gap-2">
                 <Field label="Prénom" value={data.firstName} onChange={(v) => set("firstName", v)} />
                 <Field label="Nom" value={data.lastName} onChange={(v) => set("lastName", v)} />
