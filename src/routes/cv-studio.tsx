@@ -236,18 +236,19 @@ function CvStudio() {
                 <CvPreview compact html={renderCvHtml(t, SAMPLE_CV)} />
                 {t.premium && <span className="absolute right-1 top-1 flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground"><Crown className="h-3 w-3" /> Premium</span>}
               </div>
-              <div className="p-2"><div className="truncate text-xs font-semibold">{t.name}</div><div className="flex items-center gap-1 text-[10px] text-muted-foreground"><FileText className="h-3 w-3" />{t.category}</div></div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </AppShell>
-              <div className="p-2">
+                <div className="p-2">
                 <div className="truncate text-xs font-semibold">{t.name}</div>
                 <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/60 pt-1">
                   <span className="flex items-center gap-1 font-medium text-primary">
                     <FileText className="h-3 w-3" /> CV {t.category}
                   </span>
-                  <span className="rounded bg-muted px-1.5 py-0.2 text-[9px]">A4</span>
+                  <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground">A4</span>
                 </div>
               </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </AppShell>
+  );
+}
