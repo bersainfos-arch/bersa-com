@@ -154,8 +154,8 @@
   background-color: #f1f5f9;
   background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
   background-size: 16px 16px;
-  min-height: calc(100vh - 180px);
-  padding: 24px 16px 120px;
+  min-height: calc(100vh - 110px);
+  padding: 6px 12px 50px;
   overflow-x: clip;
   display: flex;
   flex-direction: column;
@@ -196,7 +196,7 @@
   min-height: 1123px;
   background-color: #ffffff !important;
   color: #111827 !important;
-  margin: 0 auto 32px auto;
+    margin: 0 auto 10px auto;
   /* Marges physiques réelles de 2,5 cm (94 px) */
   padding: 94px 94px !important;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.08);
@@ -283,14 +283,16 @@
 .home-ai-sheet hr.page-break {
   display: block;
   break-after: page;
- height: 18px !important;
-  margin: 28px 0 !important;
+  height: 18px !important;
+  margin: 20px 0 !important;
   background: #e2e8f0 !important;
   border: none !important;
   border-top: 1px dashed #cbd5e1 !important;
   border-bottom: 1px dashed #cbd5e1 !important;
   position: relative;
   width: 100% !important;
+  box-sizing: border-box !important;
+}
 .home-ai-sheet .auto-page-gap::after,
 .home-ai-sheet hr.page-break::after {
   content: "PAGE SUIVANTE";
@@ -332,28 +334,30 @@
 /* Adaptation responsive sur smartphone Android / tactile */
 @media (max-width: 768px) {
   .bersa-writer-workspace {
-    padding: 12px 6px 110px;
+    padding: 4px 4px 36px;
     overflow-x: clip;
   }
   .bersa-writer-ruler {
-    display: none; /* Règle masquée sur petit écran */
+    display: none;
   }
   .home-ai-sheet,
   .a4-page {
     width: 100% !important;
     min-height: auto !important;
-    padding: 28px 18px !important; /* Marges réduites proportionnelles */
+    padding: 20px 14px !important;
     font-size: 14px !important;
+    margin: 0 auto 8px auto !important;
   }
   .home-ai-sheet p {
-    text-indent: 0.8cm; /* Retrait proportionnel mobile */
+    text-indent: 0 !important; /* Paragraphe aligné sans alinéa forcé */
   }
   .home-ai-sheet::before {
     display: none;
   }
   .home-ai-sheet .auto-page-gap,
   .home-ai-sheet hr.page-break {
-    margin: 24px -18px !important;
+    margin: 18px 0 !important;
+    width: 100% !important;
   }
 }
 
