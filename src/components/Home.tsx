@@ -362,78 +362,89 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 key={tmpl.id}
                 variant="ghost"
                 onClick={() => handleOpenTemplate(tmpl)}
-                className="relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-2xl p-2.5 whitespace-normal bg-gradient-to-br from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white shadow-[0_6px_20px_rgba(10,35,66,0.22)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10 ring-1 ring-gold/20"
+                className={
+                  tmpl.id === "cv"
+                    ? "group relative h-28 min-w-0 overflow-hidden rounded-2xl p-0 whitespace-normal bg-white shadow-[0_6px_20px_rgba(10,35,66,0.25)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-gold/40 ring-1 ring-gold/30 flex flex-col text-left"
+                    : "relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-2xl p-2.5 whitespace-normal bg-gradient-to-br from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white shadow-[0_6px_20px_rgba(10,35,66,0.22)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10 ring-1 ring-gold/20"
+                }
               >
-                <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
-                        {tmpl.id === "cv" ? (
-                  <span
-                    title="Modèle de CV complet rempli"
-                    className="relative w-8 h-11 shrink-0 rounded-[3px] bg-white ring-1 ring-gold/70 shadow-[0_4px_12px_rgba(0,0,0,0.35)] overflow-hidden flex flex-col pointer-events-none transition-transform group-hover:scale-105"
-                  >
-                    {/* Bandeau d'en-tête coloré avec titre et photo intégrée */}
-                    <span className="relative h-3.5 bg-gradient-to-r from-[#0A2342] to-[#1E3A8A] flex items-center px-1 gap-1">
-                      {/* Photo d'identité intégrée dans le document */}
-                      <span className="relative size-2.5 rounded-[1px] overflow-hidden bg-slate-900 ring-[0.5px] ring-white/80 shrink-0">
+                {tmpl.id === "cv" ? (
+                  <div className="relative size-full flex flex-col bg-white overflow-hidden text-slate-800 pointer-events-none select-none">
+                    {/* 1. En-tête professionnel étalé d'un coin à l'autre */}
+                    <div className="relative h-10 bg-gradient-to-r from-[#0A2342] via-[#12396B] to-[#1E3A8A] px-2 flex items-center gap-2 shrink-0 border-b border-gold/30">
+                      {/* Photo d'identité en diaporama continu */}
+                      <div className="relative size-7 rounded-[2px] overflow-hidden bg-slate-900 ring-1 ring-white/90 shrink-0 shadow-xs">
                         {CV_MODEL_PHOTOS.map((src, idx) => (
                           <img
                             key={src}
                             src={src}
                             alt="Photo CV"
-                            className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ${
-                              cvSlideIndex === idx ? "opacity-100" : "opacity-0"
+                            className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ease-in-out ${
+                              cvSlideIndex === idx ? "opacity-100 scale-100" : "opacity-0 scale-95"
                             }`}
                           />
                         ))}
-                      </span>
-                      {/* Lignes représentant le Nom et le Titre du candidat */}
-                      <span className="flex-1 flex flex-col justify-center gap-[1.5px]">
-                        <span className="h-[2px] w-3.5 bg-gold rounded-[0.5px]" />
-                        <span className="h-[1.5px] w-2.5 bg-white/80 rounded-[0.5px]" />
-                      </span>
-                    </span>
+                      </div>
 
-                    {/* Corps du CV en 2 colonnes remplies */}
-                    <span className="flex-1 flex p-[2px] gap-[2px] bg-white">
-                      {/* Colonne latérale gauche (coordonnées + compétences) */}
-                      <span className="w-[8px] bg-slate-100 rounded-[1px] p-[1px] flex flex-col gap-[1.5px]">
-                        <span className="h-[1.5px] w-full bg-[#0A2342] rounded-[0.5px]" />
-                        <span className="h-[1px] w-[5px] bg-slate-400 rounded-[0.5px]" />
-                        <span className="h-[1px] w-[6px] bg-slate-400 rounded-[0.5px]" />
-                        <span className="h-[1.5px] w-full bg-gold/90 rounded-[0.5px] mt-[1px]" />
-                        <span className="h-[1px] w-[4px] bg-slate-400 rounded-[0.5px]" />
-                        <span className="h-[1px] w-[5px] bg-slate-400 rounded-[0.5px]" />
-                      </span>
+                      {/* Lignes d'identité : Nom et Titre */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                        <div className="h-2 w-14 bg-gradient-to-r from-gold via-amber-200 to-gold rounded-[1px] shadow-2xs" />
+                        <div className="h-1.5 w-20 bg-white/85 rounded-[1px]" />
+                      </div>
 
-                      {/* Colonne principale droite (Expériences professionnelles + Formations) */}
-                      <span className="flex-1 flex flex-col gap-[1.5px] pl-[1px]">
-                        <span className="h-[1.5px] w-4 bg-[#0A2342] rounded-[0.5px]" />
-                        <span className="h-[1px] w-full bg-slate-300 rounded-[0.5px]" />
-                        <span className="h-[1px] w-3 bg-slate-300 rounded-[0.5px]" />
-                        <span className="h-[1.5px] w-4 bg-[#0A2342] rounded-[0.5px] mt-[1px]" />
-                        <span className="h-[1px] w-full bg-slate-300 rounded-[0.5px]" />
-                        <span className="h-[1px] w-2.5 bg-slate-300 rounded-[0.5px]" />
+                      {/* Badge A4 Pro dans l'angle supérieur droit */}
+                      <span className="shrink-0 bg-gold/95 text-[#0A2342] text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] shadow-xs">
+                        A4
                       </span>
-                    </span>
+                    </div>
 
-                    {/* Badge A4 discret en bas */}
-                    <span className="absolute bottom-0 right-0 bg-gold/90 text-[5px] font-black leading-none px-[2px] py-[0.5px] text-[#0A2342] rounded-tl-[2px]">
-                      A4
-                    </span>
-                  </span>
+                    {/* 2. Corps du CV rempli sur 2 colonnes jusqu'aux bords */}
+                    <div className="flex-1 grid grid-cols-[30px_1fr] bg-white p-1 gap-1.5 overflow-hidden">
+                      {/* Colonne latérale (Compétences & Coordonnées) */}
+                      <div className="bg-slate-100/90 rounded-[2px] p-1 flex flex-col gap-1 border-r border-slate-200/70">
+                        <div className="h-1.5 w-full bg-[#0A2342] rounded-[0.5px]" />
+                        <div className="h-1 w-full bg-slate-400 rounded-[0.5px]" />
+                        <div className="h-1 w-3/4 bg-slate-400 rounded-[0.5px]" />
+                        <div className="h-1.5 w-full bg-gold rounded-[0.5px] mt-0.5" />
+                        <div className="h-1 w-full bg-slate-400 rounded-[0.5px]" />
+                        <div className="h-1 w-2/3 bg-slate-400 rounded-[0.5px]" />
+                      </div>
+
+                      {/* Colonne principale (Expériences & Formations) */}
+                      <div className="flex flex-col gap-1 pr-1">
+                        <div className="h-1.5 w-16 bg-[#0A2342] rounded-[0.5px]" />
+                        <div className="h-1 w-full bg-slate-300 rounded-[0.5px]" />
+                        <div className="h-1 w-4/5 bg-slate-300 rounded-[0.5px]" />
+                        <div className="h-1.5 w-14 bg-[#0A2342] rounded-[0.5px] mt-0.5" />
+                        <div className="h-1 w-full bg-slate-300 rounded-[0.5px]" />
+                      </div>
+                    </div>
+
+                    {/* 3. Bandeau BERSA ancré sur les deux coins inférieurs */}
+                    <div className="relative bg-gradient-to-r from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white px-2 py-1 flex items-center justify-between border-t border-gold/40 shrink-0">
+                      <span className="text-[10px] font-bold text-white tracking-tight leading-none drop-shadow-xs">
+                        Modèles de CV Pro
+                      </span>
+                      <span className="text-[8px] font-semibold text-gold uppercase tracking-wider">
+                        120 Modèles
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                
-                  <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
-                    <Icon className="size-5 text-gold" />
-                  </span>
+                  <>
+                    <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
+                    <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
+                      <Icon className="size-5 text-gold" />
+                    </span>
+                    <span className="w-full text-left text-[11px] font-bold leading-tight line-clamp-2 text-white">
+                      {tmpl.label}
+                    </span>
+                    <span className="text-[8px] uppercase tracking-wider font-semibold text-gold/90">
+                      {templateDomain(tmpl.label)}
+                    </span>
+                  </>
                 )}
-                <span className="w-full text-left text-[11px] font-bold leading-tight line-clamp-2 text-white">
-                  {tmpl.label}
-                </span>
-                <span className="text-[8px] uppercase tracking-wider font-semibold text-gold/90">
-                  {templateDomain(tmpl.label)}
-                </span>
               </Button>
-            );
           })}
         </div>
         {!displayedTemplates.length && <p className="py-4 text-sm text-muted-foreground">Aucun modèle publié dans cette catégorie.</p>}
