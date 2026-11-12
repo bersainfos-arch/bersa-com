@@ -46,7 +46,17 @@ const menuItems: MenuItem[] = [
   { to: "/parametres", label: "Paramètres", icon: Settings },
   { to: "/gestion", label: "Gestion", icon: ShieldCheck, adminOnly: true },
 ];
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  minimal = false,
+  title,
+  onTitleChange,
+}: {
+  children: ReactNode;
+  minimal?: boolean;
+  title?: string;
+  onTitleChange?: (val: string) => void;
+}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -70,16 +80,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <AuthGate>
       <div className="min-h-screen">
-        {/* En-tête épuré plein écran : Retour + Logo à gauche | Menu ☰ à droite */}
-        <header className="sticky top-0 z-30 bg-[#0a192f] text-white shadow-sm">
-          <div className="mx-auto flex h-12 max-w-7xl items-center justify-between px-2 sm:px-4">
+        {/* En-tête épuré plein écran : Sur Rédaction, Retour + Titre du document | Normal ailleurs */}
+        <header className={`sticky top-0 z-30 bg-[#0a192f] text-white shadow-sm ${minimal ? "h-10" : ""}`}>
+          <div className={`mx-auto flex max-w-7xl items-center justify-between px-2 sm:px-4 ${minimal ? "h-10" : "h-12"}`}>
             
-            {/* GAUCHE : Bouton retour ← + Logo officiel BERSA */}
-            <div className="flex items-center gap-2">
+            {/* GAUCHE : Bouton retour ← + Titre ou Logo */}
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-white hover:bg-white/10 rounded-full shrink-0"
+                className="h-8 w-8 text-white hover:bg-white/10 rounded-full shrink-0"
                 title="Retour"
                 aria-label="Retour"
                 onClick={() => {
@@ -91,21 +101,36 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
 
-              <Link to="/" className="flex items-center gap-2 min-w-0">
-                <img
-                  src={logo.url}
-                  alt="Logo BERSA"
-                  className="h-8 w-8 rounded-lg shadow-xs bg-white p-0.5 object-contain shrink-0"
-                />
-                <div className="flex flex-col leading-none">
-                  <span className="font-serif text-lg font-black tracking-tight text-white">
-                    BERSA
-                  </span>
-                  <span className="text-[10px] font-semibold text-amber-400">
-                    Berceau du Savoir
-                  </span>
+              {minimal ? (
+                /* Espace discret affichant le titre du document */
+                <div className="flex items-center gap-1.5 flex-1 max-w-xs sm:max-w-sm min-w-0 px-2 py-0.5 rounded bg-white/10 text-white text-xs">
+                  <FileText className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+                  <input
+                    type="text"
+                    value={title ?? "Mon_Document_BERSA"}
+                    onChange={(e) => onTitleChange?.(e.target.value)}
+                    placeholder="Titre du document..."
+                    className="bg-transparent border-none outline-none text-white text-xs font-medium w-full truncate placeholder:text-white/40"
+                    title="Titre du document (cliquez pour modifier)"
+                  />
                 </div>
-              </Link>
+              ) : (
+                <Link to="/" className="flex items-center gap-2 min-w-0">
+                  <img
+                    src={logo.url}
+                    alt="Logo BERSA"
+                    className="h-8 w-8 rounded-lg shadow-xs bg-white p-0.5 object-contain shrink-0"
+                  />
+                  <div className="flex flex-col leading-none">
+                    <span className="font-serif text-lg font-black tracking-tight text-white">
+                      BERSA
+                    </span>
+                    <span className="text-[10px] font-semibold text-amber-400">
+                      Berceau du Savoir
+                    </span>
+                  </div>
+                </Link>
+              )}
             </div>
 
             {/* DROITE : Bouton unique à 3 lignes ☰ avec les 8 fonctionnalités */}
