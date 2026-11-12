@@ -35,6 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CV_MODEL_PHOTOS } from "@/lib/cv-templates";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,15 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
   const [filesList, setFilesList] = useState<RecentDoc[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [templates, setTemplates] = useState<TemplateItem[]>(TEMPLATES);
+
+    // Diaporama automatique de l'effigie des Modèles CV
+  const [cvSlideIndex, setCvSlideIndex] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCvSlideIndex((prev) => (prev + 1) % CV_MODEL_PHOTOS.length);
+    }, 2200);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     void supabase.from("document_templates").select("id, title, badge, prompt, content_html").eq("published", true).order("created_at").then(({ data }) => {
@@ -355,9 +365,27 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 className="relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-2xl p-2.5 whitespace-normal bg-gradient-to-br from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white shadow-[0_6px_20px_rgba(10,35,66,0.22)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10 ring-1 ring-gold/20"
               >
                 <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
-                <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
-                  <Icon className="size-5 text-gold" />
-                </span>
+                               {tmpl.id === "cv" ? (
+                  <span className="relative size-9 overflow-hidden rounded-xl bg-slate-950 ring-1 ring-gold/60 shadow-md">
+                    {CV_MODEL_PHOTOS.map((src, idx) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt="Modèle CV"
+                        className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ease-in-out ${
+                          cvSlideIndex === idx ? "opacity-100 scale-100" : "opacity-0 scale-95"
+                        }`}
+                      />
+                    ))}
+                    <span className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent h-4 flex items-center justify-center pointer-events-none">
+                      <span className="text-[7px] font-black tracking-wider text-gold uppercase drop-shadow-xs">CV</span>
+                    </span>
+                  </span>
+                ) : (
+                  <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
+                    <Icon className="size-5 text-gold" />
+                  </span>
+                )}
                 <span className="w-full text-left text-[11px] font-bold leading-tight line-clamp-2 text-white">
                   {tmpl.label}
                 </span>
