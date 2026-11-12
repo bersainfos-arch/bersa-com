@@ -12,6 +12,7 @@ export interface CvTemplate {
   accent: string;
   font: string;
   premium: boolean;
+  defaultPhoto?: string;
 }
 
 export interface CvExperience { start: string; end: string; role: string; company: string; description: string }
@@ -36,6 +37,15 @@ export interface CvData {
   experiences: CvExperience[];
   education: CvEducation[];
 }
+
+export const CV_MODEL_PHOTOS = [
+  "/cv-photos/photo-1.png",
+  "/cv-photos/photo-2.png",
+  "/cv-photos/photo-3.png",
+  "/cv-photos/photo-4.png",
+  "/cv-photos/photo-5.png",
+  "/cv-photos/photo-6.png",
+];
 
 export const CV_CATEGORIES = ["Modernes", "Classiques"] as const;
 
@@ -80,6 +90,7 @@ const modern: CvTemplate[] = Array.from({ length: 100 }, (_, i) => {
     accent: P.a,
     font: FONTS_MODERN[i % FONTS_MODERN.length]!,
     premium: i % 2 === 1,
+    defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length],
   };
 });
 
@@ -93,6 +104,7 @@ const classic: CvTemplate[] = Array.from({ length: 20 }, (_, i) => ({
   accent: CLASSIC_COLORS[i % CLASSIC_COLORS.length]!,
   font: FONTS_CLASSIC[i % FONTS_CLASSIC.length]!,
   premium: i >= 10,
+  defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length],
 }));
 
 export const CV_TEMPLATES: CvTemplate[] = [...modern, ...classic];
@@ -202,7 +214,7 @@ interface Parts {
   contacts: { label: string; value: string }[];
 }
 
-function parts(d: CvData): Parts {
+function parts(d: CvData, t?: CvTemplate): Parts {
   const contacts = [
     { label: "Adresse", value: d.address },
     { label: "E-mail", value: d.email },
@@ -211,7 +223,15 @@ function parts(d: CvData): Parts {
     { label: "Permis", value: d.license },
     { label: "Site web", value: d.website },
   ].filter((c) => c.value.trim());
-  return { photo: d.showPhoto ? d.photo || PLACEHOLDER_PHOTO : "", name: `${esc(d.firstName)} ${esc(d.lastName)}`, contacts };
+
+  // Priorité : 1) Photo de l'utilisateur si renseignée ; 2) Photo modèle du CV ; 3) Silhouette neutre
+  const effectivePhoto = d.showPhoto
+    ? (d.photo && d.photo !== PLACEHOLDER_PHOTO
+        ? d.photo
+        : (t?.defaultPhoto || d.photo || PLACEHOLDER_PHOTO))
+    : "";
+
+  return { photo: effectivePhoto, name: `${esc(d.firstName)} ${esc(d.lastName)}`.trim(), contacts };
 }
 
 function experiences(d: CvData, t: CvTemplate, dateCol = true, roleColor = "#111") {
@@ -235,7 +255,7 @@ function sideBlocks(d: CvData, p: Parts, h: (s: string) => string, labelColor: s
 }
 
 export function renderCvHtml(t: CvTemplate, d: CvData): string {
-  const p = parts(d);
+    const p = parts(d, t);
   const base = `font-family:'${t.font}',Arial,sans-serif;font-size:9.5pt;color:#1f2937;line-height:1.45;background:#fff;width:794px;min-height:1123px;box-sizing:border-box;overflow:hidden;`;
   const img = (w: number, h: number, radius = "0", extra = "") =>
     p.photo ? `<img src="${p.photo}" alt="" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:${radius};display:block;${extra}">` : "";
