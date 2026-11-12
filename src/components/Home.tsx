@@ -443,10 +443,12 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                       {templateDomain(tmpl.label)}
                     </span>
                   </>
-                )}
+                 )}
               </Button>
+            );
           })}
         </div>
+    
         {!displayedTemplates.length && <p className="py-4 text-sm text-muted-foreground">Aucun modèle publié dans cette catégorie.</p>}
         {catalog && <Link to="/cv-studio" className="mt-4 inline-flex items-center gap-2 text-primary text-sm font-semibold"><Briefcase className="size-4" />Tous les modèles CV</Link>}
       </section>
