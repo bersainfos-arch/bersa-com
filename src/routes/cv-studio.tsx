@@ -242,5 +242,12 @@ function CvStudio() {
         </div>
       </div>
     </AppShell>
-  );
-}
+              <div className="p-2">
+                <div className="truncate text-xs font-semibold">{t.name}</div>
+                <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/60 pt-1">
+                  <span className="flex items-center gap-1 font-medium text-primary">
+                    <FileText className="h-3 w-3" /> CV {t.category}
+                  </span>
+                  <span className="rounded bg-muted px-1.5 py-0.2 text-[9px]">A4</span>
+                </div>
+              </div>
