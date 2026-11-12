@@ -103,33 +103,32 @@ const PLACEHOLDER_PHOTO =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0a2342"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient></defs><rect width="120" height="140" fill="url(#g)"/><circle cx="60" cy="52" r="26" fill="#f8fafc"/><path d="M18 140c6-30 24-44 42-44s36 14 42 44z" fill="#f8fafc"/></svg>`,
   );
 
-const LOREM = "Conduite de projets stratégiques, encadrement d'équipe et optimisation des processus opérationnels avec atteinte des objectifs fixés.";
+const LOREM = "";
 
 export const SAMPLE_CV: CvData = {
   photo: PLACEHOLDER_PHOTO,
   showPhoto: true,
-  firstName: "Jean",
-  lastName: "KABAMBA",
-  title: "Juriste d'Affaires & Chercheur",
-  summary: "Professionnel rigoureux doté d'une solide expertise en droit des affaires et analyse stratégique. Passionné par la recherche et l'excellence documentaire, apte à diriger des projets complexes.",
-  address: "Kinshasa / Gombe, RDC",
-  email: "contact@bersa-savoir.org",
-  phone: "+243 81 000 0000",
-  birth: "Né le 12 mai 1992",
-  license: "Permis de conduire B",
-  website: "bersa-com.lovable.app",
-  skills: ["Droit des affaires & OHADA", "Rédaction juridique & scientifique", "Gestion de projet", "Négociation & Contentieux", "Méthodologie de recherche"],
-  languages: ["Français (langue maternelle)", "Anglais (courant / académique)", "Lingala (courant)"],
-  hobbies: ["Recherche documentaire", "Veille juridique", "Écriture"],
+  firstName: "",
+  lastName: "",
+  title: "",
+  summary: "",
+  address: "",
+  email: "",
+  phone: "",
+  birth: "",
+  license: "",
+  website: "",
+  skills: [""],
+  languages: [""],
+  hobbies: [""],
   experiences: [
-    { start: "2022", end: "Présent", role: "Juriste Conseil Principal", company: "Cabinet International d'Avocats", description: "Rédaction de contrats commerciaux, audit juridique et représentation auprès des instances réglementaires." },
-    { start: "2019", end: "2022", role: "Chargé d'Études & Contentieux", company: "Banque Commerciale BERSA", description: "Gestion des sûretés, suivi du contentieux financier et conformité aux normes bancaires régionales." },
-    { start: "2017", end: "2019", role: "Assistant de Recherche Universitaire", company: "Faculté de Droit", description: "Encadrement méthodologique des mémoires d'étudiants et publication d'articles de doctrine." },
+    { start: "", end: "", role: "", organisation: "", description: "" },
   ],
   education: [
-    { start: "2017", end: "2018", degree: "Master II en Droit des Affaires", school: "Université de Kinshasa", description: "Major de promotion avec mémoire primé sur la gouvernance d'entreprise." },
-    { start: "2013", end: "2017", degree: "Licence en Sciences Juridiques", school: "Faculté de Droit", description: "Formation approfondie en droit privé et procédure judiciaire." },
+    { start: "", end: "", niveau: "", établissement: "", description: "" },
+    { start: "", end: "", niveau: "", établissement: "", description: "" },
   ],
+  
 };
 
 const esc = (s: string) =>
