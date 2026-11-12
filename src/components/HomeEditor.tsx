@@ -87,7 +87,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [docFileName, setDocFileName] = useState("Mon_Document_BERSA");
   const [exportFormat, setExportFormat] = useState<"docx" | "pdf" | "txt">("docx");
   const [targetFolder, setTargetFolder] = useState("downloads");
-  const Frame = embedded ? Fragment : AppShell;
+  const Frame = embedded
+    ? Fragment
+    : ({ children }: { children: any }) => (
+        <AppShell minimal title={docFileName} onTitleChange={setDocFileName}>
+          {children}
+        </AppShell>
+      );
   useEffect(() => {
     const updateOffset = () => {
       const vv = window.visualViewport;
@@ -345,6 +351,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       ? lastPrompt
       : (promptInput.trim() || writingTarget(editor.getText(), { from, to, text: selected }).trim());
     const text = rawText.trim();
+        // Génération automatique du titre à partir de la consigne posée
+    if (text) {
+      const generatedTitle = text.slice(0, 42).replace(/^[«"']|[»"']$/g, "").trim();
+      if (generatedTitle && (docFileName === "Mon_Document_BERSA" || !docFileName.trim())) {
+        setDocFileName(generatedTitle);
+      }
+    }
     if (!text) { toast.error("Écrivez votre consigne sur le papier ou dans le champ."); return; }
     if (files.some(file => file.type === "other")) { toast.info("Les pièces jointes non analysables ne sont pas transmises à l’Assistant."); }
 
@@ -537,26 +550,26 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 )}
               </button>
 
-              <div className="flex items-center gap-0.5 border-l border-border/60 pl-1.5 ml-1">
+                <div className="flex items-center gap-1 border-l border-border/60 pl-2 ml-1.5">
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().undo().run()}
                   disabled={!editor?.can().undo()}
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary disabled:opacity-30 transition"
+                  className="p-1.5 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
                   title="Annuler (Ctrl+Z)"
                   aria-label="Annuler"
                 >
-                  <Undo2 className="h-3.5 w-3.5" />
+                  <Undo2 className="h-5 w-5 stroke-[2.2]" />
                 </button>
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().redo().run()}
                   disabled={!editor?.can().redo()}
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-primary disabled:opacity-30 transition"
+                  className="p-1.5 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
                   title="Rétablir (Ctrl+Y)"
                   aria-label="Rétablir"
                 >
-                  <Redo2 className="h-3.5 w-3.5" />
+                  <Redo2 className="h-5 w-5 stroke-[2.2]" />
                 </button>
               </div>
             </div> 
