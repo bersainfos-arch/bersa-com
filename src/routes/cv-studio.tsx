@@ -196,7 +196,6 @@ function CvStudio() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mt-3">
               <div className="grid grid-cols-2 gap-2">
                 <Field label="Prénom" value={data.firstName} onChange={(v) => set("firstName", v)} />
                 <Field label="Nom" value={data.lastName} onChange={(v) => set("lastName", v)} />
