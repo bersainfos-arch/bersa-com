@@ -88,13 +88,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [docFileName, setDocFileName] = useState("Mon_Document_BERSA");
   const [exportFormat, setExportFormat] = useState<"docx" | "pdf" | "txt">("docx");
   const [targetFolder, setTargetFolder] = useState("downloads");
-  const Frame = embedded
-    ? Fragment
-    : ({ children }: { children: any }) => (
-        <AppShell minimal title={docFileName} onTitleChange={setDocFileName}>
-          {children}
-        </AppShell>
-      );
+    const Frame = (embedded ? (({ children }: any) => <>{children}</>) : AppShell) as React.ComponentType<{
+    children: ReactNode;
+    minimal?: boolean;
+    title?: string;
+    onTitleChange?: (val: string) => void;
+    documentActions?: DocumentMenuActions;
+  }>;
   useEffect(() => {
     const updateOffset = () => {
       const vv = window.visualViewport;
