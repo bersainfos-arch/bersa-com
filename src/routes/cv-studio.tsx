@@ -6,7 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { CvPreview } from "@/components/CvPreview";
 import {
-  CV_CATEGORIES, CV_TEMPLATES, SAMPLE_CV, renderCvHtml,
+  CV_CATEGORIES, CV_TEMPLATES, SAMPLE_CV, EMPTY_CV, renderCvHtml,
   type CvData, type CvEducation, type CvExperience, type CvTemplate,
 } from "@/lib/cv-templates";
 
@@ -84,11 +84,11 @@ function CvStudio() {
   const [cat, setCat] = useState<string>("Tous");
   const [tier, setTier] = useState<"all" | "free" | "premium">("all");
   const [sel, setSel] = useState<CvTemplate | null>(null);
-  const [data, setData] = useState<CvData>(SAMPLE_CV);
+  const [data, setData] = useState<CvData>(EMPTY_CV);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORE);
-    if (saved) try { setData({ ...SAMPLE_CV, ...JSON.parse(saved) }); } catch { /* ignore */ }
+    if (saved) try { setData({ ...EMPTY_CV, ...JSON.parse(saved) }); } catch { /* ignore */ }
   }, []);
 
   const set = <K extends keyof CvData>(k: K, v: CvData[K]) => setData((d) => ({ ...d, [k]: v }));
