@@ -62,7 +62,7 @@ export function EditorRibbon({
   const [sources, setSources] = useState<Source[]>(() => { try { return JSON.parse(localStorage.getItem("bersa_sources") || "[]"); } catch { return []; } });
   const [, force] = useState(0);
   const [isFull, setIsFull] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<string>("Accueil");
+  const [activeMenu, setActiveMenu] = useState<string>("Texte");
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -148,7 +148,7 @@ export function EditorRibbon({
     });
 
     if (headings.length === 0) {
-      toast.info("Aucun titre détecté. Utilisez Titre 1, 2 ou 3 dans l'onglet Accueil.");
+      toast.info("Aucun titre détecté. Utilisez Titre 1, 2 ou 3 dans l'onglet Paragraphe.");
       return;
     }
 
@@ -170,7 +170,15 @@ export function EditorRibbon({
     toast.success(`${n} remplacement(s) effectué(s)`);
   };
 
-  const menus = ["Fichier", "Accueil", "Insertion", "Mise en page", "Références", "Révision", "Affichage"];
+  const menus: Array<[string, any]> = [["Texte", Type], ["Paragraphe", AlignLeft], ["Insertion", Plus], ["Mise en page", Layout]];
+  const moreMenus = ["Fichier", "Références", "Révision", "Affichage"];
+  const curSize = () => parseFloat((editor.getAttributes("textStyle")["fontSize"] as string) || settings.fontSize || "13") || 13;
+  const stepSize = (d: number) => { const v = Math.min(96, Math.max(6, curSize() + d)) + "pt"; setSettings((s) => ({ ...s, fontSize: v })); (editor.chain().focus() as any).setFontSize(v).run(); };
+  const askTable = () => {
+    const r = Number(window.prompt("Nombre de lignes :", "3")); const c = Number(window.prompt("Nombre de colonnes :", "3"));
+    if (!r || !c || r < 1 || c < 1 || r > 50 || c > 20) { toast.error("Dimensions invalides (lignes 1-50, colonnes 1-20)"); return; }
+    editor.chain().focus().insertTable({ rows: r, cols: c, withHeaderRow: true }).run(); toast.success(`Tableau ${r}×${c} inséré`);
+  };
 
   return (
     <div className="no-print border-b border-border bg-card/95 backdrop-blur-sm select-none">
@@ -178,20 +186,17 @@ export function EditorRibbon({
 
       {/* Onglets principaux du Ruban WPS / Word */}
       <div className="flex flex-nowrap items-center gap-0.5 px-1.5 pt-0.5 border-b border-border/60 overflow-x-auto scrollbar-none">
-        {menus.map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setActiveMenu(m)}
-            className={`shrink-0 px-2.5 py-1 text-xs font-semibold rounded-t-md transition-colors relative ${
-              activeMenu === m
-                ? "bg-background text-primary border-t-2 border-primary border-x border-border/80 shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-            }`}
-          >
-            {m}
+        {menus.map(([m, Icon]) => (
+          <button key={m} type="button" onClick={() => setActiveMenu(m)} aria-pressed={activeMenu === m}
+            className={`shrink-0 flex flex-col items-center gap-0.5 px-3 py-1 text-[11px] font-semibold rounded-md transition-colors ${activeMenu === m ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
+            <Icon className="h-4 w-4" />{m}
           </button>
         ))}
+        <select aria-label="Autres outils" value={moreMenus.includes(activeMenu) ? activeMenu : ""} onChange={(e) => e.target.value && setActiveMenu(e.target.value)}
+          className={`shrink-0 h-7 px-1 text-[11px] rounded-md border border-input bg-background ${moreMenus.includes(activeMenu) ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+          <option value="">Plus…</option>
+          {moreMenus.map((m) => <option key={m} value={m}>{m}</option>)}
+        </select>
 
         {/* Bouton rapide d'amélioration BERSA */}
         <div className="ml-auto flex items-center gap-1.5 pb-1">
@@ -234,7 +239,7 @@ export function EditorRibbon({
         )}
 
         {/* 2. ACCUEIL */}
-        {activeMenu === "Accueil" && (
+        {activeMenu === "Texte" && (
           <div className="flex flex-nowrap items-center gap-1">
             {/* Police */}
             <select
@@ -253,6 +258,11 @@ export function EditorRibbon({
               <option value="Arial">Arial</option>
               <option value="Calibri">Calibri</option>
               <option value="Georgia">Georgia</option>
+              <option value="Aptos">Aptos</option>
+              <option value="Cambria">Cambria</option>
+              <option value="Garamond">Garamond</option>
+              <option value="Verdana">Verdana</option>
+              <option value="Courier New">Courier New</option>
             </select>
 
             {/* Taille de police */}
@@ -285,6 +295,22 @@ export function EditorRibbon({
             {iconOnly(<Superscript className="w-4 h-4" />, () => editor.chain().focus().toggleSuperscript().run(), editor.isActive("superscript"), "Exposant")}        
             <div className="h-5 w-[1px] bg-border mx-1" />
 
+            {iconOnly(<span className="text-xs font-bold">A+</span>, () => stepSize(1), false, "Augmenter la taille")}
+            {iconOnly(<span className="text-[10px] font-bold">A-</span>, () => stepSize(-1), false, "Diminuer la taille")}
+            <label className="flex h-8 items-center gap-1 rounded-md px-1.5 text-xs hover:bg-muted" title="Couleur du texte">
+              <span className="font-bold underline decoration-2">A</span>
+              <input type="color" aria-label="Couleur du texte" className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0" onChange={(e) => (editor.chain().focus() as any).setColor(e.target.value).run()} />
+            </label>
+            <label className="flex h-8 items-center gap-1 rounded-md px-1.5 text-xs hover:bg-muted" title="Surlignage">
+              <span className="rounded bg-accent px-0.5 font-bold">ab</span>
+              <input type="color" aria-label="Surlignage" defaultValue="#fff59d" className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0" onChange={(e) => editor.chain().focus().toggleHighlight({ color: e.target.value }).run()} />
+            </label>
+            {iconOnly(<Eraser className="w-4 h-4" />, () => editor.chain().focus().unsetAllMarks().run(), false, "Effacer la mise en forme")}
+          </div>
+        )}
+
+        {activeMenu === "Paragraphe" && (
+          <div className="flex flex-nowrap items-center gap-1">
             {/* Styles rapides */}
             <Button
               type="button"
@@ -386,10 +412,10 @@ export function EditorRibbon({
         {/* 3. INSERTION */}
         {activeMenu === "Insertion" && (
           <div className="flex flex-nowrap items-center gap-1">
-            {btn(<TableIcon className="w-4 h-4 text-primary" />, "Insérer Tableau (3x3)", () => {
-              editor.chain().focus().insertTable?.({ rows: 3, cols: 3, withHeaderRow: true }).run();
-              toast.success("Tableau 3x3 inséré");
-            })}
+            {btn(<TableIcon className="w-4 h-4 text-primary" />, "Tableau…", askTable)}
+            {btn(<Columns className="w-4 h-4" />, "Fusionner", () => { if (!editor.chain().focus().mergeCells().run()) toast.error("Sélectionnez plusieurs cellules"); })}
+            {btn(<Columns className="w-4 h-4" />, "Fractionner", () => { if (!editor.chain().focus().splitCell().run()) toast.error("Placez-vous dans une cellule fusionnée"); })}
+            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "Suppr. tableau", () => editor.chain().focus().deleteTable().run())}
             {btn(<Plus className="w-4 h-4" />, "+ Colonne", () => editor.chain().focus().addColumnAfter?.().run())}
             {btn(<Trash2 className="w-4 h-4 text-destructive" />, "- Colonne", () => editor.chain().focus().deleteColumn?.().run())}
             {btn(<Plus className="w-4 h-4" />, "+ Ligne", () => editor.chain().focus().addRowAfter?.().run())}
@@ -399,6 +425,8 @@ export function EditorRibbon({
 
             {btn(<ImageIcon className="w-4 h-4 text-emerald-600" />, "Image...", () => fileInputRef.current?.click())}
             {btn(<Link2 className="w-4 h-4 text-blue-600" />, "Lien", handleInsertLink)}
+            {btn(<FileText className="w-4 h-4" />, "Date et heure", () => editor.chain().focus().insertContent(new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })).run())}
+            {btn(<span className="text-xs">―</span>, "Ligne", () => editor.chain().focus().setHorizontalRule().run())}
             {btn(<FileText className="w-4 h-4 text-purple-600" />, "Saut de page", () => {
               editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run();
               toast.success("Saut de page inséré");
