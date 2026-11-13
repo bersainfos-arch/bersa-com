@@ -378,6 +378,10 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                         <CvPreview compact html={html} />
                       </div>
                     ))}
+                    <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-primary/95 px-1.5 py-1">
+                      <span className="truncate text-[9px] font-bold leading-none text-primary-foreground">CV Folio pro 120</span>
+                      <span className="grid size-5 shrink-0 -rotate-12 place-items-center rounded-full border border-dashed border-gold bg-gold/20 text-[6px] font-black uppercase tracking-tight text-gold ring-1 ring-gold/60">Pro</span>
+                    </div>
                   </div>
                 ) : (
                   <>
