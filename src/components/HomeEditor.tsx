@@ -1,4 +1,5 @@
 import { KeepBlockStyle } from "@/lib/keep-block-style";
+import { CommentMark, InsertionMark, TrackChanges } from "@/lib/review-marks";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import type { DocumentMenuActions } from "@/components/AppShell";
@@ -95,6 +96,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [docFileName, setDocFileName] = useState("Mon_Document_BERSA");
   const [exportFormat, setExportFormat] = useState<"docx" | "pdf" | "txt">("docx");
   const [targetFolder, setTargetFolder] = useState("downloads");
+  const [cloudId, setCloudId] = useState<string | null>(null);
+  const [cloudState, setCloudState] = useState("");
+  const [versions, setVersions] = useState<Array<{ id: string; title: string; created_at: string }> | null>(null);
     const Frame = (embedded ? (({ children }: any) => <>{children}</>) : AppShell) as React.ComponentType<{
     children: ReactNode;
     minimal?: boolean;
@@ -159,7 +163,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, []);
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle, Subscript, Superscript, ParagraphIndent],
+    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle, Subscript, Superscript, ParagraphIndent, CommentMark, InsertionMark, TrackChanges],
     content: "<p></p>",
     onUpdate: ({ editor: e }) => {
       renumberFootnotes(e);
@@ -199,7 +203,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         } else if (id) {
           const { data, error } = await supabase.from("user_docs").select("content,title").eq("id", id).single();
           if (error || !data) throw new Error("Document indisponible.");
-          if (!cancelled) { editor.commands.setContent(sanitizeDocumentHtml(data.content)); setDocFileName(data.title); }
+          if (!cancelled) { editor.commands.setContent(sanitizeDocumentHtml(data.content)); setDocFileName(data.title); setCloudId(id); }
         } else if (html) editor.commands.setContent(sanitizeDocumentHtml(html));
       } catch (error) { toast.error(error instanceof Error ? error.message : "Ouverture impossible."); }
     };
@@ -253,6 +257,58 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     editor.on("update", onUpdate);
     return () => { clearInterval(saveTimer); editor.off("update", onUpdate); };
   }, [editor]);
+  // Enregistrement automatique en ligne (compte connecté), toutes les 20 secondes si le texte a changé
+  const lastCloud = useRef("");
+  useEffect(() => {
+    if (!editor) return;
+    const t = setInterval(async () => {
+      const html = editor.getHTML();
+      if (!editor.getText().trim() || html === lastCloud.current) return;
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) { setCloudState("Hors ligne : non connecté"); return; }
+      setCloudState("Enregistrement en ligne…");
+      const row = { title: (docFileName || "Document BERSA").slice(0, 200), content: html, category: "general", word_count: editor.getText().trim().split(/\s+/).length };
+      const res = cloudId
+        ? await supabase.from("user_docs").update(row).eq("id", cloudId).select("id").single()
+        : await supabase.from("user_docs").insert({ ...row, user_id: u.user.id }).select("id").single();
+      if (res.error || !res.data) { setCloudState("Échec de l'enregistrement en ligne"); return; }
+      lastCloud.current = html; setCloudId(res.data.id);
+      setCloudState(`Enregistré en ligne à ${new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`);
+    }, 20000);
+    return () => clearInterval(t);
+  }, [editor, cloudId, docFileName]);
+
+  const saveVersion = async () => {
+    if (!editor) return;
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) { toast.error("Connectez-vous pour garder des versions."); return; }
+    const stamp = new Date().toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    const { error: e } = await supabase.from("user_docs").insert({ user_id: u.user.id, title: `${docFileName || "Document"} — version ${stamp}`.slice(0, 200), content: editor.getHTML(), category: "version", word_count: editor.getText().trim().split(/\s+/).length });
+    if (e) toast.error("Version non enregistrée."); else toast.success("Version enregistrée");
+  };
+  const openVersions = async () => {
+    const { data, error: e } = await supabase.from("user_docs").select("id,title,created_at").eq("category", "version").order("created_at", { ascending: false }).limit(30);
+    if (e) { toast.error("Historique indisponible."); return; }
+    setVersions(data ?? []);
+  };
+  const restoreVersion = async (id: string) => {
+    if (!editor || !window.confirm("Remplacer le texte actuel par cette version ?")) return;
+    const { data } = await supabase.from("user_docs").select("content").eq("id", id).single();
+    if (data) { editor.commands.setContent(sanitizeDocumentHtml(data.content)); toast.success("Version restaurée"); setVersions(null); }
+  };
+  const exportPdf = async () => {
+    if (!editor) return;
+    try {
+      toast.info("Création du PDF…");
+      const { buildPdf } = await import("@/lib/pdf-export");
+      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, columns: settings.columns, landscape: settings.orientation === "Paysage" });
+      const name = `${(docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_")}.pdf`;
+      if (await pickAndWrite(blob, name, "Document PDF", { "application/pdf": [".pdf"] })) { toast.success("PDF enregistré."); return; }
+      const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success("PDF téléchargé.");
+    } catch { toast.error("Création du PDF impossible."); }
+  };
+
   const handleOpenLocalFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editor) return;
@@ -360,11 +416,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       return;
     }
 
-    if (exportFormat === "pdf") {
-      window.print();
-      toast.success("Impression / enregistrement PDF déclenché.");
-      return;
-    }
+    if (exportFormat === "pdf") { await exportPdf(); return; }
 
     // Format TXT
     const textBlob = new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" });
@@ -802,6 +854,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               attach={() => fileInput.current?.click()}
               save={() => void save()}
               correct={() => { setAction("correct"); void run("correct"); }}
+              exportPdf={() => void exportPdf()}
+              saveVersion={() => void saveVersion()}
+              openVersions={() => void openVersions()}
+              cloudState={cloudState}
             />
           </div>
         )}
@@ -873,7 +929,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         )}
         <div
           style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1" } as React.CSSProperties}
-          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}
+          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}`}
           onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
             if (anchor) {
@@ -896,7 +952,21 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           )}
 
+          {settings.headerText && <div className="bersa-page-header mx-auto max-w-[794px]">{settings.headerText}</div>}
           <EditorContent editor={editor} className="home-paper-content" />
+          {settings.footerText && <div className="bersa-page-footer mx-auto max-w-[794px]">{settings.footerText}</div>}
+          {versions && (
+            <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center" onClick={() => setVersions(null)}>
+              <div className="w-full max-w-md rounded-xl bg-card p-4 shadow-xl" onClick={e => e.stopPropagation()}>
+                <div className="mb-2 flex items-center justify-between"><h3 className="font-semibold">Historique des versions</h3><Button size="sm" variant="ghost" onClick={() => setVersions(null)}>Fermer</Button></div>
+                {versions.length === 0 ? <p className="text-sm text-muted-foreground">Aucune version enregistrée.</p> : (
+                  <ul className="max-h-[60vh] space-y-1 overflow-y-auto">
+                    {versions.map(v => <li key={v.id}><button type="button" className="w-full rounded-md px-2 py-2 text-left text-sm hover:bg-muted" onClick={() => void restoreVersion(v.id)}>{v.title}</button></li>)}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
         
           {footnotes.length > 0 && (
             <div className="a4-footnotes mx-auto max-w-[794px]" aria-label="Notes de bas de page">
@@ -946,7 +1016,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
           {/* Pied de page numéroté automatique */}
           <div className="no-print mx-auto mt-1 flex w-full max-w-[794px] items-center justify-between px-2 text-[11px] text-muted-foreground">
-            <span>{settings.format} · Marges {settings.margin} · <span aria-live="polite">{saveState === "saved" ? "Enregistré sur l'appareil" : saveState === "saving" ? "Enregistrement…" : "Modifications en cours"}</span></span>
+            <span>{settings.format} · Marges {settings.margin} · <span aria-live="polite">{saveState === "saved" ? (cloudState.startsWith("Enregistré en ligne") ? cloudState : "Enregistré sur l'appareil") : saveState === "saving" ? "Enregistrement…" : "Modifications en cours"}</span></span>
             <span className="font-semibold text-primary">
               Page 1 sur {totalPages} ({totalPages === 1 ? "1 feuille A4" : `${totalPages} feuilles A4`})
             </span>

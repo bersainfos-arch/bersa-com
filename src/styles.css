@@ -781,3 +781,13 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor :is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { --pad-x: calc(min(100cqw, 794px) * 0.119 * var(--writer-margin-scale, 1)); padding-left: var(--pad-x) !important; padding-right: var(--pad-x) !important; }
 .home-editor .home-ai-sheet .page-break { display: block; height: 16px; break-after: page; }
 .home-editor .home-paper-desk { scroll-padding-bottom: 45vh; overflow-anchor: auto; }
+
+/* Colonnes, bordure, en-tête/pied, commentaires et suivi des modifications */
+.bersa-writer-workspace.cols-2 .home-ai-sheet { column-count: 2; column-gap: 24px; }
+.bersa-writer-workspace.cols-3 .home-ai-sheet { column-count: 3; column-gap: 20px; }
+.bersa-writer-workspace.page-border .home-ai-sheet { outline: 2px solid var(--primary); outline-offset: -28px; }
+.bersa-writer-workspace.format-A5 .home-ai-sheet { max-width: 559px; margin-inline: auto; }
+.bersa-writer-workspace.format-Letter .home-ai-sheet { max-width: 816px; margin-inline: auto; }
+.bersa-page-header, .bersa-page-footer { font-family: 'Times New Roman', serif; font-size: 10pt; text-align: center; color: var(--muted-foreground); padding: 4px 8px; }
+.bersa-comment { background: color-mix(in oklab, var(--gold, #d4af37) 35%, transparent); border-bottom: 2px dotted var(--gold, #d4af37); cursor: help; }
+.bersa-track-ins { text-decoration: underline; text-decoration-color: #059669; color: #047857; }

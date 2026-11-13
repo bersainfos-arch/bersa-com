@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { changeIndent, replaceAllText } from "@/lib/writer-commands";
 import { insertFootnote } from "@/lib/footnotes";
+import { SHAPES, SYMBOLS, shapeSrc, setTracking, isTracking, acceptAll, rejectAll, listComments, removeComment, citation, bibliographyHtml, type Source } from "@/lib/review-marks";
 
 export type PageSettings = {
   margin: "Normales" | "Étroites" | "Larges";
@@ -27,6 +28,8 @@ export type PageSettings = {
   lineSpacing?: string;
   fontFamily?: string;
   fontSize?: string;
+  columns?: number;
+  pageBorder?: boolean;
 };
 
 export function EditorRibbon({
@@ -37,7 +40,11 @@ export function EditorRibbon({
   setSettings,
   attach,
   save,
-  correct
+  correct,
+  exportPdf,
+  saveVersion,
+  openVersions,
+  cloudState,
 }: {
   editor: Editor | null;
   tab: string;
@@ -47,13 +54,37 @@ export function EditorRibbon({
   attach: () => void;
   save: () => void;
   correct: () => void;
+  exportPdf: () => void;
+  saveVersion: () => void;
+  openVersions: () => void;
+  cloudState: string;
 }) {
+  const [sources, setSources] = useState<Source[]>(() => { try { return JSON.parse(localStorage.getItem("bersa_sources") || "[]"); } catch { return []; } });
+  const [, force] = useState(0);
+  const [isFull, setIsFull] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string>("Accueil");
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!editor) return null;
+  const persistSources = (l: Source[]) => { setSources(l); localStorage.setItem("bersa_sources", JSON.stringify(l)); };
+  const addSource = () => {
+    const author = window.prompt("Auteur(s) (Nom, Initiale) :"); if (!author) return;
+    const year = window.prompt("Année de publication :") || "s.d.";
+    const title = window.prompt("Titre de l'ouvrage ou de l'article :"); if (!title) return;
+    const publisher = window.prompt("Éditeur ou revue (facultatif) :") || "";
+    const s: Source = { id: crypto.randomUUID(), author: author.trim(), year: year.trim(), title: title.trim(), publisher: publisher.trim() };
+    persistSources([...sources, s]); editor.chain().focus().insertContent(" " + citation(s)).run(); toast.success("Source ajoutée et citée");
+  };
+  const toggleFull = async () => {
+    try {
+      if (document.fullscreenElement) { await document.exitFullscreen(); setIsFull(false); }
+      else { await document.documentElement.requestFullscreen(); setIsFull(true); }
+    } catch { toast.error("Plein écran non disponible sur cet appareil"); }
+  };
+  const tracking = isTracking(editor);
+  const comments = listComments(editor);
 
   const btn = (icon: any, label: string, onClick: () => void, active = false, title?: string) => (
     <Button
@@ -193,18 +224,12 @@ export function EditorRibbon({
             {btn(<FolderOpen className="w-4 h-4 text-amber-500" />, "Ouvrir / Importer", attach)}
             {btn(<Save className="w-4 h-4 text-emerald-600" />, "Enregistrer", save)}
             <div className="h-5 w-[1px] bg-border mx-1" />
-            {btn(<Download className="w-4 h-4 text-blue-600" />, "Exporter Word (.docx)", () => {
-              const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Document BERSA</title></head><body>${editor.getHTML()}</body></html>`;
-              const blob = new Blob([html], { type: "application/msword;charset=utf-8" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `Document_BERSA_${new Date().toISOString().slice(0, 10)}.doc`;
-              a.click();
-              URL.revokeObjectURL(url);
-              toast.success("Document Word téléchargé");
-            })}
-            {btn(<Printer className="w-4 h-4" />, "Imprimer / PDF", () => window.print())}
+            {btn(<Download className="w-4 h-4 text-blue-600" />, "Exporter PDF", exportPdf)}
+            {btn(<Printer className="w-4 h-4" />, "Imprimer", () => window.print())}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            {btn(<Save className="w-4 h-4 text-primary" />, "Enregistrer une version", saveVersion)}
+            {btn(<FolderOpen className="w-4 h-4 text-primary" />, "Historique des versions", openVersions)}
+            <span className="text-[11px] text-muted-foreground px-1">{cloudState}</span>
           </div>
         )}
 
@@ -378,6 +403,17 @@ export function EditorRibbon({
               editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run();
               toast.success("Saut de page inséré");
             })}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            <select aria-label="Formes" className="h-8 px-1 text-xs rounded-md border border-input bg-background" value="" onChange={e => { const v = e.target.value; if (v) { editor.chain().focus().setImage({ src: shapeSrc(v), alt: v }).run(); toast.success(`Forme « ${v} » insérée`); } }}>
+              <option value="">Formes…</option>
+              {Object.keys(SHAPES).map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+            <select aria-label="Symboles" className="h-8 px-1 text-xs rounded-md border border-input bg-background" value="" onChange={e => { const v = e.target.value; if (v) editor.chain().focus().insertContent(v).run(); }}>
+              <option value="">Symboles Ω</option>
+              {SYMBOLS.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <Input aria-label="En-tête" placeholder="En-tête de page" value={settings.headerText} onChange={e => setSettings(s => ({ ...s, headerText: e.target.value }))} className="h-8 w-32 text-xs" />
+            <Input aria-label="Pied de page" placeholder="Pied de page" value={settings.footerText} onChange={e => setSettings(s => ({ ...s, footerText: e.target.value }))} className="h-8 w-32 text-xs" />
           </div>
         )}
 
@@ -429,7 +465,16 @@ export function EditorRibbon({
             <div className="h-5 w-[1px] bg-border mx-1" />
 
             <span className="text-xs text-muted-foreground font-medium">Format :</span>
-            <span className="text-xs font-semibold px-2 py-1 bg-muted rounded">A4 (210 × 297 mm)</span>
+            <select aria-label="Format du papier" className="h-8 px-1 text-xs rounded-md border border-input bg-background" value={settings.format} onChange={e => setSettings(s => ({ ...s, format: e.target.value as PageSettings["format"] }))}>
+              <option value="A4">A4 (21 × 29,7 cm)</option>
+              <option value="A5">A5 (14,8 × 21 cm)</option>
+              <option value="Letter">Lettre US (21,6 × 27,9 cm)</option>
+            </select>
+            <Button type="button" size="sm" variant={settings.margin === "Larges" ? "secondary" : "ghost"} className="h-8 text-xs" onClick={() => setSettings(s => ({ ...s, margin: "Larges" }))}>3,5 cm (Larges)</Button>
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            <span className="text-xs text-muted-foreground font-medium">Colonnes :</span>
+            {[1, 2, 3].map(n => <Button key={n} type="button" size="sm" variant={(settings.columns || 1) === n ? "secondary" : "ghost"} className="h-8 w-8 text-xs" onClick={() => setSettings(s => ({ ...s, columns: n }))}>{n}</Button>)}
+            <Button type="button" size="sm" variant={settings.pageBorder ? "secondary" : "ghost"} className="h-8 text-xs" onClick={() => setSettings(s => ({ ...s, pageBorder: !s.pageBorder }))}><Columns className="w-4 h-4 mr-1" />Bordure de page</Button>
           </div>
         )}
 
@@ -449,6 +494,18 @@ export function EditorRibbon({
               if (author) {
                 editor.chain().focus().insertContent(` (${author})`).run();
               }
+            })}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            {btn(<Plus className="w-4 h-4 text-primary" />, "Nouvelle source", addSource)}
+            {sources.length > 0 && (
+              <select aria-label="Citer une source" className="h-8 px-1 text-xs rounded-md border border-input bg-background max-w-[150px]" value="" onChange={e => { const src = sources.find(x => x.id === e.target.value); if (src) editor.chain().focus().insertContent(" " + citation(src)).run(); }}>
+                <option value="">Citer ({sources.length})…</option>
+                {sources.map(x => <option key={x.id} value={x.id}>{x.author}, {x.year}</option>)}
+              </select>
+            )}
+            {btn(<BookOpen className="w-4 h-4 text-amber-600" />, "Insérer la bibliographie", () => {
+              if (!sources.length) { toast.info("Ajoutez d'abord une source."); return; }
+              editor.chain().focus().insertContent(bibliographyHtml(sources)).run(); toast.success("Bibliographie insérée");
             })}
           </div>
         )}
@@ -477,6 +534,21 @@ export function EditorRibbon({
             <div className="h-5 w-[1px] bg-border mx-1" />
 
             {btn(<Sparkles className="w-4 h-4 text-gold" />, "Vérification & Style BERSA", correct)}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            {btn(<Plus className="w-4 h-4 text-amber-500" />, "Commentaire", () => {
+              if (editor.state.selection.empty) { toast.info("Sélectionnez d'abord le passage à commenter."); return; }
+              const text = window.prompt("Votre commentaire :"); if (!text) return;
+              editor.chain().focus().setMark("comment", { text }).run(); force(x => x + 1); toast.success("Commentaire ajouté");
+            })}
+            {comments.length > 0 && (
+              <select aria-label="Commentaires" className="h-8 px-1 text-xs rounded-md border border-input bg-background max-w-[160px]" value="" onChange={e => { const c = comments[Number(e.target.value)]; if (!c) return; if (window.confirm(`« ${c.text} »\n\nSupprimer ce commentaire ?`)) { removeComment(editor, c.from, c.to); force(x => x + 1); } else editor.chain().focus().setTextSelection({ from: c.from, to: c.to }).run(); }}>
+                <option value="">Commentaires ({comments.length})</option>
+                {comments.map((c, i) => <option key={i} value={i}>{c.text.slice(0, 40)}</option>)}
+              </select>
+            )}
+            {btn(<CheckSquare className="w-4 h-4 text-emerald-600" />, tracking ? "Suivi activé" : "Suivi des modifications", () => { setTracking(editor, !tracking); force(x => x + 1); toast.success(tracking ? "Suivi désactivé" : "Suivi activé : vos ajouts apparaissent en vert"); }, tracking)}
+            {btn(<CheckSquare className="w-4 h-4" />, "Tout accepter", () => { const n = acceptAll(editor); toast.success(`${n} ajout(s) accepté(s)`); })}
+            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "Tout refuser", () => { const n = rejectAll(editor); toast.success(`${n} ajout(s) retiré(s)`); })}
           </div>
         )}
 
@@ -521,6 +593,7 @@ export function EditorRibbon({
               <Eye className="w-4 h-4 mr-1" />
               {settings.viewMode === "lecture" ? "Mode Page" : "Mode Lecture"}
             </Button>
+            {btn(<ZoomIn className="w-4 h-4" />, isFull ? "Quitter le plein écran" : "Plein écran", toggleFull, isFull)}
           </div>
         )}
 
