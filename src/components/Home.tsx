@@ -45,7 +45,7 @@ import { Button } from "@/components/ui/button";
 import { queueDocumentFile } from "@/lib/document-import";
 import { HomeDocActions } from "@/components/HomeDocActions";
 import { signedCommunity } from "@/lib/community";
-import { LETTER_TEMPLATES, letterPrompt } from "@/lib/letter-templates";
+import { LETTER_TEMPLATES, letterPrompt, letterSheet } from "@/lib/letter-templates";
 import { homeCards, TEMPLATE_DOMAINS, templateDomain } from "@/lib/home-catalog";
 import logo from "@/assets/bersa-logo.png.asset.json";
 
@@ -58,6 +58,8 @@ interface TemplateItem {
   prompt: string;
   content?: string | null;
 }
+
+const HOME_LETTER_SAMPLE = letterSheet(LETTER_TEMPLATES[0]!.html);
 
 const TEMPLATES: TemplateItem[] = [
   {
@@ -181,7 +183,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
   // Ouverture d'un modèle : transmet l'instruction à l'Atelier
   const handleOpenTemplate = (tmpl: TemplateItem) => {
     if (tmpl.id === "cv") { navigate({ to: "/cv-studio" }); return; }
-    if (tmpl.id === "lettre" && !catalog) { navigate({ to: "/modeles" }); return; }
+    if (tmpl.id === "lettre" || LETTER_TEMPLATES.some(l => l.id === tmpl.id)) { navigate({ to: "/lettres" }); return; }
     if (tmpl.content && tmpl.prompt) sessionStorage.setItem("bersa-assistant-prompt", tmpl.prompt);
     if (tmpl.content) {
       sessionStorage.setItem("bersa-document-html", tmpl.content);
@@ -370,7 +372,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 variant="ghost"
                 onClick={() => handleOpenTemplate(tmpl)}
                 className={
-                  tmpl.id === "cv"
+                  (tmpl.id === "cv" || tmpl.id === "lettre")
                     ? "group relative h-28 min-w-0 overflow-hidden rounded-2xl p-0 whitespace-normal bg-white shadow-[0_6px_20px_rgba(10,35,66,0.25)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-gold/40 ring-1 ring-gold/30 flex flex-col text-left"
                     : "relative h-28 min-w-0 overflow-hidden flex flex-col justify-between items-start gap-1 rounded-2xl p-2.5 whitespace-normal bg-gradient-to-br from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white shadow-[0_6px_20px_rgba(10,35,66,0.22)] hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10 ring-1 ring-gold/20"
                 }
@@ -387,9 +389,16 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                       <span className="grid size-5 shrink-0 -rotate-12 place-items-center rounded-full border border-dashed border-gold bg-gold/20 text-[6px] font-black uppercase tracking-tight text-gold ring-1 ring-gold/60">Pro</span>
                     </div>
                   </div>
+                ) : tmpl.id === "lettre" ? (
+                  <div className="relative size-full overflow-hidden bg-white pointer-events-none select-none">
+                    <CvPreview compact html={HOME_LETTER_SAMPLE} />
+                    <div className="absolute inset-x-0 bottom-0 bg-primary/95 px-1.5 py-1">
+                      <span className="block truncate text-[9px] font-bold leading-none text-primary-foreground">Lettres administratives</span>
+                    </div>
+                  </div>
                 ) : (
                   <>
-                    {tmpl.id === "lettre" && !catalog && <span className="pointer-events-none absolute right-2 top-2 h-12 w-9 rounded-sm bg-card p-1 shadow-md"><span className="block h-0.5 w-4 bg-primary/70" /><span className="mt-0.5 block h-0.5 w-3 bg-muted-foreground/50" /><span className="mt-1 block h-0.5 w-5 bg-primary/60" />{[0,1,2,3,4].map(i => <span key={i} className="mt-0.5 block h-px w-full bg-muted-foreground/40" />)}<span className="ml-auto mt-1 block h-0.5 w-3 bg-primary/70" /></span>}
+                    
                     <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
                     <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
                       <Icon className="size-5 text-gold" />
