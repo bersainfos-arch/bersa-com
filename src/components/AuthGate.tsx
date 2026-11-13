@@ -82,11 +82,24 @@ function SignForm() {
       return;
     }
 
-    const birthDateParsed = normalizeBirthDate(String(f.get("birth_date") ?? ""));
+    const d = Number(f.get("bd_day")), mo = Number(f.get("bd_month")), y = Number(f.get("bd_year"));
+    const dt = new Date(Date.UTC(y, mo - 1, d));
+    if (!y || dt.getUTCDate() !== d || dt.getUTCMonth() !== mo - 1 || y < 1900 || dt > new Date()) {
+      setBusy(false);
+      toast.error("Date de naissance invalide.");
+      return;
+    }
+    const birthDateParsed = normalizeBirthDate(`${d}/${mo}/${y}`);
+    if (mode === "up" && password.length < 6) {
+      setBusy(false);
+      toast.error("Le mot de passe doit comporter au moins 6 caractères.");
+      return;
+    }
     const meta = {
       first_name: String(f.get("first_name")).trim().slice(0, 80),
       last_name: String(f.get("last_name")).trim().slice(0, 80),
       birth_date: birthDateParsed,
+      phone_private: String(f.get("phone") ?? "").replace(/[^\d+]/g, "").slice(0, 20) || null,
     };
 
     const { error } = await supabase.auth.signUp({
@@ -101,7 +114,7 @@ function SignForm() {
       setPendingPhone(identifier.phone);
       toast.success("Confirmez le code reçu par SMS.");
     } else {
-      toast.success("Compte créé avec succès ! Connectez-vous.");
+      toast.success("Compte créé ! Vérifiez votre e-mail pour confirmer, puis connectez-vous.");
       setMode("in");
     }
   }
@@ -146,30 +159,31 @@ function SignForm() {
         {mode === "up" && (
           <>
             <div className="grid grid-cols-2 gap-2">
-              <Input name="first_name" placeholder="Prénom" required maxLength={80} />
-              <Input name="last_name" placeholder="Nom" required maxLength={80} />
+              <Input name="first_name" aria-label="Prénom" placeholder="Prénom" required maxLength={80} autoComplete="given-name" />
+              <Input name="last_name" aria-label="Nom" placeholder="Nom" required maxLength={80} autoComplete="family-name" />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Date de naissance (saisie manuelle libre)</label>
-              <Input
-                name="birth_date"
-                type="text"
-                placeholder="Ex. 15/05/1998 ou 1998-05-15"
-                aria-label="Date de naissance"
-                required
-              />
-            </div>
+            <fieldset className="space-y-1">
+              <legend className="text-xs text-muted-foreground">Date de naissance</legend>
+              <div className="grid grid-cols-[1fr_1fr_1.5fr] gap-2">
+                <Input name="bd_day" aria-label="Jour" placeholder="JJ" inputMode="numeric" maxLength={2} required pattern="[0-9]{1,2}" />
+                <Input name="bd_month" aria-label="Mois" placeholder="MM" inputMode="numeric" maxLength={2} required pattern="[0-9]{1,2}" />
+                <Input name="bd_year" aria-label="Année" placeholder="AAAA" inputMode="numeric" maxLength={4} required pattern="[0-9]{4}" />
+              </div>
+            </fieldset>
           </>
         )}
 
         <Input
           name="email"
-          type="text"
-          autoComplete="username"
-          aria-label="E-mail ou numéro de téléphone"
-          placeholder="E-mail ou numéro de téléphone"
+          type={mode === "up" ? "email" : "text"}
+          autoComplete={mode === "up" ? "email" : "username"}
+          aria-label={mode === "up" ? "Adresse e-mail" : "E-mail ou numéro de téléphone"}
+          placeholder={mode === "up" ? "Adresse e-mail" : "E-mail ou numéro de téléphone"}
           required
         />
+        {mode === "up" && (
+          <Input name="phone" type="tel" inputMode="tel" autoComplete="tel" aria-label="Numéro de téléphone" placeholder="Numéro de téléphone (privé)" maxLength={20} />
+        )}
 
         <div className="relative">
           <Input
@@ -194,17 +208,12 @@ function SignForm() {
 
         {mode === "up" && (
           <>
-            {passwordInput.length > 0 && passwordInput.length < 6 && (
-              <p className="text-[11px] text-amber-600">
-                Mot de passe valide (min. 4 car.), mais 6 caractères ou plus sont recommandés pour plus de sécurité.
-              </p>
-            )}
             <Input
               name="confirm"
               type={show ? "text" : "password"}
               placeholder="Confirmer le mot de passe"
               required
-              minLength={4}
+              minLength={6}
             />
           </>
         )}
