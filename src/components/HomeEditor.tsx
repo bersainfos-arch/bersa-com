@@ -952,9 +952,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           )}
 
-          {!settings.differentFirstPage && <input aria-label="En-tête de page" placeholder="Touchez pour écrire l'en-tête" value={settings.headerText} onChange={e => setSettings(st => ({ ...st, headerText: e.target.value }))} className="bersa-page-header mx-auto block w-full max-w-[794px] bg-transparent text-center focus:outline-none placeholder:text-muted-foreground/50" />}
+          {!settings.differentFirstPage && <div className="bersa-page-header mx-auto flex w-full max-w-[794px] items-center"><span className="bersa-page-num">1</span><input aria-label="En-tête de page" placeholder="" value={settings.headerText} onChange={e => setSettings(st => ({ ...st, headerText: e.target.value }))} className="min-w-0 flex-1 bg-transparent focus:outline-none" /></div>}
           <EditorContent editor={editor} className="home-paper-content" />
-          {!settings.differentFirstPage && <input aria-label="Pied de page" placeholder="Touchez pour écrire le pied de page" value={settings.footerText} onChange={e => setSettings(st => ({ ...st, footerText: e.target.value }))} className="bersa-page-footer mx-auto block w-full max-w-[794px] bg-transparent text-center focus:outline-none placeholder:text-muted-foreground/50" />}
+          {!settings.differentFirstPage && <input aria-label="Pied de page" placeholder="" value={settings.footerText} onChange={e => setSettings(st => ({ ...st, footerText: e.target.value }))} className="bersa-page-footer mx-auto block w-full max-w-[794px] bg-transparent text-center focus:outline-none placeholder:text-muted-foreground/50" />}
           {versions && (
             <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center" onClick={() => setVersions(null)}>
               <div className="w-full max-w-md rounded-xl bg-card p-4 shadow-xl" onClick={e => e.stopPropagation()}>
@@ -1011,14 +1011,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               </ol>
             </div>
           )}
-
-          {/* Pied de page numéroté automatique */}
-          <div className="no-print mx-auto mt-1 flex w-full max-w-[794px] items-center justify-between px-2 text-[11px] text-muted-foreground">
-            <span>{settings.format} · Marges {settings.margin} · <span aria-live="polite">{saveState === "saved" ? (cloudState.startsWith("Enregistré en ligne") ? cloudState : "Enregistré sur l'appareil") : saveState === "saving" ? "Enregistrement…" : "Modifications en cours"}</span></span>
-            <span className="font-semibold text-primary">
-              Page 1 sur {totalPages} ({totalPages === 1 ? "1 feuille A4" : `${totalPages} feuilles A4`})
-            </span>
-          </div>
         </div>
 
           {!embedded && !assistantOpen && (

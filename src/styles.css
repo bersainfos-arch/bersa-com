@@ -527,7 +527,7 @@
 /* Notes de bas de page : appel en exposant + zone de notes en bas du papier */
 .footnote-ref { color: hsl(var(--primary)); font-size: 0.75em; vertical-align: super; cursor: pointer; padding: 0 1px; }
 .a4-footnotes { background: #fff; padding: 0 24px 24px; font-family: "Times New Roman", serif; }
-.a4-footnotes-rule { border: none; border-top: 1px solid #444; width: 40%; margin: 0 0 6px; }
+.a4-footnotes-rule { border: none; border-top: 1px solid #000; width: 150px; max-width: 30%; margin: 0 0 6px; }
 .a4-footnotes-list { list-style: none; margin: 0; padding: 0; }
 .a4-footnote-item { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.5; padding: 1px 0; }
 .a4-footnote-number { color: hsl(var(--primary)); font-size: 0.75em; min-width: 14px; }
@@ -788,7 +788,10 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .bersa-writer-workspace.page-border .home-ai-sheet { outline: 2px solid var(--primary); outline-offset: -28px; }
 .bersa-writer-workspace.format-A5 .home-ai-sheet { max-width: 559px; margin-inline: auto; }
 .bersa-writer-workspace.format-Letter .home-ai-sheet { max-width: 816px; margin-inline: auto; }
-.bersa-page-header, .bersa-page-footer { font-family: 'Times New Roman', serif; font-size: 10pt; text-align: center; color: var(--muted-foreground); padding: 4px 8px; }
+.bersa-page-header { font-family: Arial, sans-serif; font-size: 9pt; letter-spacing: .02em; text-transform: uppercase; color: #8aa58a; padding: 6px 76px 4px; gap: 6px; }
+.bersa-page-num { color: #555; padding-right: 6px; border-right: 1px solid #999; }
+@media (max-width: 640px) { .bersa-page-header { padding: 4px 20px; } }
+.bersa-page-footer { font-family: 'Times New Roman', serif; font-size: 10pt; text-align: center; color: var(--muted-foreground); padding: 4px 8px; }
 .bersa-comment { background: color-mix(in oklab, var(--gold, #d4af37) 35%, transparent); border-bottom: 2px dotted var(--gold, #d4af37); cursor: help; }
 .bersa-track-ins { text-decoration: underline; text-decoration-color: #059669; color: #047857; }
 
