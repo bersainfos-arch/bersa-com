@@ -6,34 +6,36 @@ export interface LetterTemplate { id: string; label: string; fields: LetterField
 
 const esc = (s: string = "") => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const br = (s: string = "") => esc(s).replace(/\n/g, "<br>");
-const IND = "&emsp;".repeat(6);
-const paras = (s: string = "") => s.split(/\n+/).map(x => x.trim()).filter(Boolean).map(x => `<p style="text-align: justify">${IND}${esc(x)}</p>`).join("");
-const head = (left: string, right: string) =>
-  `<table style="width:100%;border:none"><tbody><tr><td style="border:none;vertical-align:top;width:58%"><p>${left}</p></td><td style="border:none;vertical-align:top"><p style="text-align: right">${right}</p></td></tr></tbody></table>`;
+const PI = "text-align: justify; text-indent: 45%; margin: 0 0 14px";
+const paras = (s: string = "") => s.split(/\n+/).map(x => x.trim()).filter(Boolean).map(x => `<p style="${PI}">${esc(x)}</p>`).join("");
+const cell = (w: string, html: string, extra = "") => `<td style="border:none;vertical-align:top;width:${w};padding:0;${extra}">${html}</td>`;
+const row = (l: string, r: string, lw = "55%", extra = "") => `<table style="width:100%;border:none;border-collapse:collapse;margin:0 0 28px"><tbody><tr>${cell(lw, l, extra)}${cell("auto", r)}</tr></tbody></table>`;
+const appel = (s: string) => `<p style="margin:56px 0 6px;padding-left:45%">${esc(s)}</p>`;
+const signature = (n: string) => `<p style="margin:28px 0 0;padding-left:50%"><strong>${esc(n)}</strong></p>`;
 
 type Def = Omit<LetterTemplate, "html">;
 const DEFS: Def[] = [
   {
     id: "lettre-motivation", label: "Lettre de motivation",
     fields: [
-      { key: "nom", label: "Nom complet", sample: "DJOMA MUKENDI Dieudonné" },
-      { key: "adresse", label: "Adresse", sample: "Av. de la Paix n°12, Q. Matonge, Kalamu, Kinshasa" },
+      { key: "nom", label: "Nom complet", sample: "DJOMA ONOLOKE Dieudonné" },
+      { key: "adresse", label: "Adresse", sample: "Av. Bobongo n°9, Lemba, Kinshasa, RDC" },
       { key: "tel", label: "Téléphone", sample: "+243 81 000 0000" },
       { key: "email", label: "E-mail", sample: "dieudonne.djoma@exemple.com" },
       { key: "ville", label: "Ville", sample: "Kinshasa" },
       { key: "date", label: "Date", sample: "13 novembre 2026" },
-      { key: "poste", label: "Poste visé", sample: "Assistant administratif" },
-      { key: "dest", label: "Destinataire", sample: "Monsieur le Directeur Général de la Société XYZ" },
-      { key: "salut", label: "Formule d’appel", sample: "Monsieur le Directeur," },
+      { key: "poste", label: "Poste visé", sample: "d’Archiviste documentaire – Chargé de numérisation et de GED" },
+      { key: "dest", label: "Destinataire", sample: "À l’attention de la Direction des Ressources humaines de SmartWays Group" },
+      { key: "salut", label: "Formule d’appel", sample: "Madame, Monsieur," },
       { key: "corps", label: "Corps de la lettre (un paragraphe par ligne)", multi: true, sample:
         "Titulaire d’une licence en Sciences commerciales et administratives de l’Université de Kinshasa, je vous soumets ma candidature au poste d’assistant administratif au sein de votre société.\nMa formation et mes stages m’ont permis de développer la rigueur, le sens de l’organisation et la maîtrise des outils bureautiques, qualités essentielles à la bonne gestion administrative.\nDynamique, méthodique et désireux d’apprendre, je suis prêt à m’investir pleinement dans les missions qui me seront confiées.\nJe serais honoré de pouvoir vous présenter plus amplement ma motivation au cours d’un entretien." },
-      { key: "politesse", label: "Formule de politesse", sample: "Je vous prie d’agréer, Monsieur le Directeur, l’expression de ma considération distinguée." },
+      { key: "politesse", label: "Formule de politesse", sample: "Je vous prie d’agréer, Madame, Monsieur, l’expression de ma considération distinguée." },
     ],
     render: d =>
-      head(`<strong>${esc(d.nom)}</strong><br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}`, `<em>${esc(d.ville)}, le ${esc(d.date)}</em>`) +
-      head(`<strong><u>Objet :</u></strong> Candidature au poste de ${esc(d.poste)}`, `<strong>À ${br(d.dest)}</strong><br><strong>À ${esc(d.ville)}</strong>`) +
-      `<p></p><p style="text-align: center">${esc(d.salut)}</p>` + paras(d.corps) + paras(d.politesse) +
-      `<p></p><p style="text-align: right"><strong>${esc(d.nom)}</strong></p>`,
+      row(`<p style="margin:0"><span style="font-size:18px">${esc(d.nom)}</span><br>Adresse: ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}</p>`, `<p style="margin:0"><em>${esc(d.ville)}, le ${esc(d.date)}</em></p>`) +
+      `<p style="margin:0"></p>` +
+      row(`<p style="margin:0;padding-left:24px;padding-right:24px"><strong><u>Objet :</u></strong>Candidature au poste ${br(d.poste)}</p>`, `<p style="margin:28px 0 0">${br(d.dest)}</p>`, "50%") +
+      appel(d.salut) + paras(d.corps) + paras(d.politesse) + signature(d.nom),
   },
   {
     id: "demande-emploi", label: "Lettre de demande d’emploi",
@@ -44,23 +46,22 @@ const DEFS: Def[] = [
       { key: "email", label: "E-mail", sample: "francis.kabongo@exemple.com" },
       { key: "ville", label: "Ville", sample: "Kinshasa" },
       { key: "date", label: "Date", sample: "13 / 11 / 2026" },
-      { key: "fonction", label: "Fonction demandée", sample: "enseignant de mathématiques" },
-      { key: "dest", label: "Destinataire", sample: "Monsieur le Préfet des études du Lycée Bosangani" },
+      { key: "fonction", label: "Fonction demandée", sample: "d’enseignant" },
+      { key: "dest", label: "Destinataire", sample: "À Madame, Monsieur le (la) Préfet(e)" },
       { key: "salut", label: "Formule d’appel", sample: "Monsieur le Préfet," },
       { key: "corps", label: "Corps de la lettre (un paragraphe par ligne)", multi: true, sample:
         "J’ai l’honneur de venir très respectueusement auprès de votre haute autorité solliciter un emploi au sein de votre établissement, en qualité d’enseignant de mathématiques.\nEn effet, titulaire d’un diplôme de licence en Mathématiques de l’Université Pédagogique Nationale, je désire mettre mes connaissances et mes qualités personnelles au service de votre établissement.\nÀ cet effet, je me tiens à votre disposition pour assurer les cours d’algèbre, de géométrie et de statistique dans les classes des humanités.\nDans l’espoir d’une suite favorable à ma présente demande, je reste disponible pour tout entretien ou toute évaluation complémentaire que vous jugerez utile." },
       { key: "politesse", label: "Formule de politesse", sample: "Je vous prie d’agréer, Monsieur le Préfet, l’expression de ma très haute considération." },
     ],
     render: d =>
-      head(`Nom : <strong>${esc(d.nom)}</strong><br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}`, `${esc(d.ville)}, le ${esc(d.date)}`) +
-      head(`<strong><u>Objet</u></strong> : Demande d’emploi en qualité de ${esc(d.fonction)}.`, `À <strong>${br(d.dest)}</strong>`) +
-      `<p></p><p style="text-align: center">${esc(d.salut)}</p>` + paras(d.corps) + paras(d.politesse) +
-      `<p></p><p style="text-align: right"><strong>${esc(d.nom)}</strong></p>`,
+      row(`<p style="margin:0">Nom : ${esc(d.nom)}<br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}</p>`, `<p style="margin:0">${esc(d.ville)}, le ${esc(d.date)}</p>`, "60%") +
+      row(`<p style="margin:0;padding-left:20px;padding-right:24px"><strong><u>Objet</u></strong> : Demande d’emploi en qualité ${br(d.fonction)}.</p>`, `<p style="margin:0">${br(d.dest)}</p>`, "45%") +
+      appel(d.salut) + paras(d.corps) + paras(d.politesse) + signature(d.nom),
   },
   {
     id: "note-service", label: "Lettre officielle — Note de service",
     fields: [
-      { key: "timbre", label: "Timbre / institution", multi: true, sample: "RÉPUBLIQUE DÉMOCRATIQUE DU CONGO\nENSEIGNEMENT SUPÉRIEUR ET UNIVERSITAIRE\nINSTITUT SUPÉRIEUR DE COMMERCE\nN° 045/ISC/DG/2026" },
+      { key: "timbre", label: "Timbre / institution", multi: true, sample: "Timbres" },
       { key: "exp", label: "Fonction de l’expéditeur", sample: "LE DIRECTEUR GÉNÉRAL" },
       { key: "dest", label: "Destinataire", multi: true, sample: "Monsieur le Doyen de la Faculté de Gestion\nde l’Université de Kinshasa" },
       { key: "objet", label: "Objet", sample: "Réponse à votre demande de partenariat académique" },
@@ -70,12 +71,13 @@ const DEFS: Def[] = [
       { key: "politesse", label: "Formule de politesse", sample: "Veuillez agréer, Monsieur le Doyen, l’assurance de ma considération distinguée." },
     ],
     render: d =>
-      `<p style="text-align: center"><strong>${br(d.timbre)}</strong></p><p style="text-align: center"><strong><u>NOTE DE SERVICE</u></strong></p>` +
-      `<p style="text-align: center"><strong>${esc(d.exp)}</strong></p><p style="text-align: center"><strong>A</strong></p>` +
-      `<p style="text-align: right"><strong>${br(d.dest)}</strong></p>` +
-      `<p><strong><u>Objet</u></strong> : ${esc(d.objet)}</p><p><strong>${esc(d.salut)}</strong></p>` +
-      String(d.corps ?? "").split(/\n+/).filter((x: string) => x.trim()).map((x: string) => `<p style="text-align: justify">${esc(x.trim())}</p>`).join("") +
-      `<p style="text-align: justify">${esc(d.politesse)}</p><p></p><p style="text-align: center"><strong>${esc(d.exp)}</strong></p>`,
+      `<p style="margin:0 0 8px;font-size:13px">${br(d.timbre)}</p>` +
+      `<p style="margin:0 0 10px;padding-left:40%"><strong>${esc(d.exp)}</strong></p>` +
+      `<p style="margin:0 0 10px;padding-left:48%"><strong>A</strong></p>` +
+      `<p style="margin:0 0 28px;padding-left:40%"><strong>${br(d.dest)}</strong></p>` +
+      `<p style="margin:0 0 24px"><strong>Objet</strong> : ${esc(d.objet)}</p><p style="margin:0 0 14px;padding-left:24px"><strong>${esc(d.salut)}</strong></p>` +
+      String(d.corps ?? "").split(/\n+/).filter((x: string) => x.trim()).map((x: string) => `<p style="text-align: justify;margin:0 0 12px;padding-left:24px">${esc(x.trim())}</p>`).join("") +
+      `<p style="text-align: justify;margin:0 0 40px;padding-left:24px">${esc(d.politesse)}</p><p style="padding-left:45%"><strong>${esc(d.exp)}</strong></p>`,
   },
 ];
 

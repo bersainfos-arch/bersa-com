@@ -6,6 +6,6 @@ describe("lettres", () => {
   });
   it("refuse une réponse hors format", () => { expect(parseImproved("bonjour")).toBeNull(); });
   it("transmet les données personnelles comme verrouillées", () => {
-    const t = LETTER_TEMPLATES[0]!; expect(improvePrompt(t, sampleData(t))).toContain("DJOMA MUKENDI Dieudonné");
+    const t = LETTER_TEMPLATES[0]!; expect(improvePrompt(t, sampleData(t))).toContain("DJOMA ONOLOKE Dieudonné");
   });
 });
