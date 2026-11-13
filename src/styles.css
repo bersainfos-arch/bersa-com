@@ -770,3 +770,8 @@ img, video, canvas, iframe, table { max-width: 100%; }
   .home-editor .home-paper-content .home-ai-sheet .auto-page-gap::after,
   .home-editor .home-ai-sheet .auto-page-gap .page-gap-badge { display: none !important; }
 }
+
+/* Page allongée sur téléphone, comme une page Word/WPS mobile */
+@container (max-width: 599px) {
+  .home-editor .home-paper-content .home-ai-sheet { min-height: calc(var(--sheet-w) * 2.1) !important; }
+}

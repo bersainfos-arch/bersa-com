@@ -28,7 +28,7 @@ export const AutoPages = Extension.create({
             const padding = parseFloat(style.paddingTop) || 40;
             const width = dom.clientWidth || 794;
             // Hauteur proportionnelle A4 (210 x 297)
-            const pageHeight = (width * 297) / 210;
+            const pageHeight = width < 600 ? width * 2.1 : (width * 297) / 210;
             const usable = Math.max(300, pageHeight - padding * 2);
 
             const decos: Decoration[] = [];
