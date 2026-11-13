@@ -121,7 +121,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
   useEffect(() => {
     const timer = setInterval(() => {
       setCvSlideIndex((prev) => (prev + 1) % CV_MODEL_PHOTOS.length);
-    }, 2200);
+    }, 5000);
     return () => clearInterval(timer);
   }, []);
 
@@ -369,66 +369,33 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 }
               >
                 {tmpl.id === "cv" ? (
-                  <div className="relative size-full flex flex-col bg-white overflow-hidden text-slate-800 pointer-events-none select-none">
-                    {/* 1. En-tête professionnel étalé d'un coin à l'autre */}
-                    <div className="relative h-10 bg-gradient-to-r from-[#0A2342] via-[#12396B] to-[#1E3A8A] px-2 flex items-center gap-2 shrink-0 border-b border-gold/30">
-                      {/* Photo d'identité en diaporama continu */}
-                      <div className="relative size-7 rounded-[2px] overflow-hidden bg-slate-900 ring-1 ring-white/90 shrink-0 shadow-xs">
+                  <div className="relative size-full flex flex-col bg-white overflow-hidden pointer-events-none select-none">
+                    <div className="flex items-center gap-1 bg-[#0A2342] px-1 py-1 shrink-0">
+                      <div className="relative size-6 shrink-0 overflow-hidden rounded-full ring-1 ring-gold">
                         {CV_MODEL_PHOTOS.map((src, idx) => (
-                          <img
-                            key={src}
-                            src={src}
-                            alt="Photo CV"
-                            className={`absolute inset-0 size-full object-cover transition-opacity duration-700 ease-in-out ${
-                              cvSlideIndex === idx ? "opacity-100 scale-100" : "opacity-0 scale-95"
-                            }`}
-                          />
+                          <img key={src} src={src} alt="" loading="lazy" className={`absolute inset-0 size-full object-cover transition-opacity duration-1000 ${cvSlideIndex === idx ? "opacity-100" : "opacity-0"}`} />
                         ))}
                       </div>
-
-                      {/* Lignes d'identité : Nom et Titre */}
-                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-                        <div className="h-2 w-14 bg-gradient-to-r from-gold via-amber-200 to-gold rounded-[1px] shadow-2xs" />
-                        <div className="h-1.5 w-20 bg-white/85 rounded-[1px]" />
-                      </div>
-
-                      {/* Badge A4 Pro dans l'angle supérieur droit */}
-                      <span className="shrink-0 bg-gold/95 text-[#0A2342] text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-[2px] shadow-xs">
-                        A4
-                      </span>
-                    </div>
-
-                    {/* 2. Corps du CV rempli sur 2 colonnes jusqu'aux bords */}
-                    <div className="flex-1 grid grid-cols-[30px_1fr] bg-white p-1 gap-1.5 overflow-hidden">
-                      {/* Colonne latérale (Compétences & Coordonnées) */}
-                      <div className="bg-slate-100/90 rounded-[2px] p-1 flex flex-col gap-1 border-r border-slate-200/70">
-                        <div className="h-1.5 w-full bg-[#0A2342] rounded-[0.5px]" />
-                        <div className="h-1 w-full bg-slate-400 rounded-[0.5px]" />
-                        <div className="h-1 w-3/4 bg-slate-400 rounded-[0.5px]" />
-                        <div className="h-1.5 w-full bg-gold rounded-[0.5px] mt-0.5" />
-                        <div className="h-1 w-full bg-slate-400 rounded-[0.5px]" />
-                        <div className="h-1 w-2/3 bg-slate-400 rounded-[0.5px]" />
-                      </div>
-
-                      {/* Colonne principale (Expériences & Formations) */}
-                      <div className="flex flex-col gap-1 pr-1">
-                        <div className="h-1.5 w-16 bg-[#0A2342] rounded-[0.5px]" />
-                        <div className="h-1 w-full bg-slate-300 rounded-[0.5px]" />
-                        <div className="h-1 w-4/5 bg-slate-300 rounded-[0.5px]" />
-                        <div className="h-1.5 w-14 bg-[#0A2342] rounded-[0.5px] mt-0.5" />
-                        <div className="h-1 w-full bg-slate-300 rounded-[0.5px]" />
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="h-1.5 w-full rounded-[1px] bg-gold" />
+                        <div className="h-1 w-3/4 rounded-[1px] bg-white/80" />
                       </div>
                     </div>
-
-                    {/* 3. Bandeau BERSA ancré sur les deux coins inférieurs */}
-                    <div className="relative bg-gradient-to-r from-[#0A2342] via-[#0F325E] to-[#0A1D36] text-white px-2 py-1 flex items-center justify-between border-t border-gold/40 shrink-0">
-                      <span className="text-[10px] font-bold text-white tracking-tight leading-none drop-shadow-xs">
-                        Modèles de CV Pro
-                      </span>
-                      <span className="text-[8px] font-semibold text-gold uppercase tracking-wider">
-                        120 Modèles
-                      </span>
+                    <div className="flex-1 grid grid-cols-[34%_1fr] min-h-0">
+                      <div className="bg-slate-100 p-1 space-y-[3px]">
+                        <div className="h-1 w-full bg-[#0A2342]" />
+                        <div className="h-[3px] w-full bg-slate-400" /><div className="h-[3px] w-4/5 bg-slate-400" /><div className="h-[3px] w-full bg-slate-400" />
+                        <div className="h-1 w-full bg-gold" />
+                        <div className="h-[3px] w-full bg-slate-400" /><div className="h-[3px] w-2/3 bg-slate-400" />
+                      </div>
+                      <div className="p-1 space-y-[3px]">
+                        <div className="h-1 w-3/4 bg-[#0A2342]" />
+                        <div className="h-[3px] w-full bg-slate-300" /><div className="h-[3px] w-full bg-slate-300" /><div className="h-[3px] w-4/5 bg-slate-300" />
+                        <div className="h-1 w-2/3 bg-[#0A2342]" />
+                        <div className="h-[3px] w-full bg-slate-300" /><div className="h-[3px] w-5/6 bg-slate-300" /><div className="h-[3px] w-full bg-slate-300" />
+                      </div>
                     </div>
+                    <div className="shrink-0 bg-[#0A2342] px-1 py-0.5 text-center text-[9px] font-bold leading-tight text-white truncate">CV Pro <span className="text-gold">· 120</span></div>
                   </div>
                 ) : (
                   <>
