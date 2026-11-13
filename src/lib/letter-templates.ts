@@ -23,7 +23,7 @@ const DEFS: Def[] = [
       { key: "ville", label: "Ville", sample: "Kinshasa" },
       { key: "date", label: "Date", sample: "13 novembre 2026" },
       { key: "poste", label: "Poste visé", sample: "Assistant administratif" },
-      { key: "dest", label: "Destinataire", sample: "Monsieur le Directeur des Ressources Humaines de la Société XYZ" },
+      { key: "dest", label: "Destinataire", sample: "Monsieur le Directeur Général de la Société XYZ" },
       { key: "salut", label: "Formule d’appel", sample: "Monsieur le Directeur," },
       { key: "corps", label: "Corps de la lettre (un paragraphe par ligne)", multi: true, sample:
         "Titulaire d’une licence en Sciences commerciales et administratives de l’Université de Kinshasa, je vous soumets ma candidature au poste d’assistant administratif au sein de votre société.\nMa formation et mes stages m’ont permis de développer la rigueur, le sens de l’organisation et la maîtrise des outils bureautiques, qualités essentielles à la bonne gestion administrative.\nDynamique, méthodique et désireux d’apprendre, je suis prêt à m’investir pleinement dans les missions qui me seront confiées.\nJe serais honoré de pouvoir vous présenter plus amplement ma motivation au cours d’un entretien." },
@@ -31,7 +31,7 @@ const DEFS: Def[] = [
     ],
     render: d =>
       head(`<strong>${esc(d.nom)}</strong><br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}`, `<em>${esc(d.ville)}, le ${esc(d.date)}</em>`) +
-      head(`<strong><u>Objet :</u></strong> Candidature au poste de ${esc(d.poste)}`, `À l’attention de<br><strong>${br(d.dest)}</strong>`) +
+      head(`<strong><u>Objet :</u></strong> Candidature au poste de ${esc(d.poste)}`, `<strong>À ${br(d.dest)}</strong><br><strong>À ${esc(d.ville)}</strong>`) +
       `<p></p><p style="text-align: center">${esc(d.salut)}</p>` + paras(d.corps) + paras(d.politesse) +
       `<p></p><p style="text-align: right"><strong>${esc(d.nom)}</strong></p>`,
   },
@@ -70,7 +70,7 @@ const DEFS: Def[] = [
       { key: "politesse", label: "Formule de politesse", sample: "Veuillez agréer, Monsieur le Doyen, l’assurance de ma considération distinguée." },
     ],
     render: d =>
-      `<p><strong>${br(d.timbre)}</strong></p>` +
+      `<p style="text-align: center"><strong>${br(d.timbre)}</strong></p><p style="text-align: center"><strong><u>NOTE DE SERVICE</u></strong></p>` +
       `<p style="text-align: center"><strong>${esc(d.exp)}</strong></p><p style="text-align: center"><strong>A</strong></p>` +
       `<p style="text-align: right"><strong>${br(d.dest)}</strong></p>` +
       `<p><strong><u>Objet</u></strong> : ${esc(d.objet)}</p><p><strong>${esc(d.salut)}</strong></p>` +
@@ -89,4 +89,17 @@ export const letterSheet = (html: string) =>
 
 export function letterPrompt(t: LetterTemplate) {
   return `Rédige une « ${t.label} » en complétant le modèle ouvert sur le papier. Conserve exactement sa forme (en-tête, objet, destinataire, formules, signature). Données : ${t.fields.map(f => `${f.label} : …`).join(" ; ")}.`;
+}
+
+/** Champs que l’Assistant peut réécrire ; tout le reste (identité, adresses, dates…) reste verrouillé. */
+export const IMPROVABLE = ["salut", "corps", "politesse"] as const;
+export function improvePrompt(t: LetterTemplate, d: Record<string, string>) {
+  const ctx = t.fields.filter(f => !(IMPROVABLE as readonly string[]).includes(f.key)).map(f => `${f.label} : ${d[f.key]}`).join("\n");
+  return `Améliore uniquement la formule d’appel, le corps et la formule de politesse de cette « ${t.label} » : style administratif soutenu, clair, convaincant, sans faute. N’invente aucune donnée personnelle et ne modifie aucune information ci-dessous.\n${ctx}\n\nTexte actuel :\n[APPEL]\n${d["salut"]}\n[CORPS]\n${d["corps"]}\n[POLITESSE]\n${d["politesse"]}\n\nRéponds STRICTEMENT dans ce format, sans titre ni commentaire :\n[APPEL]\n...\n[CORPS]\nun paragraphe par ligne\n[POLITESSE]\n...`;
+}
+export function parseImproved(text: string): Partial<Record<string, string>> | null {
+  const m = text.replace(/\*/g, "").match(/\[APPEL\]([\s\S]*?)\[CORPS\]([\s\S]*?)\[POLITESSE\]([\s\S]*)/);
+  if (!m) return null;
+  const [salut, corps, politesse] = [m[1]!, m[2]!, m[3]!].map(x => x.trim());
+  return salut && corps && politesse ? { salut, corps, politesse } : null;
 }
