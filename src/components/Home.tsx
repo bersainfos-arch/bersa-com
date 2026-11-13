@@ -45,6 +45,7 @@ import { Button } from "@/components/ui/button";
 import { queueDocumentFile } from "@/lib/document-import";
 import { HomeDocActions } from "@/components/HomeDocActions";
 import { signedCommunity } from "@/lib/community";
+import { LETTER_TEMPLATES, letterPrompt } from "@/lib/letter-templates";
 import { homeCards, TEMPLATE_DOMAINS, templateDomain } from "@/lib/home-catalog";
 import logo from "@/assets/bersa-logo.png.asset.json";
 
@@ -65,6 +66,7 @@ const TEMPLATES: TemplateItem[] = [
     icon: FileBadge,
     prompt: "Rédige une lettre administrative officielle respectant les normes professionnelles.",
   },
+  ...LETTER_TEMPLATES.map(l => ({ id: l.id, label: l.label, icon: FileBadge, prompt: letterPrompt(l), content: l.html })),
     {
     id: "cv",
     label: "Modèles de CV Pro",
@@ -179,6 +181,8 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
   // Ouverture d'un modèle : transmet l'instruction à l'Atelier
   const handleOpenTemplate = (tmpl: TemplateItem) => {
     if (tmpl.id === "cv") { navigate({ to: "/cv-studio" }); return; }
+    if (tmpl.id === "lettre" && !catalog) { navigate({ to: "/modeles" }); return; }
+    if (tmpl.content && tmpl.prompt) sessionStorage.setItem("bersa-assistant-prompt", tmpl.prompt);
     if (tmpl.content) {
       sessionStorage.setItem("bersa-document-html", tmpl.content);
       sessionStorage.setItem("bersa-document-title", tmpl.label);
@@ -203,7 +207,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
 
   const orderedTemplates = [...templates].sort((a,b) => TEMPLATE_DOMAINS.indexOf(templateDomain(a.label)) - TEMPLATE_DOMAINS.indexOf(templateDomain(b.label)));
   const matchingTemplates = orderedTemplates.filter(t => t.label.toLowerCase().includes(searchQuery.toLowerCase()) && (domain === "Tous" || templateDomain(t.label) === domain));
-  const displayedTemplates = catalog ? matchingTemplates : homeCards(matchingTemplates);
+  const displayedTemplates = catalog ? matchingTemplates : homeCards(matchingTemplates.filter(t => !LETTER_TEMPLATES.some(l => l.id === t.id)));
   const filteredFiles = filesList.filter((f) =>
     f.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -385,6 +389,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                   </div>
                 ) : (
                   <>
+                    {tmpl.id === "lettre" && !catalog && <span className="pointer-events-none absolute right-2 top-2 h-12 w-9 rounded-sm bg-card p-1 shadow-md"><span className="block h-0.5 w-4 bg-primary/70" /><span className="mt-0.5 block h-0.5 w-3 bg-muted-foreground/50" /><span className="mt-1 block h-0.5 w-5 bg-primary/60" />{[0,1,2,3,4].map(i => <span key={i} className="mt-0.5 block h-px w-full bg-muted-foreground/40" />)}<span className="ml-auto mt-1 block h-0.5 w-3 bg-primary/70" /></span>}
                     <span className="absolute -right-3 -top-3 size-12 rounded-full bg-gradient-to-br from-gold/30 to-transparent pointer-events-none" />
                     <span className="grid size-9 place-items-center rounded-xl bg-white/10 ring-1 ring-gold/40 shadow-xs">
                       <Icon className="size-5 text-gold" />
