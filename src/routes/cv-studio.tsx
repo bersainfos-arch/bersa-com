@@ -6,17 +6,17 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { CvPreview } from "@/components/CvPreview";
 import {
-  CV_CATEGORIES, CV_TEMPLATES, CV_MODEL_PHOTOS, SAMPLE_CV, EMPTY_CV, renderCvHtml,
+  CV_TEMPLATES, EMPTY_CV, sampleCvFor, renderCvHtml,
   type CvData, type CvEducation, type CvExperience, type CvTemplate,
 } from "@/lib/cv-templates";
 
 export const Route = createFileRoute("/cv-studio")({
   head: () => ({
     meta: [
-      { title: "CV Studio — 120 modèles de CV éditables | BERSA" },
-      { name: "description", content: "100 modèles de CV modernes et 20 classiques : modifiez librement chaque information et exportez en Word ou PDF." },
-      { property: "og:title", content: "CV Studio BERSA — 120 modèles de CV" },
-      { property: "og:description", content: "Modèles de CV modernes et classiques, éditables et exportables en Word ou PDF." },
+      { title: "Modèles de CV éditables | BERSA" },
+      { name: "description", content: "Modèles de CV professionnels : modifiez librement chaque information et exportez en Word ou PDF." },
+      { property: "og:title", content: "Modèles de CV BERSA" },
+      { property: "og:description", content: "Modèles de CV professionnels, éditables et exportables en Word ou PDF." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -132,7 +132,6 @@ function CvStudio() {
       <div className="mx-auto max-w-6xl p-3">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setSel(null)}><ArrowLeft className="h-4 w-4" /> Modèles</Button>
-          <span className="font-semibold">{sel.name}</span>
           <div className="ml-auto flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={save}><Save className="h-4 w-4" /> Enregistrer</Button>
             <Button size="sm" variant="outline" onClick={exportWord}><Download className="h-4 w-4" /> Word</Button>
@@ -236,13 +235,7 @@ function CvStudio() {
   return (
     <AppShell>
       <div className="mx-auto max-w-6xl p-3">
-        <h1 className="font-serif text-2xl font-bold">CV Studio</h1>
-        <p className="mb-3 text-sm text-muted-foreground">100 modèles modernes et 20 classiques, modifiables librement et exportables en Word ou PDF.</p>
-        <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
-          {["Tous", ...CV_CATEGORIES].map((c) => (
-            <button key={c} onClick={() => setCat(c)} className={`shrink-0 rounded-full border px-3 py-1 text-xs ${cat === c ? "bg-primary text-primary-foreground" : "bg-background"}`}>{c}</button>
-          ))}
-        </div>
+        <h1 className="mb-3 font-serif text-2xl font-bold">Modèles de CV</h1>
         <div className="mb-3 flex gap-2">
           {([["all", "Tous"], ["free", "Gratuits"], ["premium", "Premium"]] as const).map(([k, l]) => (
             <button key={k} onClick={() => setTier(k)} className={`rounded-md border px-3 py-1 text-xs ${tier === k ? "bg-secondary font-semibold" : ""}`}>{l}</button>
@@ -252,17 +245,8 @@ function CvStudio() {
           {list.map((t) => (
             <button key={t.id} onClick={() => setSel(t)} className="group overflow-hidden rounded-lg border bg-card text-left transition hover:shadow-md">
               <div className="relative overflow-hidden bg-muted">
-                <CvPreview compact html={renderCvHtml(t, SAMPLE_CV)} />
+                <CvPreview compact html={renderCvHtml(t, sampleCvFor(t))} />
                 {t.premium && <span className="absolute right-1 top-1 flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground"><Crown className="h-3 w-3" /> Premium</span>}
-              </div>
-                <div className="p-2">
-                <div className="truncate text-xs font-semibold">{t.name}</div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/60 pt-1">
-                  <span className="flex items-center gap-1 font-medium text-primary">
-                    <FileText className="h-3 w-3" /> CV {t.category}
-                  </span>
-                  <span className="rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground">A4</span>
-                </div>
               </div>
             </button>
           ))}

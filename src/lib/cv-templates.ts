@@ -181,6 +181,54 @@ export const SAMPLE_CV: CvData = {
   ],
 };
 
+const W = (first: string, last: string, title: string, summary: string, city: string, skills: string[], exp: CvExperience[], edu: CvEducation): Omit<CvData, "photo" | "showPhoto"> => ({
+  firstName: first, lastName: last, title, summary, address: city,
+  email: `${first.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "")}.${last.toLowerCase().normalize("NFD").replace(/[^a-z]/g, "")}@email.com`,
+  phone: "", birth: "", license: "Permis B", website: "",
+  skills, languages: ["Français (courant)", "Anglais (professionnel)"], hobbies: ["Lecture", "Bénévolat"],
+  experiences: exp, education: [edu],
+});
+
+/** Profils d'exemple : index pair = portrait féminin (photos 1, 3, 5), impair = masculin (2, 4, 6). */
+const SAMPLE_PROFILES = [
+  W("Sarah", "MOREAU", "Responsable Ressources Humaines", "Professionnelle des ressources humaines, attentive à l'accompagnement des équipes, au recrutement et au développement des talents.", "Kinshasa, RDC",
+    ["Recrutement", "Gestion de la paie", "Droit du travail", "Formation", "Communication"],
+    [{ start: "Déc.", end: "Présent", role: "Responsable RH", company: "Groupe Horizon", description: "- Pilotage du recrutement et de l'intégration\n- Mise en place du plan de formation" },
+     { start: "Janv.", end: "Nov.", role: "Chargée RH", company: "Cabinet Équilibre", description: "- Gestion administrative du personnel\n- Suivi des entretiens annuels" }],
+    { start: "", end: "", degree: "Master Gestion des Ressources Humaines", school: "Université de Kinshasa", description: "Mention Bien" }),
+  W("Alexandre", "DUBOIS", "Responsable Administratif & Juridique", "Professionnel rigoureux doté d'une solide expertise en organisation, gestion documentaire et droit des affaires.", "Lubumbashi, RDC",
+    ["Gestion de projet", "Droit des affaires", "Rédaction juridique", "Négociation", "Management"],
+    [{ start: "Mars", end: "Présent", role: "Responsable administratif", company: "Société Atlas", description: "- Supervision des services administratifs\n- Conformité juridique des contrats" },
+     { start: "Sept.", end: "Févr.", role: "Juriste d'entreprise", company: "Groupe Industriel", description: "- Rédaction et audit des contrats commerciaux\n- Suivi des contentieux" }],
+    { start: "", end: "", degree: "Master Droit et Management", school: "Université de Lubumbashi", description: "Mémoire d'excellence" }),
+  W("Élodie", "BERNARD", "Cheffe de Projet Marketing", "Créative et organisée, je conçois des campagnes qui renforcent la notoriété des marques et fidélisent les clients.", "Goma, RDC",
+    ["Stratégie digitale", "Gestion de projet", "Réseaux sociaux", "Rédaction", "Analyse de données"],
+    [{ start: "Avr.", end: "Présent", role: "Cheffe de projet marketing", company: "Agence Lumière", description: "- Coordination des campagnes multicanales\n- Encadrement d'une équipe de cinq personnes" },
+     { start: "Juin", end: "Mars", role: "Chargée de communication", company: "Maison Kivu", description: "- Animation des réseaux sociaux\n- Organisation d'événements" }],
+    { start: "", end: "", degree: "Master Marketing et Communication", school: "Université de Goma", description: "Spécialité marketing digital" }),
+  W("Thomas", "LAURENT", "Ingénieur Systèmes & Réseaux", "Ingénieur passionné par les infrastructures fiables, la sécurité informatique et l'amélioration continue des services.", "Kinshasa, RDC",
+    ["Administration réseau", "Cybersécurité", "Linux / Windows Server", "Cloud", "Support technique"],
+    [{ start: "Févr.", end: "Présent", role: "Ingénieur systèmes", company: "TechnoServ", description: "- Maintenance de l'infrastructure réseau\n- Déploiement de solutions de sauvegarde" },
+     { start: "Oct.", end: "Janv.", role: "Technicien réseau", company: "NetCongo", description: "- Installation et dépannage des équipements\n- Assistance aux utilisateurs" }],
+    { start: "", end: "", degree: "Ingénieur en Informatique", school: "Institut Supérieur de Technologie", description: "Option réseaux et télécommunications" }),
+  W("Claire", "MUKENDI", "Comptable & Analyste Financière", "Comptable méthodique, spécialisée dans la tenue des comptes, l'analyse financière et la préparation des bilans.", "Kisangani, RDC",
+    ["Comptabilité générale", "Fiscalité", "Excel avancé", "Contrôle de gestion", "Audit"],
+    [{ start: "Mai", end: "Présent", role: "Comptable principale", company: "Finances & Conseils", description: "- Préparation des états financiers\n- Déclarations fiscales et sociales" },
+     { start: "Juil.", end: "Avr.", role: "Assistante comptable", company: "Banque Avenir", description: "- Saisie et rapprochements bancaires\n- Suivi des fournisseurs" }],
+    { start: "", end: "", degree: "Licence en Sciences Comptables", school: "Université de Kisangani", description: "Grande distinction" }),
+  W("Marc", "KABAMBA", "Consultant Financier", "Consultant orienté résultats, j'accompagne les entreprises dans leurs décisions d'investissement et leur pilotage budgétaire.", "Kinshasa, RDC",
+    ["Analyse financière", "Gestion budgétaire", "Modélisation", "Conseil", "Négociation"],
+    [{ start: "Janv.", end: "Présent", role: "Consultant financier", company: "Cabinet Prospérité", description: "- Études de rentabilité et plans de financement\n- Accompagnement des dirigeants" },
+     { start: "Août", end: "Déc.", role: "Analyste crédit", company: "Banque Centrale Commerciale", description: "- Évaluation des dossiers de crédit\n- Suivi des risques" }],
+    { start: "", end: "", degree: "Master Finance d'Entreprise", school: "Université Protestante au Congo", description: "Mention Très bien" }),
+];
+
+/** CV d'exemple entièrement rempli, adapté au portrait (femme/homme) du modèle. Affichage uniquement. */
+export function sampleCvFor(t: CvTemplate): CvData {
+  const idx = Math.max(0, CV_MODEL_PHOTOS.indexOf(t.defaultPhoto ?? "")) % SAMPLE_PROFILES.length;
+  return { photo: "", showPhoto: true, ...SAMPLE_PROFILES[idx]! };
+}
+
 const esc = (s: string) =>
   (s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
 

@@ -35,7 +35,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CV_MODEL_PHOTOS } from "@/lib/cv-templates";
+import { CV_MODEL_PHOTOS, CV_TEMPLATES, renderCvHtml, sampleCvFor } from "@/lib/cv-templates";
+import { CvPreview } from "@/components/CvPreview";
+
+const HOME_CV_SLIDES = CV_MODEL_PHOTOS.map((_, i) => { const t = CV_TEMPLATES[i]!; return renderCvHtml(t, sampleCvFor(t)); });
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -369,33 +372,12 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
                 }
               >
                 {tmpl.id === "cv" ? (
-                  <div className="relative size-full flex flex-col bg-white overflow-hidden pointer-events-none select-none">
-                    <div className="flex items-center gap-1 bg-[#0A2342] px-1 py-1 shrink-0">
-                      <div className="relative size-6 shrink-0 overflow-hidden rounded-full ring-1 ring-gold">
-                        {CV_MODEL_PHOTOS.map((src, idx) => (
-                          <img key={src} src={src} alt="" loading="lazy" className={`absolute inset-0 size-full object-cover transition-opacity duration-1000 ${cvSlideIndex === idx ? "opacity-100" : "opacity-0"}`} />
-                        ))}
+                  <div className="relative size-full overflow-hidden bg-white pointer-events-none select-none">
+                    {HOME_CV_SLIDES.map((html, idx) => (
+                      <div key={idx} className={`absolute inset-0 transition-opacity duration-1000 ${cvSlideIndex === idx ? "opacity-100" : "opacity-0"}`}>
+                        <CvPreview compact html={html} />
                       </div>
-                      <div className="min-w-0 flex-1 space-y-0.5">
-                        <div className="h-1.5 w-full rounded-[1px] bg-gold" />
-                        <div className="h-1 w-3/4 rounded-[1px] bg-white/80" />
-                      </div>
-                    </div>
-                    <div className="flex-1 grid grid-cols-[34%_1fr] min-h-0">
-                      <div className="bg-slate-100 p-1 space-y-[3px]">
-                        <div className="h-1 w-full bg-[#0A2342]" />
-                        <div className="h-[3px] w-full bg-slate-400" /><div className="h-[3px] w-4/5 bg-slate-400" /><div className="h-[3px] w-full bg-slate-400" />
-                        <div className="h-1 w-full bg-gold" />
-                        <div className="h-[3px] w-full bg-slate-400" /><div className="h-[3px] w-2/3 bg-slate-400" />
-                      </div>
-                      <div className="p-1 space-y-[3px]">
-                        <div className="h-1 w-3/4 bg-[#0A2342]" />
-                        <div className="h-[3px] w-full bg-slate-300" /><div className="h-[3px] w-full bg-slate-300" /><div className="h-[3px] w-4/5 bg-slate-300" />
-                        <div className="h-1 w-2/3 bg-[#0A2342]" />
-                        <div className="h-[3px] w-full bg-slate-300" /><div className="h-[3px] w-5/6 bg-slate-300" /><div className="h-[3px] w-full bg-slate-300" />
-                      </div>
-                    </div>
-                    <div className="shrink-0 bg-[#0A2342] px-1 py-0.5 text-center text-[9px] font-bold leading-tight text-white truncate">CV Pro <span className="text-gold">· 120</span></div>
+                    ))}
                   </div>
                 ) : (
                   <>
