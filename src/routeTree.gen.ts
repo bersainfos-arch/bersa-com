@@ -23,6 +23,7 @@ import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
 import { Route as LettresRouteImport } from './routes/lettres'
 import { Route as ModelesRouteImport } from './routes/modeles'
+import { Route as ModelesProRouteImport } from './routes/modeles-pro'
 import { Route as OpportunitesRouteImport } from './routes/opportunites'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ProfilRouteImport } from './routes/profil'
@@ -103,6 +104,11 @@ const ModelesRoute = ModelesRouteImport.update({
   path: '/modeles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelesProRoute = ModelesProRouteImport.update({
+  id: '/modeles-pro',
+  path: '/modeles-pro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpportunitesRoute = OpportunitesRouteImport.update({
   id: '/opportunites',
   path: '/opportunites',
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/gestion': typeof GestionRoute
   '/lettres': typeof LettresRoute
   '/modeles': typeof ModelesRoute
+  '/modeles-pro': typeof ModelesProRoute
   '/opportunites': typeof OpportunitesRoute
   '/parametres': typeof ParametresRoute
   '/profil': typeof ProfilRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/gestion': typeof GestionRoute
   '/lettres': typeof LettresRoute
   '/modeles': typeof ModelesRoute
+  '/modeles-pro': typeof ModelesProRoute
   '/opportunites': typeof OpportunitesRoute
   '/parametres': typeof ParametresRoute
   '/profil': typeof ProfilRoute
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/gestion': typeof GestionRoute
   '/lettres': typeof LettresRoute
   '/modeles': typeof ModelesRoute
+  '/modeles-pro': typeof ModelesProRoute
   '/opportunites': typeof OpportunitesRoute
   '/parametres': typeof ParametresRoute
   '/profil': typeof ProfilRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/gestion'
     | '/lettres'
     | '/modeles'
+    | '/modeles-pro'
     | '/opportunites'
     | '/parametres'
     | '/profil'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/gestion'
     | '/lettres'
     | '/modeles'
+    | '/modeles-pro'
     | '/opportunites'
     | '/parametres'
     | '/profil'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/gestion'
     | '/lettres'
     | '/modeles'
+    | '/modeles-pro'
     | '/opportunites'
     | '/parametres'
     | '/profil'
@@ -318,6 +330,7 @@ export interface RootRouteChildren {
   GestionRoute: typeof GestionRoute
   LettresRoute: typeof LettresRoute
   ModelesRoute: typeof ModelesRoute
+  ModelesProRoute: typeof ModelesProRoute
   OpportunitesRoute: typeof OpportunitesRoute
   ParametresRoute: typeof ParametresRoute
   ProfilRoute: typeof ProfilRoute
@@ -429,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modeles-pro': {
+      id: '/modeles-pro'
+      path: '/modeles-pro'
+      fullPath: '/modeles-pro'
+      preLoaderRoute: typeof ModelesProRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/opportunites': {
       id: '/opportunites'
       path: '/opportunites'
@@ -510,6 +530,7 @@ const rootRouteChildren: RootRouteChildren = {
   GestionRoute: GestionRoute,
   LettresRoute: LettresRoute,
   ModelesRoute: ModelesRoute,
+  ModelesProRoute: ModelesProRoute,
   OpportunitesRoute: OpportunitesRoute,
   ParametresRoute: ParametresRoute,
   ProfilRoute: ProfilRoute,

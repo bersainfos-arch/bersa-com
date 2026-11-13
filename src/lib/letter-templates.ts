@@ -9,11 +9,12 @@ const br = (s: string = "") => esc(s).replace(/\n/g, "<br>");
 const PI = "text-align: justify; text-indent: 45%; margin: 0 0 14px";
 const paras = (s: string = "") => s.split(/\n+/).map(x => x.trim()).filter(Boolean).map(x => `<p style="${PI}">${esc(x)}</p>`).join("");
 const cell = (w: string, html: string, extra = "") => `<td style="border:none;vertical-align:top;width:${w};padding:0;${extra}">${html}</td>`;
-const row = (l: string, r: string, lw = "55%", extra = "") => `<table style="width:100%;border:none;border-collapse:collapse;margin:0 0 28px"><tbody><tr>${cell(lw, l, extra)}${cell("auto", r)}</tr></tbody></table>`;
+const row = (l: string, r: string, lw = "46%", extra = "padding-right:18px") => `<table style="width:100%;border:none;border-collapse:collapse;margin:0 0 28px"><tbody><tr>${cell(lw, l, extra)}${cell("auto", r)}</tr></tbody></table>`;
 const appel = (s: string) => `<p style="margin:56px 0 6px;padding-left:45%">${esc(s)}</p>`;
 const signature = (n: string) => `<p style="margin:28px 0 0;padding-left:50%"><strong>${esc(n)}</strong></p>`;
 
 type Def = Omit<LetterTemplate, "html">;
+import { RDC_LETTERS } from "./letter-catalog-rdc";
 const DEFS: Def[] = [
   {
     id: "lettre-motivation", label: "Lettre de motivation",
@@ -34,7 +35,7 @@ const DEFS: Def[] = [
     render: d =>
       row(`<p style="margin:0"><span style="font-size:18px">${esc(d.nom)}</span><br>Adresse: ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}</p>`, `<p style="margin:0"><em>${esc(d.ville)}, le ${esc(d.date)}</em></p>`) +
       `<p style="margin:0"></p>` +
-      row(`<p style="margin:0;padding-left:24px;padding-right:24px"><strong><u>Objet :</u></strong>Candidature au poste ${br(d.poste)}</p>`, `<p style="margin:28px 0 0">${br(d.dest)}</p>`, "50%") +
+      row(`<p style="margin:0"><strong><u>Objet :</u></strong> Candidature au poste ${br(d.poste)}</p>`, `<p style="margin:28px 0 0">${br(d.dest)}</p>`) +
       appel(d.salut) + paras(d.corps) + paras(d.politesse) + signature(d.nom),
   },
   {
@@ -54,8 +55,8 @@ const DEFS: Def[] = [
       { key: "politesse", label: "Formule de politesse", sample: "Je vous prie d’agréer, Monsieur le Préfet, l’expression de ma très haute considération." },
     ],
     render: d =>
-      row(`<p style="margin:0">Nom : ${esc(d.nom)}<br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}</p>`, `<p style="margin:0">${esc(d.ville)}, le ${esc(d.date)}</p>`, "60%") +
-      row(`<p style="margin:0;padding-left:20px;padding-right:24px"><strong><u>Objet</u></strong> : Demande d’emploi en qualité ${br(d.fonction)}.</p>`, `<p style="margin:0">${br(d.dest)}</p>`, "45%") +
+      row(`<p style="margin:0">Nom : ${esc(d.nom)}<br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}</p>`, `<p style="margin:0">${esc(d.ville)}, le ${esc(d.date)}</p>`) +
+      row(`<p style="margin:0"><strong><u>Objet</u></strong> : Demande d’emploi en qualité ${br(d.fonction)}.</p>`, `<p style="margin:0">${br(d.dest)}</p>`) +
       appel(d.salut) + paras(d.corps) + paras(d.politesse) + signature(d.nom),
   },
   {
@@ -81,6 +82,8 @@ const DEFS: Def[] = [
   },
 ];
 
+DEFS.push(...EXTRA_DEFS());
+
 export const sampleData = (t: Pick<LetterTemplate, "fields">) => Object.fromEntries(t.fields.map(f => [f.key, f.sample]));
 export const emptyData = (t: Pick<LetterTemplate, "fields">) => Object.fromEntries(t.fields.map(f => [f.key, ""]));
 export const LETTER_TEMPLATES: LetterTemplate[] = DEFS.map(d => ({ ...d, html: d.render(sampleData(d)) }));
@@ -104,4 +107,56 @@ export function parseImproved(text: string): Partial<Record<string, string>> | n
   if (!m) return null;
   const [salut, corps, politesse] = [m[1]!, m[2]!, m[3]!].map(x => x.trim());
   return salut && corps && politesse ? { salut, corps, politesse } : null;
+}
+
+/** 50 correspondances usuelles de l’administration congolaise, sur les deux formes validées. */
+function EXTRA_DEFS(): Def[] {
+  return RDC_LETTERS.map(([id, label, kind, objet, dest, salut, corps, politesse]) => kind === "p" ? {
+    id, label,
+    fields: [
+      { key: "nom", label: "Nom complet", sample: "MUKENDI KALALA Jean" },
+      { key: "adresse", label: "Adresse", sample: "Av. de la Paix n°12, Q. Matonge, Kalamu, Kinshasa" },
+      { key: "tel", label: "Téléphone", sample: "+243 81 000 0000" },
+      { key: "email", label: "E-mail", sample: "jean.mukendi@exemple.com" },
+      { key: "ville", label: "Ville", sample: "Kinshasa" },
+      { key: "date", label: "Date", sample: "13 novembre 2026" },
+      { key: "objet", label: "Objet", sample: objet },
+      { key: "dest", label: "Destinataire", multi: true, sample: dest },
+      { key: "salut", label: "Formule d’appel", sample: salut },
+      { key: "corps", label: "Corps de la lettre (un paragraphe par ligne)", multi: true, sample: corps },
+      { key: "politesse", label: "Formule de politesse", sample: politesse },
+    ],
+    render: (d: LetterData) =>
+      row(`<p style="margin:0"><strong>${esc(d.nom)}</strong><br>Adresse : ${esc(d.adresse)}<br>Tél. : ${esc(d.tel)}<br>E-mail : ${esc(d.email)}</p>`, `<p style="margin:0"><em>${esc(d.ville)}, le ${esc(d.date)}</em></p>`) +
+      row(`<p style="margin:0"><strong><u>Objet</u></strong> : ${br(d.objet)}</p>`, `<p style="margin:28px 0 0">${br(d.dest)}</p>`) +
+      appel(d.salut) + paras(d.corps) + paras(d.politesse) + signature(d.nom),
+  } : {
+    id, label,
+    fields: [
+      { key: "timbre", label: "Timbre / institution", multi: true, sample: "RÉPUBLIQUE DÉMOCRATIQUE DU CONGO\nMINISTÈRE DE LA FONCTION PUBLIQUE\nSECRÉTARIAT GÉNÉRAL" },
+      { key: "ref", label: "Numéro de référence", sample: "N° 001/SG/FP/2026" },
+      { key: "ville", label: "Ville et date", sample: "Kinshasa, le 13 novembre 2026" },
+      { key: "exp", label: "Fonction de l’expéditeur", sample: "LE SECRÉTAIRE GÉNÉRAL" },
+      { key: "dest", label: "Destinataire", multi: true, sample: dest },
+      { key: "objet", label: "Objet", sample: objet },
+      { key: "salut", label: "Formule d’appel", sample: salut },
+      { key: "corps", label: "Corps (un paragraphe par ligne)", multi: true, sample: corps },
+      { key: "politesse", label: "Formule de politesse", sample: politesse },
+    ],
+    render: (d: LetterData) =>
+      row(`<p style="margin:0;font-size:13px"><strong>${br(d.timbre)}</strong><br>${esc(d.ref)}</p>`, `<p style="margin:0"><em>${esc(d.ville)}</em></p>`) +
+      `<p style="margin:0 0 10px;padding-left:40%"><strong>${esc(d.exp)}</strong></p>` +
+      `<p style="margin:0 0 10px;padding-left:48%"><strong>A</strong></p>` +
+      `<p style="margin:0 0 28px;padding-left:40%"><strong>${br(d.dest)}</strong></p>` +
+      `<p style="margin:0 0 24px"><strong><u>Objet</u></strong> : ${esc(d.objet)}</p><p style="margin:0 0 14px;padding-left:24px"><strong>${esc(d.salut)}</strong></p>` +
+      String(d.corps ?? "").split(/\n+/).filter((x: string) => x.trim()).map((x: string) => `<p style="text-align: justify;margin:0 0 12px;padding-left:24px">${esc(x.trim())}</p>`).join("") +
+      `<p style="text-align: justify;margin:0 0 40px;padding-left:24px">${esc(d.politesse)}</p><p style="padding-left:45%"><strong>${esc(d.exp)}</strong></p>`,
+  });
+}
+
+/** Convertit les repères en % (non gérés par Word) en centimètres sur la largeur utile A4 (17 cm). */
+export function wordReadyHtml(html: string) {
+  return html
+    .replace(/text-indent:\s*([\d.]+)%/g, (_, v) => `text-indent:${(17 * +v / 100).toFixed(2)}cm`)
+    .replace(/padding-left:\s*([\d.]+)%/g, (_, v) => `margin-left:${(17 * +v / 100).toFixed(2)}cm`);
 }

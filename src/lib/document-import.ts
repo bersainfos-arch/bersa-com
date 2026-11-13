@@ -14,7 +14,7 @@ export function sanitizeDocumentHtml(html: string) {
         // Préserver uniquement les styles sûrs (alignement, marges, interligne, couleurs)
         const safeStyles = attr.value
           .split(";")
-          .filter(rule => /^(text-align|font-weight|font-style|color|background-color|margin|padding|border|line-height)/i.test(rule.trim()))
+          .filter(rule => /^(text-align|text-indent|font-weight|font-style|font-size|color|background-color|margin|padding|border|line-height|width|vertical-align)/i.test(rule.trim()))
           .join("; ");
         if (safeStyles) {
           el.setAttribute("style", safeStyles);

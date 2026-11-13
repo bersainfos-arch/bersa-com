@@ -9,3 +9,9 @@ describe("lettres", () => {
     const t = LETTER_TEMPLATES[0]!; expect(improvePrompt(t, sampleData(t))).toContain("DJOMA ONOLOKE Dieudonné");
   });
 });
+import { wordReadyHtml } from "@/lib/letter-templates";
+describe("catalogue RDC", () => {
+  it("compte 53 modèles uniques", () => { expect(new Set(LETTER_TEMPLATES.map(t => t.id)).size).toBe(53); });
+  it("l’en-tête ne dépasse pas le milieu", () => { expect(LETTER_TEMPLATES[0]!.html).toContain("width:46%"); });
+  it("convertit les alinéas en cm pour Word", () => { expect(wordReadyHtml("text-indent: 45%")).toBe("text-indent:7.65cm"); });
+});

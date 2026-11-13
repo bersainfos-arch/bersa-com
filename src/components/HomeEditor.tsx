@@ -1,3 +1,4 @@
+import { KeepBlockStyle } from "@/lib/keep-block-style";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import type { DocumentMenuActions } from "@/components/AppShell";
@@ -153,7 +154,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, []);
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages],
+    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle],
     content: "<p></p>",
     onUpdate: ({ editor: e }) => {
       renumberFootnotes(e);

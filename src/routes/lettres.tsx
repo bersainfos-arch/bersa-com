@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { CvPreview } from "@/components/CvPreview";
-import { LETTER_TEMPLATES, emptyData, letterSheet, sampleData, improvePrompt, parseImproved, type LetterTemplate } from "@/lib/letter-templates";
+import { LETTER_TEMPLATES, emptyData, letterSheet, sampleData, improvePrompt, parseImproved, wordReadyHtml, type LetterTemplate } from "@/lib/letter-templates";
 
 export const Route = createFileRoute("/lettres")({
   head: () => ({ meta: [
@@ -33,6 +33,7 @@ function Lettres() {
   const boxRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.45);
   const [busy, setBusy] = useState<string | null>(null);
+  const [q, setQ] = useState("");
   useEffect(() => {
     const el = boxRef.current; if (!el) return;
     const ro = new ResizeObserver(() => setScale(Math.min(1, el.clientWidth / 794))); ro.observe(el); return () => ro.disconnect();
@@ -61,7 +62,7 @@ function Lettres() {
     } catch (e) { toast.error(e instanceof Error ? e.message : "Échec"); } finally { setBusy(null); }
   };
   const saveWord = () => {
-    const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{size:21cm 29.7cm;margin:2cm}body{font-family:'Times New Roman';font-size:12pt;line-height:1.5}p{margin:0 0 6pt}</style></head><body>${currentHtml()}</body></html>`;
+    const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><style>@page WordSection1{size:21cm 29.7cm;margin:2cm 1.9cm}div.WordSection1{page:WordSection1}body{font-family:'Times New Roman';font-size:12pt;line-height:1.6}table{border-collapse:collapse}td{border:none}</style></head><body><div class="WordSection1">${wordReadyHtml(currentHtml())}</div></body></html>`;
     download(new Blob(["\ufeff", doc], { type: "application/msword" }), `${fileBase()}.doc`);
   };
   const capture = async () => {
@@ -73,8 +74,9 @@ function Lettres() {
     setBusy("pdf");
     try {
       const url = await capture(); const { jsPDF } = await import("jspdf");
-      const pdf = new jsPDF({ unit: "mm", format: "a4" }); const h = Math.min(297, (sheetRef.current!.scrollHeight / 794) * 210);
-      pdf.addImage(url, "PNG", 0, 0, 210, h); pdf.save(`${fileBase()}.pdf`);
+      const pdf = new jsPDF({ unit: "mm", format: "a4" }); const total = (sheetRef.current!.scrollHeight / 794) * 210;
+      for (let y = 0, i = 0; y < total - 1; y += 297, i++) { if (i) pdf.addPage(); pdf.addImage(url, "PNG", 0, -y, 210, total); }
+      pdf.save(`${fileBase()}.pdf`);
     } catch { toast.error("Échec du PDF"); } finally { setBusy(null); }
   };
   const samples = useMemo(() => LETTER_TEMPLATES.map(t => letterSheet(t.html)), []);
@@ -98,10 +100,11 @@ function Lettres() {
     <AppShell>
       <div className="mx-auto max-w-3xl px-4 py-4">
         {!tpl ? (<>
-          <h1 className="font-serif text-2xl font-bold text-foreground">Lettres administratives</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Choisissez un modèle, remplissez vos données puis générez.</p>
+          <h1 className="font-serif text-2xl font-bold text-foreground">Modèles des correspondances administratives</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{LETTER_TEMPLATES.length} modèles. Choisissez, remplissez vos données puis générez.</p>
+          <input className={inputCls} placeholder="Rechercher un modèle (congé, stage, plainte…)" value={q} onChange={e => setQ(e.target.value)} />
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {LETTER_TEMPLATES.map((t, i) => (
+            {LETTER_TEMPLATES.map((t, i) => !t.label.toLowerCase().includes(q.toLowerCase()) ? null : (
               <button key={t.id} onClick={() => open(t)} className="overflow-hidden rounded-xl border bg-card text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                 <div className="pointer-events-none border-b bg-white"><CvPreview html={samples[i] ?? ""} /></div>
                 <p className="p-2 text-xs font-semibold text-foreground">{t.label}</p>
@@ -124,8 +127,8 @@ function Lettres() {
               <Button onClick={generate} className="flex-1"><Sparkles className="size-4" />Générer</Button>
               <Button variant="outline" onClick={() => setData(sampleData(tpl))}>Voir l’exemple</Button>
             </div>
-            <Button variant="secondary" className="w-full" disabled={!!busy} onClick={improve}>{busy === "improve" ? <Loader2 className="size-4 animate-spin" /> : <Wand2 className="size-4" />}Améliorer le texte et les formules avec BERSA</Button>
-            <p className="text-[11px] text-muted-foreground">Seuls la formule d’appel, le développement et la formule de politesse sont améliorés ; vos informations personnelles ne changent pas.</p>
+            <button type="button" disabled={!!busy} onClick={improve} className="mx-auto flex items-center gap-1.5 rounded-full border border-gold/60 bg-gradient-to-r from-primary to-primary/80 px-4 py-1.5 text-xs font-bold text-primary-foreground shadow-md transition hover:shadow-lg disabled:opacity-60">{busy === "improve" ? <Loader2 className="size-3.5 animate-spin" /> : <Wand2 className="size-3.5 text-gold" />}Améliorer</button>
+            <p className="text-center text-[10px] text-muted-foreground">Vos informations personnelles restent inchangées.</p>
           </div>
           {generated && (
             <div ref={resultRef} className="mt-5">
