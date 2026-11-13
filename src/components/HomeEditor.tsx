@@ -301,7 +301,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     try {
       toast.info("Création du PDF…");
       const { buildPdf } = await import("@/lib/pdf-export");
-      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, columns: settings.columns, landscape: settings.orientation === "Paysage" });
+      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, differentFirstPage: settings.differentFirstPage, columns: settings.columns, landscape: settings.orientation === "Paysage" });
       const name = `${(docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_")}.pdf`;
       if (await pickAndWrite(blob, name, "Document PDF", { "application/pdf": [".pdf"] })) { toast.success("PDF enregistré."); return; }
       const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -648,11 +648,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     onSaveAs: () => setShowSaveModal(true),
     onSaveAsWord: () => void (async () => {
       if (!editor) return;
-      const html = `<html><head><meta charset="utf-8"><title>${docFileName}</title></head><body style="font-family:'Times New Roman';font-size:13pt;line-height:1.6">${editor.getHTML()}</body></html>`;
-      const blob = new Blob([html], { type: "application/msword" });
+      const { buildDocx } = await import("@/lib/docx-export");
+      const blob = await buildDocx(editor.getJSON() as any, { marginCm: settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5, lineSpacing: Number(settings.lineSpacing) || 1.6, landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText, pageNumbers: true });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `${docFileName || "Document_BERSA"}.doc`;
+      a.download = `${docFileName || "Document_BERSA"}.docx`;
       a.click();
       toast.success("Document Word téléchargé.");
     })(),
@@ -952,9 +952,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           )}
 
-          {settings.headerText && <div className="bersa-page-header mx-auto max-w-[794px]">{settings.headerText}</div>}
+          {settings.headerText && !settings.differentFirstPage && <div className="bersa-page-header mx-auto max-w-[794px]">{settings.headerText}</div>}
           <EditorContent editor={editor} className="home-paper-content" />
-          {settings.footerText && <div className="bersa-page-footer mx-auto max-w-[794px]">{settings.footerText}</div>}
+          {settings.footerText && !settings.differentFirstPage && <div className="bersa-page-footer mx-auto max-w-[794px]">{settings.footerText}</div>}
           {versions && (
             <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center" onClick={() => setVersions(null)}>
               <div className="w-full max-w-md rounded-xl bg-card p-4 shadow-xl" onClick={e => e.stopPropagation()}>

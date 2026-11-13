@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Editor } from "@tiptap/react";
 import {
   Bold, Italic, Underline, Strikethrough, Subscript, Superscript,
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { changeIndent, replaceAllText } from "@/lib/writer-commands";
 import { insertFootnote } from "@/lib/footnotes";
+import { TOC_TITLE, tocLines, refreshToc } from "@/lib/toc";
 import { SHAPES, SYMBOLS, shapeSrc, setTracking, isTracking, acceptAll, rejectAll, listComments, removeComment, citation, bibliographyHtml, type Source } from "@/lib/review-marks";
 
 export type PageSettings = {
@@ -19,6 +20,7 @@ export type PageSettings = {
   orientation: "Portrait" | "Paysage";
   format: "A4" | "A5" | "Letter" | "A3" | "Legal";
   pageColor?: string;
+  differentFirstPage?: boolean;
   zoom: string;
   ruler: boolean;
   watermark: string;
@@ -68,6 +70,13 @@ export function EditorRibbon({
   const [replaceText, setReplaceText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    if (!editor) return;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const fn = () => { clearTimeout(t); t = setTimeout(() => refreshToc(editor), 800); };
+    editor.on("update", fn);
+    return () => { clearTimeout(t); editor.off("update", fn); };
+  }, [editor]);
   if (!editor) return null;
   const persistSources = (l: Source[]) => { setSources(l); localStorage.setItem("bersa_sources", JSON.stringify(l)); };
   const addSource = () => {
@@ -138,29 +147,30 @@ export function EditorRibbon({
     }
   };
 
-  // Insertion d'un sommaire dynamique (Table des matières)
+  // Table des matières : un titre « TABLE DES MATIÈRES » suivi d'un paragraphe mis à jour automatiquement
   const handleInsertTOC = () => {
-    const headings: string[] = [];
-    editor.state.doc.descendants((node) => {
-      if (node.type.name === "heading") {
-       const level = Number(node.attrs["level"]) || 1;
-        headings.push(`${"  ".repeat(level - 1)}• ${node.textContent}`);
-      }
-    });
-
-    if (headings.length === 0) {
-      toast.info("Aucun titre détecté. Utilisez Titre 1, 2 ou 3 dans l'onglet Paragraphe.");
-      return;
-    }
-
-    const tocHtml = `
-      <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:16px; margin:20px 0; border-radius:6px;">
-        <h3 style="margin-top:0; font-family:'Times New Roman', serif; text-align:center;">TABLE DES MATIÈRES</h3>
-        <p style="text-indent:0; font-size:14px; line-height:1.6;">${headings.join("<br/>")}</p>
-      </div>
-    `;
-    editor.chain().focus().insertContent(tocHtml).run();
-    toast.success("Sommaire généré avec succès");
+    if (!tocLines(editor).length) { toast.info("Aucun titre détecté. Utilisez Titre 1, 2 ou 3 dans l'onglet Paragraphe."); return; }
+    editor.chain().focus().insertContent(`<h3 style="text-align:center">${TOC_TITLE}</h3><p>…</p>`).run();
+    refreshToc(editor, true);
+    toast.success("Table des matières insérée — elle se met à jour automatiquement");
+  };
+  const cropImage = async () => {
+    const sel = editor.state.selection as unknown as { node?: { type: { name: string }; attrs: Record<string, unknown> } };
+    if (sel.node?.type.name !== "image") { toast.info("Touchez d'abord une image pour la sélectionner."); return; }
+    const v = window.prompt("Rogner (%) : haut, droite, bas, gauche", "10,10,10,10");
+    if (!v) return;
+    const [t = 0, r = 0, b = 0, l = 0] = v.split(",").map(n => Math.min(45, Math.max(0, Number(n) || 0)) / 100);
+    try {
+      const img = new Image(); img.crossOrigin = "anonymous";
+      img.src = String(sel.node.attrs["src"]);
+      await img.decode();
+      const sx = img.naturalWidth * l, sy = img.naturalHeight * t;
+      const w = img.naturalWidth * (1 - l - r), h = img.naturalHeight * (1 - t - b);
+      const c = document.createElement("canvas"); c.width = Math.round(w); c.height = Math.round(h);
+      c.getContext("2d")!.drawImage(img, sx, sy, w, h, 0, 0, w, h);
+      editor.chain().focus().updateAttributes("image", { src: c.toDataURL("image/png") }).run();
+      toast.success("Image rognée");
+    } catch { toast.error("Cette image ne peut pas être rognée (source externe protégée)."); }
   };
 
   // Recherche et remplacement
@@ -506,6 +516,8 @@ export function EditorRibbon({
             <span className="text-xs text-muted-foreground font-medium">Colonnes :</span>
             {[1, 2, 3].map(n => <Button key={n} type="button" size="sm" variant={(settings.columns || 1) === n ? "secondary" : "ghost"} className="h-8 w-8 text-xs" onClick={() => setSettings(s => ({ ...s, columns: n }))}>{n}</Button>)}
             <Button type="button" size="sm" variant={settings.pageBorder ? "secondary" : "ghost"} className="h-8 text-xs" onClick={() => setSettings(s => ({ ...s, pageBorder: !s.pageBorder }))}><Columns className="w-4 h-4 mr-1" />Bordure de page</Button>
+            <Button type="button" size="sm" variant={settings.differentFirstPage ? "secondary" : "ghost"} className="h-8 text-xs" onClick={() => setSettings(s => ({ ...s, differentFirstPage: !s.differentFirstPage }))}>Première page différente</Button>
+            <Button type="button" size="sm" variant="ghost" className="h-8 text-xs" onClick={() => void cropImage()}>✂ Rogner l'image</Button>
             <label className="flex items-center gap-1 text-xs text-muted-foreground">Couleur de page<input aria-label="Couleur de page" type="color" className="h-7 w-8 rounded border border-input" value={settings.pageColor || "#ffffff"} onChange={e => setSettings(s => ({ ...s, pageColor: e.target.value }))} /></label>
             <Button type="button" size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { const f = window.prompt("Équation (ex. x^2 + y_1 = sqrt(a))"); if (!f) return; const html = f.replace(/[<>&]/g, "").replace(/sqrt\(([^)]*)\)/g, "√($1)").replace(/\^(\w+)/g, "<sup>$1</sup>").replace(/_(\w+)/g, "<sub>$1</sub>"); editor.chain().focus().insertContent(`<em>${html}</em> `).run(); }}>∑ Équation</Button>
           </div>
