@@ -17,7 +17,8 @@ import { SHAPES, SYMBOLS, shapeSrc, setTracking, isTracking, acceptAll, rejectAl
 export type PageSettings = {
   margin: "Normales" | "Étroites" | "Larges";
   orientation: "Portrait" | "Paysage";
-  format: "A4" | "A5" | "Letter";
+  format: "A4" | "A5" | "Letter" | "A3" | "Legal";
+  pageColor?: string;
   zoom: string;
   ruler: boolean;
   watermark: string;
@@ -497,12 +498,16 @@ export function EditorRibbon({
               <option value="A4">A4 (21 × 29,7 cm)</option>
               <option value="A5">A5 (14,8 × 21 cm)</option>
               <option value="Letter">Lettre US (21,6 × 27,9 cm)</option>
+              <option value="A3">A3 (29,7 × 42 cm)</option>
+              <option value="Legal">Legal (21,6 × 35,6 cm)</option>
             </select>
             <Button type="button" size="sm" variant={settings.margin === "Larges" ? "secondary" : "ghost"} className="h-8 text-xs" onClick={() => setSettings(s => ({ ...s, margin: "Larges" }))}>3,5 cm (Larges)</Button>
             <div className="h-5 w-[1px] bg-border mx-1" />
             <span className="text-xs text-muted-foreground font-medium">Colonnes :</span>
             {[1, 2, 3].map(n => <Button key={n} type="button" size="sm" variant={(settings.columns || 1) === n ? "secondary" : "ghost"} className="h-8 w-8 text-xs" onClick={() => setSettings(s => ({ ...s, columns: n }))}>{n}</Button>)}
             <Button type="button" size="sm" variant={settings.pageBorder ? "secondary" : "ghost"} className="h-8 text-xs" onClick={() => setSettings(s => ({ ...s, pageBorder: !s.pageBorder }))}><Columns className="w-4 h-4 mr-1" />Bordure de page</Button>
+            <label className="flex items-center gap-1 text-xs text-muted-foreground">Couleur de page<input aria-label="Couleur de page" type="color" className="h-7 w-8 rounded border border-input" value={settings.pageColor || "#ffffff"} onChange={e => setSettings(s => ({ ...s, pageColor: e.target.value }))} /></label>
+            <Button type="button" size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { const f = window.prompt("Équation (ex. x^2 + y_1 = sqrt(a))"); if (!f) return; const html = f.replace(/[<>&]/g, "").replace(/sqrt\(([^)]*)\)/g, "√($1)").replace(/\^(\w+)/g, "<sup>$1</sup>").replace(/_(\w+)/g, "<sub>$1</sub>"); editor.chain().focus().insertContent(`<em>${html}</em> `).run(); }}>∑ Équation</Button>
           </div>
         )}
 

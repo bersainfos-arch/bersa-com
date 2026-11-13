@@ -791,3 +791,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .bersa-page-header, .bersa-page-footer { font-family: 'Times New Roman', serif; font-size: 10pt; text-align: center; color: var(--muted-foreground); padding: 4px 8px; }
 .bersa-comment { background: color-mix(in oklab, var(--gold, #d4af37) 35%, transparent); border-bottom: 2px dotted var(--gold, #d4af37); cursor: help; }
 .bersa-track-ins { text-decoration: underline; text-decoration-color: #059669; color: #047857; }
+
+.bersa-writer-workspace.format-A3 .home-ai-sheet { max-width: 1123px; margin-inline: auto; }
+.bersa-writer-workspace.format-Legal .home-ai-sheet { max-width: 816px; margin-inline: auto; }
+.bersa-writer-workspace .home-ai-sheet { background-color: var(--writer-page-color, #ffffff); }

@@ -928,7 +928,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
         <div
-          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1" } as React.CSSProperties}
+          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", ["--writer-page-color" as string]: settings.pageColor || "#ffffff" } as React.CSSProperties}
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}`}
           onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
