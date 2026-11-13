@@ -74,6 +74,8 @@ export const AutoPages = Extension.create({
               view.state.tr.setMeta(key, DecorationSet.create(view.state.doc, decos))
             );
             dom.dataset["pages"] = String(number);
+            // Chaque page garde exactement la même hauteur A4, y compris la dernière
+            dom.style.setProperty("min-height", `${number * pageHeight + (number - 1) * 16}px`, "important");
             running = false;
           };
 

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import type { DocumentMenuActions } from "@/components/AppShell";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { Node } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
@@ -300,6 +301,21 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setShowResultCard(false);
     setGeneratedResponse("");
   };
+  // Choix du dossier (ordinateur / Android Chrome) ; repli sur téléchargement direct
+  const pickAndWrite = async (blob: Blob, name: string, description: string, accept: Record<string, string[]>) => {
+    const picker = (window as any).showSaveFilePicker;
+    if (!picker) return false;
+    try {
+      const handle = await picker({ suggestedName: name, types: [{ description, accept }] });
+      const w = await handle.createWritable();
+      await w.write(blob);
+      await w.close();
+      return true;
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return true;
+      return false;
+    }
+  };
    // Enregistrement au format choisi vers le dossier du téléphone
   const handleSaveDocument = async () => {
     if (!editor) return;
@@ -316,6 +332,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         footerText: settings.footerText,
         pageNumbers: true,
       });
+      if (await pickAndWrite(blob, `${cleanName}.docx`, "Document Word", { "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"] })) { toast.success("Document Word enregistré."); return; }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -369,7 +386,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const text = rawText.trim();
         // Génération automatique du titre à partir de la consigne posée
     if (text) {
-      const generatedTitle = text.slice(0, 42).replace(/^[«"']|[»"']$/g, "").trim();
+      const topic = text.split(/[\n.?!]/)[0]!
+        .replace(/^(s'il te pla[iî]t|stp)[,\s]*/i, "")
+        .replace(/^(peux-tu|pourrais-tu|merci de|je veux|je voudrais)\s+/i, "")
+        .replace(/^(r[ée]dige[rz]?(-moi)?|[ée]cri[st](-moi)?|fai[st](-moi)?|g[ée]n[èe]re[rz]?|donne(-moi)?|pr[ée]pare[rz]?|cr[ée]e[rz]?|produi[st])\s+/i, "")
+        .replace(/^(un|une|le|la|les|des|l')\s*/i, "")
+        .replace(/[«»"']/g, "").trim();
+      const words = topic.split(/\s+/).slice(0, 8).join(" ");
+      const generatedTitle = words ? words.charAt(0).toUpperCase() + words.slice(1) : "";
       if (generatedTitle && (docFileName === "Mon_Document_BERSA" || !docFileName.trim())) {
         setDocFileName(generatedTitle);
       }
@@ -544,6 +568,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
       const documentMenuActions = {
     onSave: () => void handleSaveDocument(),
+    onSaveAs: () => setShowSaveModal(true),
     onSaveAsWord: () => void (async () => {
       if (!editor) return;
       const html = `<html><head><meta charset="utf-8"><title>${docFileName}</title></head><body style="font-family:'Times New Roman';font-size:13pt;line-height:1.6">${editor.getHTML()}</body></html>`;
@@ -594,11 +619,22 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       const next = prompt("Nouveau nom du document :", docFileName)?.trim();
       if (next) { setDocFileName(next); toast.success("Document renommé."); }
     },
-    onShare: () => {
-      if (navigator.share && editor) {
-        navigator.share({ title: docFileName, text: editor.getText().slice(0, 3000) }).catch(() => {});
-      } else {
-        toast.info("Lien de partage copié.");
+    onShare: async () => {
+      if (!editor) return;
+      const clean = (docFileName.trim() || "Document_BERSA").replace(/[^\p{L}\p{N}_\- ]/gu, "_");
+      try {
+        const { buildDocx } = await import("@/lib/docx-export");
+        const blob = await buildDocx(editor.getJSON() as any, { pageNumbers: true });
+        const file = new File([blob], `${clean}.docx`, { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ title: docFileName, files: [file] });
+          return;
+        }
+        if (navigator.share) { await navigator.share({ title: docFileName, text: editor.getText().slice(0, 4000) }); return; }
+        await navigator.clipboard.writeText(editor.getText());
+        toast.info("Texte copié : collez-le dans l'application de votre choix.");
+      } catch (e) {
+        if ((e as Error)?.name !== "AbortError") toast.error("Partage impossible sur cet appareil.");
       }
     },
     onDuplicate: async () => {
@@ -616,9 +652,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     },
     onDelete: () => {
       if (!editor) return;
-      if (confirm("Voulez-vous effacer tout le texte de la feuille ?")) {
+      if (confirm("Supprimer ce document de la feuille ? Cette action est définitive.")) {
         editor.commands.setContent("<p></p>");
-        toast.info("Feuille vidée.");
+        setDocFileName("Mon_Document_BERSA");
+        try { localStorage.removeItem("bersa-home-draft"); } catch {}
+        toast.success("Document supprimé.");
       }
     },
   };

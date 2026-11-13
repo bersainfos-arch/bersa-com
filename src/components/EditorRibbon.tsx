@@ -149,13 +149,13 @@ export function EditorRibbon({
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
 
       {/* Onglets principaux du Ruban WPS / Word */}
-      <div className="flex items-center gap-1 px-3 pt-1 border-b border-border/60 overflow-x-auto scrollbar-none">
+      <div className="flex flex-nowrap items-center gap-0.5 px-1.5 pt-0.5 border-b border-border/60 overflow-x-auto scrollbar-none">
         {menus.map((m) => (
           <button
             key={m}
             type="button"
             onClick={() => setActiveMenu(m)}
-            className={`px-3.5 py-1.5 text-xs font-semibold rounded-t-md transition-colors relative ${
+            className={`shrink-0 px-2.5 py-1 text-xs font-semibold rounded-t-md transition-colors relative ${
               activeMenu === m
                 ? "bg-background text-primary border-t-2 border-primary border-x border-border/80 shadow-xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -182,7 +182,7 @@ export function EditorRibbon({
       </div>
       
       {/* Boîte à outils horizontale défilable sans empilement désordonné */}
-      <div className="p-2 flex items-center gap-2 overflow-x-auto scrollbar-thin min-h-[46px] bg-background/50 whitespace-nowrap">
+      <div className="px-1.5 py-1 flex flex-nowrap items-center gap-1 overflow-x-auto scrollbar-none touch-pan-x min-h-[38px] bg-background/50 whitespace-nowrap">
     
         {/* 1. FICHIER */}
         {activeMenu === "Fichier" && (
@@ -213,7 +213,7 @@ export function EditorRibbon({
 
         {/* 2. ACCUEIL */}
         {activeMenu === "Accueil" && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1">
             {/* Police */}
             <select
               className="h-8 px-2 text-xs rounded-md border border-input bg-background font-medium"
@@ -232,9 +232,23 @@ export function EditorRibbon({
             </select>
 
             {/* Taille de police */}
-            <div className="flex items-center gap-0.5 border border-input rounded-md px-1 bg-background h-8">
-              <span className="text-xs font-semibold px-1">12 pt</span>
-            </div>
+            <select
+              aria-label="Taille du texte"
+              title="Taille du texte"
+              className="h-8 px-1 text-xs rounded-md border border-input bg-background font-semibold"
+              value={(editor.getAttributes("textStyle")["fontSize"] as string) || settings.fontSize || "13pt"}
+              onChange={(e) => {
+                const size = e.target.value;
+                setSettings((s) => ({ ...s, fontSize: size }));
+                const chain = editor.chain().focus() as any;
+                if (editor.state.selection.empty) chain.selectAll().setFontSize(size).run();
+                else chain.setFontSize(size).run();
+              }}
+            >
+              {["8pt","9pt","10pt","11pt","12pt","13pt","14pt","16pt","18pt","20pt","24pt","28pt","36pt","48pt","72pt"].map((v) => (
+                <option key={v} value={v}>{v.replace("pt", " pt")}</option>
+              ))}
+            </select>
 
             <div className="h-5 w-[1px] bg-border mx-1" />
 
@@ -349,7 +363,7 @@ export function EditorRibbon({
         
         {/* 3. INSERTION */}
         {activeMenu === "Insertion" && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1">
             {btn(<TableIcon className="w-4 h-4 text-primary" />, "Insérer Tableau (3x3)", () => {
               editor.chain().focus().insertTable?.({ rows: 3, cols: 3, withHeaderRow: true }).run();
               toast.success("Tableau 3x3 inséré");
@@ -372,7 +386,7 @@ export function EditorRibbon({
 
         {/* 4. MISE EN PAGE */}
         {activeMenu === "Mise en page" && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1">
             <span className="text-xs text-muted-foreground font-medium">Marges :</span>
             <Button
               type="button"
@@ -424,7 +438,7 @@ export function EditorRibbon({
 
         {/* 5. RÉFÉRENCES */}
         {activeMenu === "Références" && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1">
             {btn(<BookOpen className="w-4 h-4 text-primary" />, "Générer Sommaire / Table des matières", handleInsertTOC)}
             {btn(<FileText className="w-4 h-4 text-amber-600" />, "Insérer Note de bas de page", () => {
               const noteText = window.prompt("Texte de la note de bas de page :");
@@ -471,7 +485,7 @@ export function EditorRibbon({
 
         {/* 7. AFFICHAGE */}
         {activeMenu === "Affichage" && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1">
             <Button
               type="button"
               size="sm"

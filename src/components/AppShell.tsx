@@ -64,6 +64,7 @@ const menuItems: MenuItem[] = [
 
 export interface DocumentMenuActions {
   onSave?: () => void;
+  onSaveAs?: () => void;
   onSaveAsWord?: () => void;
   onSaveAsPdf?: () => void;
   onSaveAsTxt?: () => void;
@@ -179,7 +180,7 @@ export function AppShell({
                     <Menu className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={6} className="w-64 p-2 bg-white text-slate-900 shadow-xl border border-slate-200 rounded-xl">
+                <DropdownMenuContent align="end" sideOffset={6} className="w-[min(16rem,calc(100vw-1rem))] max-h-[calc(100dvh-4rem)] overflow-y-auto p-2 bg-white text-slate-900 shadow-xl border border-slate-200 rounded-xl">
                   {/* Actions du document actif (comme dans les 3 points des documents récents) */}
                   {documentActions && (
                     <>
@@ -195,39 +196,11 @@ export function AppShell({
                         </DropdownMenuItem>
                       )}
 
-                      {(documentActions.onSaveAsWord || documentActions.onSaveAsPdf) && (
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger className="flex items-center gap-2.5 py-2 font-medium cursor-pointer hover:bg-slate-100 rounded-lg">
-                            <Download className="h-4 w-4 text-slate-700" />
-                            <span>Enregistrer sous…</span>
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent className="w-48 bg-white border border-slate-200 shadow-lg rounded-xl p-1">
-                            {documentActions.onSaveAsWord && (
-                              <DropdownMenuItem onClick={documentActions.onSaveAsWord} className="cursor-pointer py-1.5 text-xs font-medium">
-                                <FileText className="h-3.5 w-3.5 mr-2 text-blue-700" />
-                                <span>Word (.doc)</span>
-                              </DropdownMenuItem>
-                            )}
-                            {documentActions.onSaveAsPdf && (
-                              <DropdownMenuItem onClick={documentActions.onSaveAsPdf} className="cursor-pointer py-1.5 text-xs font-medium">
-                                <FileDown className="h-3.5 w-3.5 mr-2 text-rose-700" />
-                                <span>PDF (.pdf)</span>
-                              </DropdownMenuItem>
-                            )}
-                            {documentActions.onSaveAsTxt && (
-                              <DropdownMenuItem onClick={documentActions.onSaveAsTxt} className="cursor-pointer py-1.5 text-xs font-medium">
-                                <FileCode className="h-3.5 w-3.5 mr-2 text-slate-600" />
-                                <span>Texte brut (.txt)</span>
-                              </DropdownMenuItem>
-                            )}
-                            {documentActions.onSaveAsHtml && (
-                              <DropdownMenuItem onClick={documentActions.onSaveAsHtml} className="cursor-pointer py-1.5 text-xs font-medium">
-                                <Globe className="h-3.5 w-3.5 mr-2 text-emerald-700" />
-                                <span>Page web (.html)</span>
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
+                      {documentActions.onSaveAs && (
+                        <DropdownMenuItem onClick={documentActions.onSaveAs} className="flex items-center gap-2.5 py-2 font-medium cursor-pointer hover:bg-slate-100 rounded-lg">
+                          <Download className="h-4 w-4 text-slate-700" />
+                          <span>Enregistrer sous… (Word, PDF, Texte)</span>
+                        </DropdownMenuItem>
                       )}
 
                       {documentActions.onNewDoc && (
