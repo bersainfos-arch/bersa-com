@@ -10,6 +10,9 @@ import TextAlign from "@tiptap/extension-text-align";
 import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import Highlight from "@tiptap/extension-highlight";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
+import { ParagraphIndent } from "@/lib/writer-commands";
 import { toast } from "sonner";
 import { ArrowUp, Share2,
   Send,
@@ -78,7 +81,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
   const [keyboardOffset, setKeyboardOffset] = useState(0);
     // Affichage aéré et épuré (sans encombrement)
-    const [ribbonOpen, setRibbonOpen] = useState(false);
+    const [ribbonOpen, setRibbonOpen] = useState(true);
+  const [assistantOpen, setAssistantOpen] = useState(true);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
     const [showAssistantBar, setShowAssistantBar] = useState(false);
@@ -154,7 +159,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, []);
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle],
+    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle, Subscript, Superscript, ParagraphIndent],
     content: "<p></p>",
     onUpdate: ({ editor: e }) => {
       renumberFootnotes(e);
@@ -236,10 +241,17 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!editor) return;
     const saveTimer = setInterval(() => {
       if (editor.getText().trim()) {
-        localStorage.setItem("bersa_current_draft", JSON.stringify(editor.getJSON()));
+        const json = JSON.stringify(editor.getJSON());
+        if (json !== localStorage.getItem("bersa_current_draft")) {
+          setSaveState("saving");
+          localStorage.setItem("bersa_current_draft", json);
+          setSaveState("saved");
+        }
       }
     }, 2000);
-    return () => clearInterval(saveTimer);
+    const onUpdate = () => setSaveState("idle");
+    editor.on("update", onUpdate);
+    return () => { clearInterval(saveTimer); editor.off("update", onUpdate); };
   }, [editor]);
   const handleOpenLocalFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -860,6 +872,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
         <div
+          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1" } as React.CSSProperties}
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")}`}
           onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
@@ -933,16 +946,20 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
           {/* Pied de page numéroté automatique */}
           <div className="no-print mx-auto mt-1 flex w-full max-w-[794px] items-center justify-between px-2 text-[11px] text-muted-foreground">
-            <span>{settings.format} · Marges {settings.margin}</span>
+            <span>{settings.format} · Marges {settings.margin} · <span aria-live="polite">{saveState === "saved" ? "Enregistré sur l'appareil" : saveState === "saving" ? "Enregistrement…" : "Modifications en cours"}</span></span>
             <span className="font-semibold text-primary">
               Page 1 sur {totalPages} ({totalPages === 1 ? "1 feuille A4" : `${totalPages} feuilles A4`})
             </span>
           </div>
         </div>
 
+          {!embedded && !assistantOpen && (
+            <button type="button" onClick={() => setAssistantOpen(true)} className="no-print fixed right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl" style={{ bottom: keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem" }} aria-label="Ouvrir l'assistant BERSA" title="Assistant BERSA"><Sparkles className="h-5 w-5" /></button>
+          )}
           {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
                   {/* Espace de commande & Résultats ChatGPT / WPS Word */}
         <div
+          hidden={!embedded && !assistantOpen}
           className={`no-print home-editor-commands border border-border/80 bg-card/98 p-1.5 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
             embedded
               ? "mx-auto w-full max-w-[794px] rounded-2xl mb-2"
@@ -953,6 +970,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             transform: "translateZ(0)",
           }}
         >
+          <button type="button" onClick={() => setAssistantOpen(false)} className="absolute -top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow hover:text-primary" aria-label="Réduire l'assistant" title="Réduire l'assistant"><ChevronDown className="h-4 w-4" /></button>
           {/* FENÊTRE DE RÉSULTAT STYLE CHATGPT / WPS WORD AI */}
           {showResultCard && (generatedResponse || busy) && (
             <div className="mb-2 rounded-xl border border-border bg-muted p-2.5 shadow-md">

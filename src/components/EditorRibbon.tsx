@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { changeIndent, replaceAllText } from "@/lib/writer-commands";
+import { insertFootnote } from "@/lib/footnotes";
 
 export type PageSettings = {
   margin: "Normales" | "Étroites" | "Larges";
@@ -132,14 +134,9 @@ export function EditorRibbon({
   // Recherche et remplacement
   const handleFindReplace = () => {
     if (!findText) return;
-    const html = editor.getHTML();
-    if (!html.includes(findText)) {
-      toast.error("Texte introuvable");
-      return;
-    }
-    const newHtml = html.split(findText).join(replaceText);
-    editor.commands.setContent(newHtml);
-    toast.success(`Remplacement effectué pour "${findText}"`);
+    const n = replaceAllText(editor, findText, replaceText);
+    if (!n) { toast.error("Texte introuvable"); return; }
+    toast.success(`${n} remplacement(s) effectué(s)`);
   };
 
   const menus = ["Fichier", "Accueil", "Insertion", "Mise en page", "Références", "Révision", "Affichage"];
@@ -221,7 +218,9 @@ export function EditorRibbon({
               onChange={(e) => {
                 const val = e.target.value;
                 setSettings((s) => ({ ...s, fontFamily: val }));
-                editor.chain().focus().run();
+                const chain = editor.chain().focus();
+                if (editor.state.selection.empty) chain.selectAll().setFontFamily(val).run();
+                else chain.setFontFamily(val).run();
               }}
               title="Police du document"
             >
@@ -257,8 +256,8 @@ export function EditorRibbon({
             {iconOnly(<Italic className="w-4 h-4" />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"), "Italique (Ctrl+I)")}
             {iconOnly(<Underline className="w-4 h-4" />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"), "Souligné (Ctrl+U)")}
             {iconOnly(<Strikethrough className="w-4 h-4" />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"), "Barré")}
-            {iconOnly(<Subscript className="w-4 h-4" />, () => (editor.chain().focus() as any).toggleSubscript?.().run(), editor.isActive("subscript"), "Indice")}
-            {iconOnly(<Superscript className="w-4 h-4" />, () => (editor.chain().focus() as any).toggleSuperscript?.().run(), editor.isActive("superscript"), "Exposant")}        
+            {iconOnly(<Subscript className="w-4 h-4" />, () => editor.chain().focus().toggleSubscript().run(), editor.isActive("subscript"), "Indice")}
+            {iconOnly(<Superscript className="w-4 h-4" />, () => editor.chain().focus().toggleSuperscript().run(), editor.isActive("superscript"), "Exposant")}        
             <div className="h-5 w-[1px] bg-border mx-1" />
 
             {/* Styles rapides */}
@@ -312,8 +311,8 @@ export function EditorRibbon({
             {/* Listes et retraits */}
             {iconOnly(<List className="w-4 h-4" />, () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Puces")}
             {iconOnly(<ListOrdered className="w-4 h-4" />, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numérotation")}
-            {iconOnly(<Indent className="w-4 h-4" />, () => (editor.chain().focus() as any).indent?.().run(), false, "Augmenter le retrait")}
-            {iconOnly(<Outdent className="w-4 h-4" />, () => (editor.chain().focus() as any).outdent?.().run(), false, "Diminuer le retrait")}
+            {iconOnly(<Indent className="w-4 h-4" />, () => changeIndent(editor, 1), false, "Augmenter le retrait")}
+            {iconOnly(<Outdent className="w-4 h-4" />, () => changeIndent(editor, -1), false, "Diminuer le retrait")}
             <div className="h-5 w-[1px] bg-border mx-1" />
 
             {/* Outil d'Espacement et Interligne (WPS / Word) */}
@@ -325,8 +324,6 @@ export function EditorRibbon({
                 onChange={(e) => {
                   const val = e.target.value;
                   setSettings((s) => ({ ...s, lineSpacing: val }));
-                  const sheet = document.querySelector(".home-ai-sheet") as HTMLElement;
-                  if (sheet) sheet.style.lineHeight = val;
                   toast.success(`Interligne réglé à ${val}`);
                 }}
                 title="Espacement des lignes (Interligne)"
@@ -378,7 +375,7 @@ export function EditorRibbon({
             {btn(<ImageIcon className="w-4 h-4 text-emerald-600" />, "Image...", () => fileInputRef.current?.click())}
             {btn(<Link2 className="w-4 h-4 text-blue-600" />, "Lien", handleInsertLink)}
             {btn(<FileText className="w-4 h-4 text-purple-600" />, "Saut de page", () => {
-              editor.chain().focus().insertContent('<hr class="page-break" /><p></p>').run();
+              editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run();
               toast.success("Saut de page inséré");
             })}
           </div>
@@ -443,7 +440,7 @@ export function EditorRibbon({
             {btn(<FileText className="w-4 h-4 text-amber-600" />, "Insérer Note de bas de page", () => {
               const noteText = window.prompt("Texte de la note de bas de page :");
               if (noteText) {
-                editor.chain().focus().insertContent(`<sup>[note]</sup>`).run();
+                insertFootnote(editor, noteText);
                 toast.success("Note ajoutée");
               }
             })}

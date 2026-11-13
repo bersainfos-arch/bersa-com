@@ -775,3 +775,9 @@ img, video, canvas, iframe, table { max-width: 100%; }
 @container (max-width: 599px) {
   .home-editor .home-paper-content .home-ai-sheet { min-height: calc(var(--sheet-w) * 2.1) !important; }
 }
+
+/* Réglages réels de l'atelier : interligne, marges, curseur visible au-dessus du clavier */
+.home-editor .bersa-writer-workspace .home-ai-sheet { line-height: var(--writer-line, 1.6) !important; scroll-padding-bottom: 40vh; }
+.home-editor :is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { --pad-x: calc(min(100cqw, 794px) * 0.119 * var(--writer-margin-scale, 1)); padding-left: var(--pad-x) !important; padding-right: var(--pad-x) !important; }
+.home-editor .home-ai-sheet .page-break { display: block; height: 16px; break-after: page; }
+.home-editor .home-paper-desk { scroll-padding-bottom: 45vh; overflow-anchor: auto; }
