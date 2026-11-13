@@ -423,6 +423,7 @@ export function EditorRibbon({
         {/* 3. INSERTION */}
         {activeMenu === "Insertion" && (
           <div className="flex flex-nowrap items-center gap-1">
+            {btn(<FileText className="w-4 h-4 text-amber-600" />, "Note de bas de page", () => { insertFootnote(editor, ""); setTimeout(() => { const all = document.querySelectorAll<HTMLInputElement>("input[data-fn-input]"); all[all.length - 1]?.focus(); }, 80); })}
             {btn(<TableIcon className="w-4 h-4 text-primary" />, "Tableau…", askTable)}
             {btn(<Columns className="w-4 h-4" />, "Fusionner", () => { if (!editor.chain().focus().mergeCells().run()) toast.error("Sélectionnez plusieurs cellules"); })}
             {btn(<Columns className="w-4 h-4" />, "Fractionner", () => { if (!editor.chain().focus().splitCell().run()) toast.error("Placez-vous dans une cellule fusionnée"); })}
@@ -528,11 +529,8 @@ export function EditorRibbon({
           <div className="flex flex-nowrap items-center gap-1">
             {btn(<BookOpen className="w-4 h-4 text-primary" />, "Générer Sommaire / Table des matières", handleInsertTOC)}
             {btn(<FileText className="w-4 h-4 text-amber-600" />, "Insérer Note de bas de page", () => {
-              const noteText = window.prompt("Texte de la note de bas de page :");
-              if (noteText) {
-                insertFootnote(editor, noteText);
-                toast.success("Note ajoutée");
-              }
+              insertFootnote(editor, "");
+              setTimeout(() => { const all = document.querySelectorAll<HTMLInputElement>("input[data-fn-input]"); all[all.length - 1]?.focus(); }, 80);
             })}
             {btn(<Type className="w-4 h-4 text-purple-600" />, "Citation APA 7ème", () => {
               const author = window.prompt("Auteur (ex: BERSA, 2026) :", "BERSA, 2026");

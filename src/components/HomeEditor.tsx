@@ -952,9 +952,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           )}
 
-          {settings.headerText && !settings.differentFirstPage && <div className="bersa-page-header mx-auto max-w-[794px]">{settings.headerText}</div>}
+          {!settings.differentFirstPage && <input aria-label="En-tête de page" placeholder="Touchez pour écrire l'en-tête" value={settings.headerText} onChange={e => setSettings(st => ({ ...st, headerText: e.target.value }))} className="bersa-page-header mx-auto block w-full max-w-[794px] bg-transparent text-center focus:outline-none placeholder:text-muted-foreground/50" />}
           <EditorContent editor={editor} className="home-paper-content" />
-          {settings.footerText && !settings.differentFirstPage && <div className="bersa-page-footer mx-auto max-w-[794px]">{settings.footerText}</div>}
+          {!settings.differentFirstPage && <input aria-label="Pied de page" placeholder="Touchez pour écrire le pied de page" value={settings.footerText} onChange={e => setSettings(st => ({ ...st, footerText: e.target.value }))} className="bersa-page-footer mx-auto block w-full max-w-[794px] bg-transparent text-center focus:outline-none placeholder:text-muted-foreground/50" />}
           {versions && (
             <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center" onClick={() => setVersions(null)}>
               <div className="w-full max-w-md rounded-xl bg-card p-4 shadow-xl" onClick={e => e.stopPropagation()}>
@@ -986,18 +986,16 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                     >
                       <sup className="a4-footnote-number mr-1">{fn.number} ↩</sup>
                     </a>
-                    <span className="a4-footnote-text">{fn.note}</span>
-                    <button
-                      type="button"
-                      className="no-print a4-footnote-action"
-                      aria-label={`Modifier la note ${fn.number}`}
-                      onClick={() => {
-                        const text = prompt("Modifier la note :", fn.note);
-                        if (text && editor) updateFootnote(editor, fn.pos, text);
-                      }}
-                    >
-                      Modifier
-                    </button>
+                    <input
+                      data-fn-input={fn.number}
+                      className="a4-footnote-text flex-1 min-w-0 bg-transparent border-b border-dashed border-border focus:border-primary focus:outline-none"
+                      placeholder="Tapez le texte de la note…"
+                      defaultValue={fn.note}
+                      key={`${fn.pos}-${fn.note}`}
+                      aria-label={`Texte de la note ${fn.number}`}
+                      onBlur={(e) => { if (editor && e.target.value !== fn.note) updateFootnote(editor, fn.pos, e.target.value); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); } }}
+                    />
                     <button
                       type="button"
                       className="no-print a4-footnote-action"
@@ -1030,17 +1028,17 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   {/* Espace de commande & Résultats ChatGPT / WPS Word */}
         <div
           hidden={!embedded && !assistantOpen}
-          className={`no-print home-editor-commands border border-border/80 bg-card/98 p-1.5 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
+          className={`no-print home-editor-commands border border-primary/20 bg-secondary p-2 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
             embedded
               ? "mx-auto w-full max-w-[794px] rounded-2xl mb-2"
-              : "fixed left-3 right-3 sm:left-auto sm:right-6 sm:w-[500px] z-50 rounded-2xl"
+              : "fixed left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[min(768px,calc(100vw-3rem))] z-50 rounded-3xl"
           }`}
           style={{
             bottom: embedded ? undefined : keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
             transform: "translateZ(0)",
           }}
         >
-          <button type="button" onClick={() => setAssistantOpen(false)} className="absolute -top-3 right-3 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow hover:text-primary" aria-label="Réduire l'assistant" title="Réduire l'assistant"><ChevronDown className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setAssistantOpen(false)} className="absolute -top-3 right-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow hover:text-primary" aria-label="Fermer l'assistant" title="Fermer l'assistant"><span className="text-lg font-bold leading-none">×</span></button>
           {/* FENÊTRE DE RÉSULTAT STYLE CHATGPT / WPS WORD AI */}
           {showResultCard && (generatedResponse || busy) && (
             <div className="mb-2 rounded-xl border border-border bg-muted p-2.5 shadow-md">
@@ -1063,7 +1061,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               </div>
 
               {/* Contenu du texte généré avec défilement pour grands textes */}
-              <div className="max-h-64 overflow-y-auto pr-1 text-xs sm:text-sm text-foreground whitespace-pre-wrap leading-relaxed select-text scrollbar-thin">
+              <div className="max-h-72 overflow-y-auto pr-1 text-[15px] sm:text-base text-foreground whitespace-pre-wrap leading-relaxed select-text scrollbar-thin">
                 {generatedResponse || <span className="text-muted-foreground italic flex items-center gap-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Rédaction de votre demande…</span>}
               </div>
               {/* BOUTON INSÉRER : apparaît d'un coût puis disparaît dès que le texte est inséré */}
@@ -1137,7 +1135,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             }}
             placeholder="Écrivez votre consigne ou texte à rédiger..."
             rows={1}
-            className="w-full resize-none bg-transparent px-2 py-1 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[32px] max-h-28"
+            className="w-full resize-none bg-transparent px-2 py-1.5 text-[15px] sm:text-base text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[32px] max-h-28"
           />
 
           {/* Rangée inférieure : Trombone à gauche, Commandes & Quota à droite */}

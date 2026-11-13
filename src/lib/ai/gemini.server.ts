@@ -26,6 +26,7 @@ function body(contents: GeminiContent[], system?: string) {
   return JSON.stringify({
     contents,
     ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+    tools: [{ google_search: {} }],
     generationConfig: {
       temperature: 0.7,
       maxOutputTokens: 65536,
