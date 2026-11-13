@@ -28,7 +28,7 @@ function body(contents: GeminiContent[], system?: string) {
     ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 8192,
+      maxOutputTokens: 65536,
     },
   });
 }

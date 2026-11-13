@@ -10,7 +10,7 @@ import Image from "@tiptap/extension-image";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
 import Highlight from "@tiptap/extension-highlight";
 import { toast } from "sonner";
-import {
+import { ArrowUp, Share2,
   Send,
   Loader2,
   Mic,
@@ -282,6 +282,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   // Insertion dans le papier : disparaît d'un coup dès que le texte est inséré
   const insertIntoPaper = (mode: "auto" | "append" | "replace" = "auto") => {
     if (!editor || !generatedResponse.trim()) return;
+    const firstLine = generatedResponse.trim().split("\n")[0]!.replace(/^[#*\s]+|[*:]+$/g, "").trim();
+    if (firstLine && firstLine.length <= 110 && firstLine.split(/\s+/).length <= 16) setDocFileName(firstLine);
     const { from, to } = editor.state.selection;
     const selected = editor.state.doc.textBetween(from, to, "\n");
     const hasSelection = from !== to && selected.trim();
@@ -364,6 +366,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     toast.success(`Fichier texte enregistré pour votre dossier (${targetFolder}).`);
   };
 
+  const shareGeneratedText = async () => {
+    if (!generatedResponse) return;
+    try {
+      if (navigator.share) await navigator.share({ title: docFileName, text: generatedResponse });
+      else { await navigator.clipboard.writeText(generatedResponse); toast.success("Texte copié pour le partage."); }
+    } catch {}
+  };
   const copyGeneratedText = async () => {
     if (!generatedResponse) return;
     try {
@@ -450,7 +459,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       }
       if (failure) throw new Error(failure);
       if (!reply.trim()) throw new Error("L’Assistant n’a pas produit de texte.");
-      toast.success("Texte généré ! Cliquez sur « Insérer dans le document ».");
+      if (isRegenerate) {
+        const t = reply.trim().split("\n")[0]!.replace(/^[#*\s]+/, "").slice(0, 90) || "Texte régénéré";
+        void supabase.from("user_docs").insert({ title: `${t} (version régénérée)`, category: "general", content: paragraphs(reply).map((n: any) => `<p>${String(n.content?.[0]?.text ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</p>`).join(""), word_count: reply.split(/\s+/).filter(Boolean).length });
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : "Assistant indisponible.";
       setError(message);
@@ -930,10 +942,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           {/* Boutons flottants persistants (mobile et ordinateur) style capsule, restant au-dessus du clavier */}
                   {/* Espace de commande & Résultats ChatGPT / WPS Word */}
         <div
-          className={`no-print home-editor-commands border border-border/80 bg-card/98 p-2.5 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
+          className={`no-print home-editor-commands border border-border/80 bg-card/98 p-1.5 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
             embedded
               ? "mx-auto w-full max-w-[794px] rounded-2xl mb-2"
-              : "fixed left-3 right-3 sm:left-auto sm:right-6 sm:w-[580px] z-50 rounded-2xl"
+              : "fixed left-3 right-3 sm:left-auto sm:right-6 sm:w-[500px] z-50 rounded-2xl"
           }`}
           style={{
             bottom: embedded ? undefined : keyboardOffset > 0 ? `${keyboardOffset + 14}px` : "1.25rem",
@@ -942,7 +954,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         >
           {/* FENÊTRE DE RÉSULTAT STYLE CHATGPT / WPS WORD AI */}
           {showResultCard && (generatedResponse || busy) && (
-            <div className="mb-2 rounded-xl border border-primary/25 bg-background/95 p-3 shadow-lg">
+            <div className="mb-2 rounded-xl border border-border bg-muted p-2.5 shadow-md">
               {/* En-tête du résultat */}
               <div className="mb-2 flex items-center justify-between border-b border-border/40 pb-1.5">
                 <span className="flex items-center gap-1.5 text-xs font-bold text-primary">
@@ -950,17 +962,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   {busy ? "Génération en cours…" : "Texte généré par l'Assistant"}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  {generatedResponse && (
-                    <button
-                      type="button"
-                      onClick={() => void copyGeneratedText()}
-                      className="flex items-center gap-1 rounded px-2 py-0.5 text-[11px] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                      title="Copier le texte"
-                    >
-                      {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                      <span>{copied ? "Copié" : "Copier"}</span>
-                    </button>
-                  )}
                   <button
                     type="button"
                     onClick={() => setShowResultCard(false)}
@@ -978,12 +979,18 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               </div>
               {/* BOUTON INSÉRER : apparaît d'un coût puis disparaît dès que le texte est inséré */}
               {generatedResponse && !busy && (
-                <div className="mt-2.5 flex items-center gap-2 border-t border-border/40 pt-2">
+                <div className="mt-2 flex items-center justify-end gap-1.5 border-t border-border/40 pt-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => void shareGeneratedText()} className="h-8 rounded-lg text-xs gap-1 px-2.5" title="Partager">
+                    <Share2 className="h-3.5 w-3.5" /><span>Partager</span>
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => void copyGeneratedText()} className="h-8 rounded-lg text-xs gap-1 px-2.5" title="Copier">
+                    {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}<span>{copied ? "Copié" : "Copier"}</span>
+                  </Button>
                   <Button
                     type="button"
                     size="sm"
                     onClick={() => insertIntoPaper("auto")}
-                    className="flex-1 h-8 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-bold gap-1.5 shadow"
+                    className="h-8 px-3 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-bold gap-1.5 shadow"
                   >
                     <FileDown className="h-4 w-4 text-amber-400" />
                     <span>Insérer</span>
@@ -1005,18 +1012,18 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 )}
           {/* Badge du document joint visible dans l'item de demande façon ChatGPT */}
           {files.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 px-2 pb-1 pt-1 border-b border-border/40">
+            <div className="flex gap-1.5 overflow-x-auto px-1 pb-1.5 pt-1">
               {files.map((f, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1 rounded-md bg-primary/10 border border-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary"
+                  className="relative flex shrink-0 items-center gap-2 rounded-xl border border-border bg-muted/70 py-1.5 pl-1.5 pr-5 text-[11px]"
                 >
-                  <FileText className="h-3 w-3 shrink-0" />
-                  <span className="max-w-[150px] truncate">{f.name}</span>
+                  {f.type === "image" ? <img src={`data:${(f as any).mediaType};base64,${f.content}`} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground"><FileText className="h-4 w-4" /></span>}
+                  <span className="flex flex-col leading-tight"><span className="max-w-[120px] truncate font-semibold text-foreground">{f.name}</span><span className="text-[10px] uppercase text-muted-foreground">{f.name.split(".").pop()}</span></span>
                   <button
                     type="button"
                     onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                    className="ml-1 text-muted-foreground hover:text-destructive font-bold text-xs"
+                    className="absolute right-1 top-0.5 text-muted-foreground hover:text-destructive font-bold text-xs"
                     title="Retirer ce document"
                   >
                     ×
@@ -1041,7 +1048,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             }}
             placeholder="Écrivez votre consigne ou texte à rédiger..."
             rows={1}
-            className="w-full resize-none bg-transparent px-2 py-1 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[38px] max-h-28"
+            className="w-full resize-none bg-transparent px-2 py-1 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[32px] max-h-28"
           />
 
           {/* Rangée inférieure : Trombone à gauche, Commandes & Quota à droite */}
@@ -1110,13 +1117,12 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
               <Button
                 size="sm"
-                className="h-8 rounded-full px-3 text-xs font-medium shadow-md gap-1.5 bg-[#0a192f] text-white hover:bg-[#1e3a8a] shrink-0"
+                className="h-8 w-8 p-0 rounded-full bg-foreground text-background hover:bg-foreground/85 shrink-0"
                 onClick={() => void run()}
                 disabled={busy || recording || transcribing}
                 aria-label="Envoyer"
               >
-                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                <span className="hidden sm:inline">{busy ? "Rédaction…" : "Envoyer"}</span>
+                {busy ? <Square className="h-3 w-3 fill-current" /> : <ArrowUp className="h-4 w-4 stroke-[2.5]" />}
               </Button>
 
               <div className="h-5 w-[1px] bg-border/60 mx-0.5" />
