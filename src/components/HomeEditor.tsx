@@ -403,7 +403,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         landscape: settings.orientation === "Paysage",
         headerText: settings.headerText,
         footerText: settings.footerText,
-        pageNumbers: true,
+        pageNumbers: !!settings.pageNumbers,
+        differentFirstPage: !!settings.differentFirstPage,
       });
       if (await pickAndWrite(blob, `${cleanName}.docx`, "Document Word", { "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"] })) { toast.success("Document Word enregistré."); return; }
       const url = URL.createObjectURL(blob);

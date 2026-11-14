@@ -3,6 +3,9 @@
 - [ ] Remplacer Accueil / Insérer par les outils des captures sans doublons
 - [ ] Placer en-têtes, pieds et notes dans la surface blanche de chaque page
 - [ ] Vérifier les commandes sur document réel, téléphone et exports
+- [x] Vérifier saisie, gras, taille, interligne, notes renumérotées, marges internes, saut de page et téléchargement PDF à 360px et sur ordinateur
+- [x] Corriger insertion de fichier au curseur, conservation des notes et options de première page/numérotation DOCX
+- [ ] Essayer séparément scanner, signature, colonnes, toutes les commandes de tableau et exports de documents longs
 ## Corrections demandées, dans l’ordre
 - [x] Accueil : recherche, photo reliée au profil, quatre cartes, catalogue et menus des documents
 - [x] CV : aperçus ajustés, vignettes compactes, sauvegarde locale vérifiée à 360px

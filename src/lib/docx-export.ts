@@ -2,7 +2,7 @@
 // and packs it in a ZIP archive (stored entries, CRC32) without external deps.
 
 export type JNode = { type: string; attrs?: any; content?: JNode[]; text?: string; marks?: { type: string; attrs?: any }[] };
-export type DocxOptions = { marginCm?: number; lineSpacing?: number; landscape?: boolean; headerText?: string; footerText?: string; pageNumbers?: boolean; title?: string };
+export type DocxOptions = { marginCm?: number; lineSpacing?: number; landscape?: boolean; headerText?: string; footerText?: string; pageNumbers?: boolean; differentFirstPage?: boolean; title?: string };
 type Img = { id: string; name: string; data: Uint8Array; ext: string; w: number; h: number };
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -12,7 +12,7 @@ let CRC: Uint32Array | null = null;
 export function crc32(data: Uint8Array) {
   if (!CRC) { CRC = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; CRC[n] = c >>> 0; } }
   let c = 0xffffffff;
-  for (let i = 0; i < data.length; i++) c = CRC[(c ^ data[i]!) & 0xff]! ^ (c >>> 8);
+  for (const byte of data) c = (CRC[(c ^ byte) & 0xff] ?? 0) ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
 
@@ -124,8 +124,12 @@ async function loadImage(src: string, idx: number): Promise<Img | null> {
     let data = new Uint8Array(await blob.arrayBuffer());
     const bmp = await createImageBitmap(blob);
     if (!["png", "jpg", "gif"].includes(ext)) { // convert webp/svg etc. to PNG
-      const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height; c.getContext("2d")!.drawImage(bmp, 0, 0);
-      data = new Uint8Array(await (await new Promise<Blob>(r => c.toBlob(b => r(b!), "image/png"))).arrayBuffer()); ext = "png";
+      const c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height;
+      const context = c.getContext("2d"); if (!context) return null;
+      context.drawImage(bmp, 0, 0);
+      const converted = await new Promise<Blob | null>(resolve => c.toBlob(resolve, "image/png"));
+      if (!converted) return null;
+      data = new Uint8Array(await converted.arrayBuffer()); ext = "png";
     }
     return { id: `rIdImg${idx + 1}`, name: src, data, ext, w: bmp.width, h: bmp.height };
   } catch { return null; }
@@ -146,7 +150,7 @@ export function buildDocxBytes(doc: JNode, opts: DocxOptions = {}, imgs: Img[] =
   const body = blocks(doc.content, { imgs, widthTwips: pw - 2 * m }) || "<w:p/>";
   const NS = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"';
   const hasHeader = !!opts.headerText; const hasFooter = !!opts.footerText || opts.pageNumbers !== false;
-  const sect = `<w:sectPr>${hasHeader ? '<w:headerReference w:type="default" r:id="rIdHeader"/>' : ""}${hasFooter ? '<w:footerReference w:type="default" r:id="rIdFooter"/>' : ""}<w:pgSz w:w="${pw}" w:h="${ph}"${opts.landscape ? ' w:orient="landscape"' : ""}/><w:pgMar w:top="${m}" w:right="${m}" w:bottom="${m}" w:left="${m}" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr>`;
+  const sect = `<w:sectPr>${hasHeader ? '<w:headerReference w:type="default" r:id="rIdHeader"/>' : ""}${hasFooter ? '<w:footerReference w:type="default" r:id="rIdFooter"/>' : ""}${opts.differentFirstPage ? "<w:titlePg/>" : ""}<w:pgSz w:w="${pw}" w:h="${ph}"${opts.landscape ? ' w:orient="landscape"' : ""}/><w:pgMar w:top="${m}" w:right="${m}" w:bottom="${m}" w:left="${m}" w:header="709" w:footer="709" w:gutter="0"/></w:sectPr>`;
   const document = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${body}${sect}</w:body></w:document>`;
   const pageField = '<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>';
   const footnotes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:footnotes ${NS}><w:footnote w:type="separator" w:id="-1"><w:p><w:r><w:separator/></w:r></w:p></w:footnote><w:footnote w:type="continuationSeparator" w:id="0"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>${notes.map(n => `<w:footnote w:id="${Number(n.attrs?.number) || 1}"><w:p><w:r><w:footnoteRef/></w:r><w:r><w:t xml:space="preserve"> ${esc(String(n.attrs?.note || ""))}</w:t></w:r></w:p></w:footnote>`).join("")}</w:footnotes>`;

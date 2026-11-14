@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { changeCase, setParagraphLayout } from "@/lib/writer-layout";
 import { changeIndent, replaceAllText } from "@/lib/writer-commands";
-import { insertFootnote } from "@/lib/footnotes";
+import { insertFootnote, collectFootnotes } from "@/lib/footnotes";
 import { importDocumentFile } from "@/lib/document-import";
 import { TOC_TITLE, tocLines, refreshToc } from "@/lib/toc";
 import { SHAPES, SYMBOLS, shapeSrc, setTracking, isTracking, acceptAll, rejectAll, listComments, removeComment, citation, bibliographyHtml, type Source } from "@/lib/review-marks";
@@ -73,7 +73,6 @@ export function EditorRibbon({
   const [scanning, setScanning] = useState(false);
   const scanInput = useRef<HTMLInputElement>(null);
   const objectInput = useRef<HTMLInputElement>(null);
-  const [autoNumbering, setAutoNumbering] = useState(true);
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -108,8 +107,10 @@ export function EditorRibbon({
     finally { await worker?.terminate(); setScanning(false); }
   };
   const note = () => {
+    const position = editor.state.selection.from;
     insertFootnote(editor, "");
-    setTimeout(() => { const all = document.querySelectorAll<HTMLInputElement>("input[data-fn-input]"); const el = all[all.length - 1]; el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }, 350);
+    const inserted = collectFootnotes(editor).find(item => item.pos === position);
+    setTimeout(() => { const el = document.querySelector<HTMLInputElement>(`input[data-fn-input="${inserted?.number}"]`); el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }, 350);
   };
   const editMargin = (part: "header" | "footer") => {
     document.querySelector<HTMLInputElement>(part === "header" ? ".writer-internal-header" : ".writer-footer-row input")?.focus();
@@ -343,7 +344,7 @@ export function EditorRibbon({
           <div className="writer-insert-shortcuts">{row(<ImageIcon />, "Image", () => fileInputRef.current?.click())}{row(<TableIcon />, "Table", askTable)}{row(<FilePlus />, "Page vierge", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}{row(<FileText />, "Note", note)}</div>
           {group("", <><label className="writer-select-row"><RectangleHorizontal /><span>Forme</span><select aria-label="Formes" value="" onChange={e => { if (e.target.value) editor.chain().focus().setImage({ src: shapeSrc(e.target.value), alt: e.target.value }).run(); }}><option value="">Choisir…</option>{Object.keys(SHAPES).map(n => <option key={n}>{n}</option>)}</select></label>{row(<RectangleHorizontal />, "Zone de texte", () => editor.chain().focus().insertContent({ type: "paragraph", attrs: { textBox: true }, content: [] }).run())}<Button variant="ghost" className="writer-tool-row" disabled={scanning} onClick={() => scanInput.current?.click()}><ScanText /><span>{scanning ? "Lecture en cours…" : "Scanner un Texte"}</span></Button>{row(<FolderOpen />, "Ressources du document", attach)}</>)}
           {group("Pages", <>{row(<FilePlus />, "Page vierge en portrait", () => { setSettings(s => ({ ...s, orientation: "Portrait" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<FilePlus />, "Page vierge Paysage", () => { setSettings(s => ({ ...s, orientation: "Paysage" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<WrapText />, "Sauts", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}{row(<Hash />, "Numéro de page", () => setSettings(s => ({ ...s, pageNumbers: !s.pageNumbers })))}{row(<PanelTop />, "En-tête", () => editMargin("header"))}{row(<PanelTop />, "Pied de page", () => editMargin("footer"))}</>)}
-          {group("Notes et objets", <>{row(<FileText />, "Note de fin", () => { const text = window.prompt("Texte de la note de fin :"); if (!text) return; editor.chain().focus().insertContent([{ type: "text", text: "*", marks: [{ type: "superscript" }] }]).run(); editor.chain().focus("end").insertContent([{ type: "horizontalRule" }, { type: "paragraph", content: [{ type: "text", text: `* ${text}` }] }]).run(); })}{row(<Signature />, "Signature", () => fileInputRef.current?.click())}{row(<Calendar />, "Date et heure", () => editor.chain().focus().insertContent(new Date().toLocaleString("fr-FR")).run())}{row(<Link2 />, "Lien", handleInsertLink)}{row(<BookmarkIcon />, "Insérer un signet", addBookmark)}{row(<BookmarkIcon />, "Voir le Signet", seeBookmark)}{row(<CaseSensitive />, "Lettrine", () => setParagraphLayout(editor, { dropCap: !editor.getAttributes("paragraph")["dropCap"] }))}{row(<PaperclipIcon />, "Insérer un objet à partir du fichier", attach)}<label className="writer-select-row"><Type /><span>Symboles</span><select aria-label="Symboles" value="" onChange={e => { if (e.target.value) editor.chain().focus().insertContent(e.target.value).run(); }}><option value="">Ω</option>{SYMBOLS.map(c => <option key={c}>{c}</option>)}</select></label></>)}
+          {group("Notes et objets", <>{row(<FileText />, "Note de fin", () => { const text = window.prompt("Texte de la note de fin :"); if (!text) return; editor.chain().focus().insertContent([{ type: "text", text: "*", marks: [{ type: "superscript" }] }]).run(); editor.chain().focus("end").insertContent([{ type: "horizontalRule" }, { type: "paragraph", content: [{ type: "text", text: `* ${text}` }] }]).run(); })}{row(<Signature />, "Signature", () => fileInputRef.current?.click())}{row(<Calendar />, "Date et heure", () => editor.chain().focus().insertContent(new Date().toLocaleString("fr-FR")).run())}{row(<Link2 />, "Lien", handleInsertLink)}{row(<BookmarkIcon />, "Insérer un signet", addBookmark)}{row(<BookmarkIcon />, "Voir le Signet", seeBookmark)}{row(<CaseSensitive />, "Lettrine", () => setParagraphLayout(editor, { dropCap: !editor.getAttributes("paragraph")["dropCap"] }))}{row(<PaperclipIcon />, "Insérer un objet à partir du fichier", () => objectInput.current?.click())}<label className="writer-select-row"><Type /><span>Symboles</span><select aria-label="Symboles" value="" onChange={e => { if (e.target.value) editor.chain().focus().insertContent(e.target.value).run(); }}><option value="">Ω</option>{SYMBOLS.map(c => <option key={c}>{c}</option>)}</select></label></>)}
           {group("Tableau", <>{row(<Columns />, "Fusionner les cellules", () => { if (!editor.chain().focus().mergeCells().run()) toast.info("Sélectionnez plusieurs cellules"); })}{row(<Columns />, "Fractionner la cellule", () => { if (!editor.chain().focus().splitCell().run()) toast.info("Sélectionnez une cellule fusionnée"); })}{row(<Plus />, "Ajouter une ligne", () => editor.chain().focus().addRowAfter().run())}{row(<Plus />, "Ajouter une colonne", () => editor.chain().focus().addColumnAfter().run())}{row(<Trash2 />, "Supprimer une ligne", () => editor.chain().focus().deleteRow().run())}{row(<Trash2 />, "Supprimer une colonne", () => editor.chain().focus().deleteColumn().run())}{row(<Trash2 />, "Supprimer le tableau", () => editor.chain().focus().deleteTable().run())}</>)}
         </div>}
         {/* 4. MISE EN PAGE */}

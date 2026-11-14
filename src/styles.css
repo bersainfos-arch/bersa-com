@@ -846,3 +846,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .home-ai-sheet p[data-text-box=true] { border: 1px solid var(--paper-ink); padding: 8px; min-height: 45px; }
 .home-editor .home-ai-sheet p[data-border=true] { border: 1px solid var(--paper-ink); padding: 6px; }
 @media print { .writer-note-row button { display: none; } }
+
+.home-editor .home-paper-content .home-ai-sheet .writer-explicit-gap { position: relative; margin: 0 calc(var(--pad-x) * -1) !important; width: calc(100% + var(--pad-x) * 2) !important; border: 0; background: transparent; }
+.home-editor .home-paper-content .home-ai-sheet .writer-explicit-gap::after { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--gap-rest, 0px) + var(--pad-y)); height: 16px; background: var(--editor-desk); }
+@media print { .home-editor .home-paper-content .home-ai-sheet .writer-explicit-gap { height: 0 !important; break-before: page; } .writer-explicit-gap::after { display: none; } }

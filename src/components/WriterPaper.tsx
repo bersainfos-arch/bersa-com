@@ -50,7 +50,7 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
           <div className="writer-internal-bottom">
             {notes.length > 0 && <section className="writer-internal-notes" aria-label={`Notes de la page ${index + 1}`}><hr />{notes.map(fn => <div key={fn.number} id={`fn-${fn.number}`} className="writer-note-row">
               <a href={`#fnref-${fn.number}`} onClick={e => { e.preventDefault(); editor?.view.dom.querySelector(`#fnref-${fn.number}`)?.scrollIntoView({ block: "center" }); }} aria-label={`Retour à la note ${fn.number}`}>{fn.number}</a>
-              <input data-fn-input={fn.number} aria-label={`Texte de la note ${fn.number}`} defaultValue={fn.note} onBlur={e => { if (editor && e.target.value !== fn.note) updateFootnote(editor, fn.pos, e.target.value); }} onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} />
+              <input data-fn-input={fn.number} aria-label={`Texte de la note ${fn.number}`} value={fn.note} onChange={e => { if (editor) updateFootnote(editor, fn.pos, e.target.value); }} onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} />
               <Button size="icon" variant="ghost" aria-label={`Supprimer la note ${fn.number}`} onClick={() => { if (editor) deleteFootnote(editor, fn.pos); }}><Trash2 /></Button>
             </div>)}</section>}
             {!hidden && <div className="writer-footer-row"><input aria-label={`Pied de la page ${index + 1}`} value={settings.footerText} onChange={e => setSettings(s => ({ ...s, footerText: e.target.value }))} />{settings.pageNumbers && <span>{index + 1}</span>}</div>}

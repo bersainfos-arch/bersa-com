@@ -30,6 +30,11 @@ describe("commandes Writer persistantes", () => {
     const e = make(); e.commands.setTextSelection({ from: 1, to: 8 }); e.commands.setMark("bookmark", { name: "Début" });
     expect(e.getHTML()).toContain('data-bookmark="Début"');
   });
+  it("restaure le texte et le numéro des notes depuis un document sauvegardé", () => {
+    const e = make(); insertFootnote(e, "Source conservée");
+    const html = e.getHTML(); e.commands.setContent(html);
+    expect(collectFootnotes(e).map(item => [item.number, item.note])).toEqual([[1, "Source conservée"]]);
+  });
   it("utilise la même hauteur et un intercalaire de 16px pour chaque page mobile", () => {
     expect(pageGeometry(360)).toEqual({ height: 756, stride: 772 });
   });

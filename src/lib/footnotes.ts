@@ -14,8 +14,8 @@ export const Footnote = Node.create({
 
   addAttributes() {
     return {
-      note: { default: "" },
-      number: { default: 0 },
+      note: { default: "", parseHTML: element => element.getAttribute("data-note") || "" },
+      number: { default: 0, parseHTML: element => Number(element.getAttribute("data-fn-num")) || 0 },
     };
   },
 
