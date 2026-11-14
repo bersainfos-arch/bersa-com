@@ -197,16 +197,15 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk || !editor || !fitText) return;
       const applyFit = () => {
       const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
-      setSettings(s => s.zoom === `${fit.scale * 100}%` ? s : { ...s, zoom: `${fit.scale * 100}%` });
+      const nextZoom = `${Math.round(fit.scale * 100)}%`;
+      setSettings(s => s.zoom === nextZoom ? s : { ...s, zoom: nextZoom });
       requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
     };
     applyFit();
     const resize = new ResizeObserver(applyFit);
     resize.observe(desk);
     return () => resize.disconnect();
-    resize.observe(desk);
-    return () => resize.disconnect();
-  }, [editor, fitText, settings.orientation, settings.margin]);
+    
   useEffect(() => {
     const sheet = editor?.view.dom;
     if (!sheet) return;
