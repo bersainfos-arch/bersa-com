@@ -205,7 +205,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const resize = new ResizeObserver(applyFit);
     resize.observe(desk);
     return () => resize.disconnect();
-    
+  }, [editor, fitText, settings.orientation, settings.margin]);
+
   useEffect(() => {
     const sheet = editor?.view.dom;
     if (!sheet) return;
