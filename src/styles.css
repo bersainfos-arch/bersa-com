@@ -800,30 +800,33 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .bersa-writer-workspace .home-ai-sheet { background-color: var(--writer-page-color, #ffffff); }
 
 /* Touch ribbon: one copy of each command, ordered like the supplied references. */
-.writer-tool-panel { padding: 6px; display: flex; gap: 4px; overflow: auto; max-height: 260px; background: var(--editor-desk); }
-.writer-tool-panel-primary { display: block; }
-.writer-home-tools, .writer-insert-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.writer-tool-group { min-width: 0; }
-.writer-tool-group h4 { font-family: var(--font-sans); font-size: 11px; font-weight: 500; color: var(--muted-foreground); margin: 0 8px 5px; }
-.writer-tool-surface { background: var(--card); border-radius: 8px; overflow: hidden; }
-.writer-tool-line { display: flex; align-items: center; justify-content: space-around; gap: 2px; min-height: 38px; padding: 2px 4px; overflow-x: auto; }
-.writer-tool-line + .writer-tool-line, .writer-select-row { border-top: 1px solid var(--border); }
-.writer-tool-row { display: flex; justify-content: flex-start; width: 100%; height: 42px; padding: 4px 12px; border-radius: 0; font-size: 12px; text-align: left; white-space: normal; }
+.writer-tool-panel { padding: 4px; display: flex; gap: 3px; overflow-x: auto; overflow-y: hidden; height: 48px; background: var(--editor-desk); overscroll-behavior-x: contain; }
+.writer-tool-panel > div { flex-shrink: 0; }
+.writer-home-tools, .writer-insert-tools { display: flex; align-items: center; flex-wrap: nowrap; gap: 3px; width: max-content; }
+.writer-tool-group { display: flex; align-items: center; flex-shrink: 0; border-right: 1px solid var(--border); padding-right: 4px; }
+.writer-tool-group h4 { display: none; }
+.writer-tool-surface { display: flex; align-items: center; gap: 3px; }
+.writer-tool-line { display: flex; align-items: center; gap: 2px; flex-shrink: 0; height: 38px; }
+.writer-tool-row { display: flex; justify-content: flex-start; width: auto; height: 36px; padding: 4px 7px; border-radius: 4px; font-size: 12px; text-align: left; white-space: nowrap; flex-shrink: 0; }
 .writer-tool-row > span { min-width: 0; }
-.writer-select-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; min-height: 42px; font-size: 12px; }
+.writer-tool-row > span:last-child:nth-child(3) { display: none; }
+.writer-select-row { display: flex; align-items: center; gap: 4px; padding: 2px 4px; height: 36px; flex-shrink: 0; font-size: 12px; }
 .writer-select-row > svg { width: 18px; height: 18px; flex-shrink: 0; }
-.writer-select-row > span { flex: 1; }
-.writer-select-row select { min-width: 0; max-width: 52%; padding: 4px; background: var(--card); color: var(--foreground); }
+.writer-select-row > span { display: none; }
+.writer-select-row select { min-width: 55px; max-width: 135px; padding: 4px; background: var(--card); color: var(--foreground); }
 .writer-select-row input[type=number] { width: 42px; text-align: center; background: var(--muted); border-radius: 6px; padding: 5px 0; }
 .writer-color-control { display: flex; gap: 6px; align-items: center; }
 .writer-color-control input { width: 25px; height: 25px; border: none; background: transparent; }
-.writer-insert-shortcuts { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--card); border-radius: 8px; }
-.writer-insert-shortcuts .writer-tool-row { flex-direction: column; justify-content: center; gap: 3px; height: 56px; padding: 4px; font-size: 10px; }
-.writer-insert-shortcuts .writer-tool-row > span:last-child { display: none; }
-@media (max-width: 640px) {
-  .writer-home-tools, .writer-insert-tools { grid-template-columns: minmax(0, 1fr); }
-  .writer-tool-panel { max-height: min(245px, 34dvh); }
-}
+.writer-insert-shortcuts { display: flex; align-items: center; gap: 3px; }
+.writer-insert-shortcuts .writer-tool-row { gap: 3px; height: 36px; padding: 4px 7px; font-size: 12px; }
+.writer-insert-shortcuts .writer-tool-row > span:last-child:nth-child(3) { display: none; }
+.writer-home-tools > .writer-tool-group:nth-child(3) { order: 1; }
+.writer-home-tools > .writer-tool-group:nth-child(2) { order: 5; }
+.writer-home-tools > .writer-tool-group:nth-child(4) { order: 2; }
+.writer-home-tools > .writer-tool-group:nth-child(5) { order: 3; }
+.writer-home-tools > .writer-tool-group:nth-child(6) { order: 4; }
+.writer-home-tools > .writer-tool-group:first-child .writer-tool-line:nth-child(2) { order: 3; }
+.writer-home-tools > .writer-tool-group:first-child .writer-tool-line:last-child { order: 2; }
 
 /* Margin layer is measured against the actual white paper, never the desk. */
 .writer-paper-host { position: relative; width: 100%; max-width: 794px; flex-shrink: 0; }

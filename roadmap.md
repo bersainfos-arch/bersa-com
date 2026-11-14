@@ -1,5 +1,6 @@
 # BERSA roadmap (reconstruction)
 ## Demande actuelle : commandes des captures et marges internes
+- [x] Ruban sur une seule ligne défilante, espacement compact et outils courants prioritaires — vérifié à 360px
 - [ ] Remplacer Accueil / Insérer par les outils des captures sans doublons
 - [ ] Placer en-têtes, pieds et notes dans la surface blanche de chaque page
 - [ ] Vérifier les commandes sur document réel, téléphone et exports
