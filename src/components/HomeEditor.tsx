@@ -195,13 +195,15 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   useEffect(() => {
     const desk = deskRef.current;
     if (!desk || !editor || !fitText) return;
-        const applyFit = () => {
+      const applyFit = () => {
       const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
       setSettings(s => s.zoom === `${fit.scale * 100}%` ? s : { ...s, zoom: `${fit.scale * 100}%` });
       requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
     };
     applyFit();
     const resize = new ResizeObserver(applyFit);
+    resize.observe(desk);
+    return () => resize.disconnect();
     resize.observe(desk);
     return () => resize.disconnect();
   }, [editor, fitText, settings.orientation, settings.margin]);
