@@ -29,7 +29,7 @@ export const AutoPages = Extension.create({
             const padding = parseFloat(style.paddingTop) || 40;
             const width = dom.clientWidth || 794;
             // Hauteur proportionnelle A4 (210 x 297)
-            const pageHeight = pageGeometry(width).height;
+            const pageHeight = pageGeometry(width, !!dom.closest(".orientation-Paysage")).height;
             const usable = Math.max(120, pageHeight - padding * 2 - (Number(dom.dataset["noteReserve"]) || 0));
 
             const decos: Decoration[] = [];

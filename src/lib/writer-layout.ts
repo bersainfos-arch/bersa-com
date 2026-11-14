@@ -49,9 +49,9 @@ export function changeCase(editor: Editor, mode: "upper" | "lower" | "sentence")
   return true;
 }
 
-export function pageGeometry(width: number) {
+export function pageGeometry(width: number, landscape = false) {
   // Vraie proportion A4 (210 × 297 mm), identique à Word/WPS, sur toutes les tailles d'écran.
-  const height = width * 297 / 210;
+  const height = width * (landscape ? 210 / 297 : 297 / 210);
   return { height, stride: height + 16 };
 }
 /** Page layout (header/footer/numbering) saved alongside document HTML as a trailing comment. */

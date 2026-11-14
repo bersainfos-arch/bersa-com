@@ -23,7 +23,7 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
     const measure = () => {
       if (!host.current) return;
       const rect = sheet.getBoundingClientRect(), parent = host.current.getBoundingClientRect();
-      const geometry = pageGeometry(sheet.clientWidth);
+      const geometry = pageGeometry(sheet.clientWidth, settings.orientation === "Paysage");
       setLayout({ width: rect.width, height: geometry.height, left: rect.left - parent.left, top: rect.top - parent.top, pages: Number(sheet.dataset["pages"]) || 1 });
     };
     const resize = new ResizeObserver(measure);

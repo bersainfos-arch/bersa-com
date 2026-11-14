@@ -52,6 +52,7 @@ export function EditorRibbon({
   setTab,
   settings,
   setSettings,
+  fitPaper,
   attach,
   save,
   correct,
@@ -66,6 +67,7 @@ export function EditorRibbon({
   setTab: (tab: string) => void;
   settings: PageSettings;
   setSettings: React.Dispatch<React.SetStateAction<PageSettings>>;
+  fitPaper?: () => void;
   attach: () => void;
   save: () => void;
   correct: () => void;
@@ -298,11 +300,7 @@ export function EditorRibbon({
             <Icon className="h-4 w-4" />{m}
           </Button>
         ))}
-        <select aria-label="Autres outils" value={moreMenus.includes(activeMenu) ? activeMenu : ""} onChange={(e) => e.target.value && setActiveMenu(e.target.value)}
-          className={`shrink-0 h-7 px-1 text-[11px] rounded-md border border-input bg-background ${moreMenus.includes(activeMenu) ? "text-primary font-semibold" : "text-muted-foreground"}`}>
-          <option value="">Plus…</option>
-          {moreMenus.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
+        {moreMenus.map(m => <Button key={m} variant="ghost" size="sm" aria-pressed={activeMenu === m} onClick={() => setActiveMenu(m)} className="shrink-0 text-[11px]">{m}</Button>)}
 
 
       </div>
@@ -369,6 +367,7 @@ export function EditorRibbon({
         {/* 4. MISE EN PAGE */}
         {activeMenu === "Mise en page" && (
           <div className="flex flex-nowrap items-center gap-1">
+            {fitPaper && btn(<Layout className="w-4 h-4" />, "Ajuster à l’écran", fitPaper)}
             <span className="text-xs text-muted-foreground font-medium">Marges :</span>
             <Button
               type="button"
@@ -536,9 +535,9 @@ export function EditorRibbon({
             <select aria-label="Maquette du document" value="" onChange={e => { const el = headingEls[Number(e.target.value)]; el?.scrollIntoView({ block: "start", behavior: "smooth" }); }} className="h-8 shrink-0 max-w-[140px] rounded-md border border-input bg-background px-1 text-xs"><option value="">Maquette ({headingEls.length})</option>{headingEls.map((h, i) => <option key={i} value={i}>{"— ".repeat(Number(h.tagName[1]) - 1)}{(h.textContent || "").slice(0, 40)}</option>)}</select>
             <select aria-label="Vignettes des pages" value="" onChange={e => { if (e.target.value) goToPage(Number(e.target.value)); }} className="h-8 shrink-0 rounded-md border border-input bg-background px-1 text-xs"><option value="">Vignettes</option>{Array.from({ length: pagesCount }, (_, i) => <option key={i} value={i + 1}>Page {i + 1}</option>)}</select>
             <div className="h-5 w-[1px] bg-border mx-1" />
-            {iconOnly(<ZoomOut />, () => setSettings(s => ({ ...s, zoom: `${Math.max(50, (parseInt(s.zoom) || 100) - 10)}%` })), false, "Réduire")}
-            <span className="shrink-0 text-xs font-semibold">{settings.zoom}</span>
-            {iconOnly(<ZoomIn />, () => setSettings(s => ({ ...s, zoom: `${Math.min(300, (parseInt(s.zoom) || 100) + 10)}%` })), false, "Agrandir")}
+            {iconOnly(<ZoomOut />, () => setSettings(s => ({ ...s, zoom: `${Math.max(20, (parseFloat(s.zoom) || 100) - 10)}%` })), false, "Réduire")}
+            <span className="shrink-0 text-xs font-semibold">{Math.round(parseFloat(settings.zoom) || 100)}%</span>
+            {iconOnly(<ZoomIn />, () => setSettings(s => ({ ...s, zoom: `${Math.min(400, (parseFloat(s.zoom) || 100) + 10)}%` })), false, "Agrandir")}
             {btn(<Layout className="w-4 h-4" />, "Règle", () => setSettings(s => ({ ...s, ruler: !s.ruler })), settings.ruler)}
             {btn(<ZoomIn className="w-4 h-4" />, isFull ? "Quitter le plein écran" : "Plein écran", toggleFull, isFull)}
           </div>

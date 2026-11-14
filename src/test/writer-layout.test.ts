@@ -38,6 +38,7 @@ describe("commandes Writer persistantes", () => {
   it("utilise la même hauteur et un intercalaire de 16px pour chaque page mobile", () => {
     expect(pageGeometry(360).height).toBeCloseTo(509.14, 1);
     expect(pageGeometry(794).height).toBeCloseTo(1122.9, 0);
+    expect(pageGeometry(1123, true).height).toBeCloseTo(794, 0);
     expect(formatPageNumber(4, "roman")).toBe("iv");
     expect(formatPageNumber(14, "roman")).toBe("xiv");
     expect(formatPageNumber(7, "arabic")).toBe("7");

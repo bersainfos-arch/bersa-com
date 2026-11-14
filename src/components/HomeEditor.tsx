@@ -16,6 +16,7 @@ import Superscript from "@tiptap/extension-superscript";
 import { ParagraphIndent } from "@/lib/writer-commands";
 import { WriterLayout, Bookmark, attachLayout, extractLayout } from "@/lib/writer-layout";
 import { WriterPaper } from "@/components/WriterPaper";
+import { writerTextFit } from "@/lib/writer-viewport";
 import { toast } from "sonner";
 import { ArrowUp, Share2,
   Send,
@@ -71,6 +72,16 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const openFileInput = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "" });
+  const deskRef = useRef<HTMLDivElement>(null);
+  const [fitText, setFitText] = useState(true);
+  const fitPaper = () => {
+    const desk = deskRef.current;
+    if (!desk) return;
+    const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
+    setFitText(true);
+    setSettings(s => ({ ...s, zoom: `${fit.scale * 100}%` }));
+    requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
+  };
   const [recording, setRecording] = useState(false);
   const [audio, setAudio] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState("");
@@ -182,6 +193,24 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   });
 
   useEffect(() => {
+    const desk = deskRef.current;
+    if (!desk || !editor || !fitText) return;
+    const resize = new ResizeObserver(() => {
+      const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
+      setSettings(s => s.zoom === `${fit.scale * 100}%` ? s : { ...s, zoom: `${fit.scale * 100}%` });
+      requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
+    });
+    resize.observe(desk);
+    return () => resize.disconnect();
+  }, [editor, fitText, settings.orientation, settings.margin]);
+  useEffect(() => {
+    const sheet = editor?.view.dom;
+    if (!sheet) return;
+    sheet.dispatchEvent(new CustomEvent("writer-layout-change"));
+    if (fitText && deskRef.current) deskRef.current.scrollLeft = writerTextFit(deskRef.current.clientWidth, settings.orientation, settings.margin).scrollLeft;
+  }, [editor, settings.zoom, settings.orientation, settings.margin, fitText]);
+
+  useEffect(() => {
     if (!editor) return;
     let cancelled = false;
     const id = sessionStorage.getItem("bersa-document-id");
@@ -261,16 +290,24 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, [editor]);
   // Zoom à deux doigts (et Ctrl + molette) sur le papier : le texte se ré-agence proportionnellement, sans flou.
   useEffect(() => {
-    const desk = document.querySelector<HTMLElement>(".bersa-writer-workspace");
+    const desk = deskRef.current;
     if (!desk) return;
     let start = 0, base = 1;
-    const read = () => (parseInt(desk.style.getPropertyValue("--writer-zoom") ? String(Number(desk.style.getPropertyValue("--writer-zoom")) * 100) : "100") || 100) / 100;
-    const apply = (z: number) => { const v = Math.round(Math.min(3, Math.max(0.5, z)) * 100); desk.style.setProperty("--writer-zoom", String(v / 100)); return v; };
-    const dist = (t: TouchList) => Math.hypot(t[0]!.clientX - t[1]!.clientX, t[0]!.clientY - t[1]!.clientY);
+    const read = () => Number(desk.style.getPropertyValue("--writer-zoom")) || 1;
+    const apply = (z: number, x: number, y: number) => {
+      const old = read(), next = Math.min(4, Math.max(0.2, z));
+      const horizontal = (desk.scrollLeft + x) * next / old - x;
+      const vertical = (desk.scrollTop + y) * next / old - y;
+      setFitText(false);
+      desk.style.setProperty("--writer-zoom", String(next));
+      desk.scrollLeft = horizontal; desk.scrollTop = vertical;
+      return next * 100;
+    };
+    const dist = (t: TouchList) => { const a = t.item(0), b = t.item(1); return a && b ? Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) : 0; };
     const onStart = (e: TouchEvent) => { if (e.touches.length === 2) { start = dist(e.touches); base = read(); } };
-    const onMove = (e: TouchEvent) => { if (e.touches.length === 2 && start) { e.preventDefault(); apply(base * dist(e.touches) / start); } };
+    const onMove = (e: TouchEvent) => { const a = e.touches.item(0), b = e.touches.item(1); if (a && b && start) { e.preventDefault(); const rect = desk.getBoundingClientRect(); apply(base * dist(e.touches) / start, (a.clientX + b.clientX) / 2 - rect.left, (a.clientY + b.clientY) / 2 - rect.top); } };
     const onEnd = (e: TouchEvent) => { if (start && e.touches.length < 2) { start = 0; const v = Math.round(read() * 100); setSettings(s => ({ ...s, zoom: `${v}%` })); } };
-    const onWheel = (e: WheelEvent) => { if (!e.ctrlKey) return; e.preventDefault(); const v = apply(read() * Math.exp(-e.deltaY * 0.002)); setSettings(s => ({ ...s, zoom: `${v}%` })); };
+    const onWheel = (e: WheelEvent) => { if (!e.ctrlKey) return; e.preventDefault(); const rect = desk.getBoundingClientRect(); const mode = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? desk.clientHeight : 1; const v = apply(read() * Math.exp(-e.deltaY * mode * 0.0015), e.clientX - rect.left, e.clientY - rect.top); setSettings(s => ({ ...s, zoom: `${v}%` })); };
     desk.addEventListener("touchstart", onStart, { passive: true });
     desk.addEventListener("touchmove", onMove, { passive: false });
     desk.addEventListener("touchend", onEnd);
@@ -866,7 +903,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               tab={tab}
               setTab={setTab}
               settings={settings}
-              setSettings={setSettings}
+              setSettings={update => { setFitText(false); setSettings(update); }}
+              fitPaper={fitPaper}
               attach={() => openFileInput.current?.click()}
               save={() => void save()}
               correct={() => { setAction("correct"); void run("correct"); }}
@@ -945,7 +983,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
         <div
-          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", ["--writer-page-color" as string]: settings.pageColor || "#ffffff", ["--writer-zoom" as string]: String((parseInt(settings.zoom) || 100) / 100) } as React.CSSProperties}
+          ref={deskRef}
+          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", ["--writer-zoom" as string]: String((parseFloat(settings.zoom) || 100) / 100) } as React.CSSProperties}
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${settings.eyeCare ? " writer-eye-care" : ""}${settings.showComments === false ? " hide-comments" : ""}${settings.showRevisions === false ? " hide-revisions" : ""}${settings.showMarks ? " show-marks" : ""}`}
           onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
@@ -1344,8 +1383,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 type="button"
                 className="px-1.5 py-0.5 font-bold hover:bg-background rounded transition"
                 onClick={() => {
-                  const current = parseInt(settings.zoom) || 100;
-                  const next = Math.max(50, current - 10);
+                  setFitText(false);
+                  const current = parseFloat(settings.zoom) || 100;
+                  const next = Math.max(20, current - 10);
                   setSettings(s => ({ ...s, zoom: `${next}%` }));
                 }}
                 title="Réduire le zoom (-10%)"
@@ -1353,14 +1393,15 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 −
               </button>
               <span className="w-10 text-center font-bold text-foreground">
-                {settings.zoom || "100%"}
+                {Math.round(parseFloat(settings.zoom) || 100)}%
               </span>
               <button
                 type="button"
                 className="px-1.5 py-0.5 font-bold hover:bg-background rounded transition"
                 onClick={() => {
-                  const current = parseInt(settings.zoom) || 100;
-                  const next = Math.min(200, current + 10);
+                  setFitText(false);
+                  const current = parseFloat(settings.zoom) || 100;
+                  const next = Math.min(400, current + 10);
                   setSettings(s => ({ ...s, zoom: `${next}%` }));
                 }}
                 title="Agrandir le zoom (+10%)"

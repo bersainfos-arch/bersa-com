@@ -1,4 +1,8 @@
 # BERSA roadmap (reconstruction)
+## Current request: workshop opening fit and visible controls
+- [ ] Fit real workshop text to screen on opening without changing document margins
+- [ ] Expose revision/reference tabs and fit reset; correct orientation geometry and zoom limits
+- [ ] Test signed-in opening, editing and controls at mobile widths
 ## Current request: independent mobile DocumentViewer
 - [x] Create typed A4 block pagination, page footnotes and scoped WPS-style reader
 - [x] Implement fit-to-text, anchored pinch, double tap and inertial pan

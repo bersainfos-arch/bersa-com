@@ -923,3 +923,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .bersa-writer-workspace.home-paper-desk { overflow-x: auto; justify-content: flex-start; }
 .home-editor .bersa-writer-workspace.orientation-Paysage :is(.writer-paper-host, .home-paper-content) { width: calc(1123px * var(--writer-zoom, 1)) !important; min-width: calc(1123px * var(--writer-zoom, 1)) !important; }
 .home-editor .bersa-writer-workspace.orientation-Paysage .home-paper-content .home-ai-sheet { --sheet-w: calc(1123px * var(--writer-zoom, 1)); --pad-x: calc(794px * var(--writer-zoom, 1) * 0.119); --pad-y: calc(794px * var(--writer-zoom, 1) * 0.1); font-size: calc(794px * var(--writer-zoom, 1) * 0.02183) !important; }
+.home-editor .bersa-writer-workspace.home-paper-desk { padding-inline: 8px !important; align-items: flex-start; }
+.home-editor .bersa-writer-workspace .writer-paper-host,
+.home-editor .bersa-writer-workspace .home-paper-content { margin-inline: 0 !important; }
+.home-editor .bersa-writer-workspace.orientation-Paysage:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { --pad-x: calc(794px * var(--writer-zoom, 1) * 0.119 * var(--writer-margin-scale, 1)); }

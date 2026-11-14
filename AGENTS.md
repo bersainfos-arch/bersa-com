@@ -37,3 +37,4 @@
 - CV previews scale through ResizeObserver to the available width; exported A4 markup stays unchanged so mobile sizing cannot alter document forms.
 - Keep DocumentViewer isolated from HomeEditor: paginate typed blocks at fixed reference A4 size and apply browser-only viewport gestures, so reading zoom cannot change document layout or existing workspaces.
 - Scope reader viewport restrictions to its example route head; TanStack Start has no index.html and global zoom restrictions would affect unrelated pages.
+- Fit HomeEditor to its measured text width on opening and expose a reset command; keep saved margins intact and use orientation-aware geometry for pagination and margin overlays.
