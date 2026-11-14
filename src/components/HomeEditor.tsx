@@ -79,7 +79,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk) return;
     const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
     setFitText(true);
-    setSettings(s => ({ ...s, zoom: `${fit.scale * 100}%` }));
+    setSettings(s => ({ ...s, zoom: `${fit.scale * 50}%` }));
     requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
   };
   const [recording, setRecording] = useState(false);
@@ -197,7 +197,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk || !editor || !fitText) return;
       const applyFit = () => {
       const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
-      const nextZoom = `${Math.round(fit.scale * 100)}%`;
+      const nextZoom = `${Math.round(fit.scale * 50)}%`;
       setSettings(s => s.zoom === nextZoom ? s : { ...s, zoom: nextZoom });
       requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
     };
