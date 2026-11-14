@@ -900,3 +900,24 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .show-marks .home-ai-sheet p::after, .show-marks .home-ai-sheet :is(h1,h2,h3,h4)::after { content: "¶"; color: color-mix(in oklab, var(--primary) 55%, transparent); margin-left: 2px; font-weight: 400; }
 .writer-tts-on { outline: 2px solid var(--gold); }
 @media print { .writer-night .home-ai-sheet, .writer-eye-care .home-ai-sheet { background: #fff !important; color: #000 !important; } .show-marks .home-ai-sheet p::after { content: none; } }
+
+/* Taille réelle Word/WPS ordinateur : A4 = 794 × 1123 px à 100 %, sur toutes les tailles d'écran.
+   Le zoom (boutons ou deux doigts) agrandit ou réduit ; le bureau défile horizontalement. */
+.home-editor .bersa-writer-workspace .writer-paper-host,
+.home-editor .bersa-writer-workspace .home-paper-content {
+  width: calc(794px * var(--writer-zoom, 1)) !important;
+  max-width: none !important;
+  min-width: calc(794px * var(--writer-zoom, 1)) !important;
+  margin-inline: auto;
+}
+.home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet {
+  --sheet-w: calc(794px * var(--writer-zoom, 1));
+  width: var(--sheet-w) !important;
+  max-width: none !important;
+  min-height: calc(var(--sheet-w) * 297 / 210) !important;
+}
+.home-editor .bersa-writer-workspace:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet {
+  --pad-x: calc(var(--sheet-w) * 0.119 * var(--writer-margin-scale, 1));
+}
+.home-editor .bersa-writer-workspace.orientation-Paysage .home-paper-content .home-ai-sheet { min-height: calc(var(--sheet-w) * 210 / 297) !important; }
+.home-editor .bersa-writer-workspace.home-paper-desk { overflow-x: auto; justify-content: flex-start; }
