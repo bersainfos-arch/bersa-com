@@ -55,6 +55,7 @@ export function EditorRibbon({
   attach,
   save,
   correct,
+  translate,
   exportPdf,
   saveVersion,
   openVersions,
@@ -68,6 +69,7 @@ export function EditorRibbon({
   attach: () => void;
   save: () => void;
   correct: () => void;
+  translate?: (lang: string) => void;
   exportPdf: () => void;
   saveVersion: () => void;
   openVersions: () => void;
@@ -475,6 +477,10 @@ export function EditorRibbon({
             }, speaking)}
             {btn(<CheckSquare className="w-4 h-4" />, settings.spellcheck === false ? "Orthographe désactivée" : "Vérification orthographique", () => { const on = settings.spellcheck === false; editor.view.dom.setAttribute("spellcheck", String(on)); setSettings(s => ({ ...s, spellcheck: on })); toast.success(on ? "Les fautes sont soulignées sur le papier" : "Soulignement des fautes désactivé"); }, settings.spellcheck !== false)}
             {btn(<Sparkles className="w-4 h-4 text-gold" />, "Correction & style BERSA", correct)}
+            {translate && <select aria-label="Traducteur" value="" onChange={e => { const v = e.target.value; if (v) translate(v); }} className="shrink-0 h-7 px-1 text-[11px] rounded-md border border-input bg-background">
+              <option value="">Traducteur…</option>
+              {["anglais", "français", "lingala", "swahili", "espagnol", "portugais", "allemand", "arabe"].map(l => <option key={l} value={l}>{l.charAt(0).toUpperCase() + l.slice(1)}</option>)}
+            </select>}
             <div className="h-5 w-[1px] bg-border mx-1" />
             {btn(<Plus className="w-4 h-4 text-amber-500" />, "Insérer un commentaire", () => {
               if (editor.state.selection.empty) { toast.info("Sélectionnez d'abord le passage à commenter."); return; }

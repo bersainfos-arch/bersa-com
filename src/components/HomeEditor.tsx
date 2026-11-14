@@ -479,16 +479,16 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }
   };
 
-  async function run(chosen = action, isRegenerate = false) {
+  async function run(chosen = action, isRegenerate = false, override?: string) {
     if (!editor || busy) return;
     const { from, to } = editor.state.selection;
     const selected = editor.state.doc.textBetween(from, to, "\n");
-    const rawText = isRegenerate
+    const rawText = override ? override : isRegenerate
       ? lastPrompt
       : (promptInput.trim() || writingTarget(editor.getText(), { from, to, text: selected }).trim());
     const text = rawText.trim();
         // Génération automatique du titre à partir de la consigne posée
-    if (text) {
+    if (text && !override) {
       const topic = text.split(/[\n.?!]/)[0]!
         .replace(/^(s'il te pla[iî]t|stp)[,\s]*/i, "")
         .replace(/^(peux-tu|pourrais-tu|merci de|je veux|je voudrais)\s+/i, "")
@@ -870,6 +870,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               attach={() => openFileInput.current?.click()}
               save={() => void save()}
               correct={() => { setAction("correct"); void run("correct"); }}
+              translate={(lang: string) => { if (!editor) return; const { from, to } = editor.state.selection; const t = editor.state.doc.textBetween(from, to, "\n").trim() || editor.getText().trim(); if (!t) { toast.info("Écrivez ou sélectionnez d'abord le texte à traduire."); return; } setAction("translate"); void run("translate", false, `Traduis fidèlement en ${lang} le texte suivant, sans commentaire, en gardant les paragraphes :\n\n${t}`); }}
               exportPdf={() => void exportPdf()}
               saveVersion={() => void saveVersion()}
               openVersions={() => void openVersions()}
