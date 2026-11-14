@@ -19,6 +19,7 @@
 - Use Tiptap in the shared HomeEditor and a separate EditorRibbon; commands must operate on the current selection or edited document, and AI text enters as text nodes, never raw HTML.
 - Read attached Word/text files in the browser and send PDF/image parts through the authenticated writer function; unsupported attachments are not analyzed.
 - Keep AI SDK providers in server-only modules and audio multipart uploads in an authenticated server route with bounded body size.
+- Route linked Gemini credentials through the connector gateway and use the saved Groq credential for authenticated audio transcription; credentials and raw provider error bodies never reach the browser.
 - Keep book proposals pending, private delivery links separate from catalog metadata, and authorize short-lived downloads through can_access_book using identifier-linked verified orders.
 - Stream writing through an authenticated, bounded HTTP endpoint so text appears incrementally without crossing the server-function serialization boundary.
 - Retrieve only administrator-enabled knowledge as untrusted reference context; private uploads must never enter ordinary assistant answers.

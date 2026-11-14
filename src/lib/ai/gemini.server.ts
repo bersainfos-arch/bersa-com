@@ -10,14 +10,20 @@ export class GeminiError extends Error {
 }
 
 function apiKey() {
+  const connection = process.env["UDC_GEMINI_BERSA_API_KEY"];
+  if (connection) {
+    const gateway = process.env["LOVABLE_API_KEY"];
+    if (!gateway) throw new GeminiError("Connexion de l’assistant non configurée.", 503);
+    return { base: "https://connector-gateway.lovable.dev/udc_gemini_bersa/v1beta/openai", gateway: true, headers: { Authorization: `Bearer ${gateway}`, "X-Connection-Api-Key": connection } };
+  }
   const key = process.env["GEMINI_API_KEY"];
   if (!key) throw new GeminiError("Assistant non configuré.", 503);
-  return key;
+  return { base: BASE, gateway: false, headers: { "x-goog-api-key": key } };
 }
 
 async function failure(res: Response) {
   let message = `Assistant indisponible (${res.status}).`;
-  try { const b = await res.json(); message = b?.error?.message ?? message; } catch { /* keep */ }
+  // Provider errors can contain credentials; never forward their raw bodies.
   if (res.status === 429) message = "Limite gratuite de l’IA atteinte, réessayez dans un instant.";
   return new GeminiError(message, res.status);
 }
@@ -35,14 +41,17 @@ function body(contents: GeminiContent[], system?: string) {
 }
 
 export async function* geminiStream(contents: GeminiContent[], system?: string, signal?: AbortSignal) {
-  const key = apiKey();
+  const connection = apiKey();
   let res: Response | null = null;
   let lastError: GeminiError | null = null;
   for (const model of MODELS) {
-    res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, {
+    res = await fetch(connection.gateway ? `${connection.base}/chat/completions` : `${connection.base}/${model}:streamGenerateContent?alt=sse`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: body(contents, system),
+      headers: { "Content-Type": "application/json", ...connection.headers },
+      body: connection.gateway ? JSON.stringify({ model, stream: true, temperature: 0.7, max_tokens: 65536,
+        messages: [ ...(system ? [{ role: "system", content: system }] : []), ...contents.map(c => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map(p => "text" in p ? { type: "text", text: p.text } : { type: "image_url", image_url: { url: `data:${p.inline_data.mime_type};base64,${p.inline_data.data}` } }) })) ],
+        extra_body: { google: { tools: [{ google_search: {} }] } },
+      }) : body(contents, system),
       ...(signal ? { signal } : {}),
     });
     if (res.ok && res.body) break;
@@ -64,7 +73,7 @@ export async function* geminiStream(contents: GeminiContent[], system?: string, 
       if (!line.startsWith("data:")) continue;
       try {
         const ev = JSON.parse(line.slice(5).trim());
-        const text = (ev?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
+        const text = connection.gateway ? ev?.choices?.[0]?.delta?.content ?? "" : (ev?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("");
         if (text) yield text;
       } catch { /* ignore partial */ }
     }

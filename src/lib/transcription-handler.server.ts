@@ -1,8 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { geminiText } from "./ai/gemini.server";
+import { transcribe } from "./ai/transcribe.server";
 const MAX_BODY = 24 * 1024 * 1024;
 export async function handleTranscription(request: Request) {
- const url = process.env["SUPABASE_URL"]; const key = process.env["SUPABASE_PUBLISHABLE_KEY"]; const aiKey = process.env["GEMINI_API_KEY"];
+ const url = process.env["SUPABASE_URL"]; const key = process.env["SUPABASE_PUBLISHABLE_KEY"]; const groqKey = process.env["GROQ_API_KEY"]; const aiKey = groqKey || process.env["UDC_GEMINI_BERSA_API_KEY"] || process.env["GEMINI_API_KEY"];
  if (!url || !key || !aiKey) return new Response("Transcription non configurée.", { status: 503 });
  const token = request.headers.get("Authorization")?.replace(/^Bearer /, "");
  if (!token) return new Response("Connexion requise.", { status: 401 });
@@ -16,8 +17,17 @@ export async function handleTranscription(request: Request) {
   const bytes = new Uint8Array(size); let offset = 0; for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
   const form = await new Response(bytes, { headers: { "Content-Type": request.headers.get("Content-Type") ?? "" } }).formData(); const file = form.get("file");
   if (!(file instanceof File) || !file.size || file.size > 23 * 1024 * 1024 || !file.type.startsWith("audio/")) return new Response("Fichier audio invalide.", { status: 400 });
-   const b64 = btoa(Array.from(new Uint8Array(await file.arrayBuffer()), (c) => String.fromCharCode(c)).join(""));
-   const text = (await geminiText([{ role: "user", parts: [{ inline_data: { mime_type: file.type.split(";")[0] || "audio/wav", data: b64 } }, { text: "Transcris fidèlement cet audio dans sa langue d'origine. Renvoie uniquement la transcription." }] }], undefined, request.signal)).trim();
+   let text: string;
+   if (groqKey) {
+    const response = await transcribe({ baseURL: "https://api.groq.com/openai", apiKey: groqKey, model: "whisper-large-v3-turbo", maxFileBytes: 23 * 1024 * 1024, audioOnly: true }, file, { buffered: true, signal: request.signal });
+    if (!response.ok) throw new Error(`Transcription indisponible (${response.status}).`);
+    const result: { text?: string } = await response.json();
+    text = result.text?.trim() ?? "";
+   } else {
+    const b64 = btoa(Array.from(new Uint8Array(await file.arrayBuffer()), (c) => String.fromCharCode(c)).join(""));
+    text = (await geminiText([{ role: "user", parts: [{ inline_data: { mime_type: file.type.split(";")[0] || "audio/wav", data: b64 } }, { text: "Transcris fidèlement cet audio dans sa langue d'origine. Renvoie uniquement la transcription." }] }], undefined, request.signal)).trim();
+   }
+   if (!text) throw new Error("Aucune parole reconnue dans cet audio.");
    const sse = `data: ${JSON.stringify({ type: "transcript.text.delta", delta: text })}\n\ndata: ${JSON.stringify({ type: "transcript.text.done", text })}\n\n`;
    return new Response(sse, { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-store" } });
  } catch (e) { if (request.signal.aborted) return new Response(null, { status: 499 }); return new Response(e instanceof Error ? e.message : "Transcription impossible.", { status: 400 }); }

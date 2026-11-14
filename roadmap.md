@@ -1,4 +1,8 @@
 # BERSA roadmap (reconstruction)
+## Current request: secure Gemini and Groq services
+- [x] Connect Gemini securely and verify both provider credentials without exposing values
+- [x] Wire Gemini writing and Groq audio transcription in server-only authenticated flows
+- [ ] Verify generation and audio transcription with real input
 ## Demande actuelle : commandes des captures et marges internes
 - [x] Ruban sur une seule ligne défilante, espacement compact et outils courants prioritaires — vérifié à 360px
 - [ ] Remplacer Accueil / Insérer par les outils des captures sans doublons

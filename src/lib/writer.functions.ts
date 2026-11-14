@@ -85,7 +85,7 @@ export const runWriter = createServerFn({ method: "POST" })
     return { action, messages, attachments, docContext: input?.docContext?.slice(0, 5000) };
   })
   .handler(async ({ data, context }) => {
-    const key = process.env["GEMINI_API_KEY"];
+    const key = process.env["UDC_GEMINI_BERSA_API_KEY"] || process.env["GEMINI_API_KEY"];
     if (!key) throw new Error("Assistant non configuré");
     const { data: q, error: qe } = await context.supabase.rpc("consume_ai_quota");
     if (qe) throw new Error("Quota indisponible");
