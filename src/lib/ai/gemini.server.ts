@@ -50,7 +50,6 @@ export async function* geminiStream(contents: GeminiContent[], system?: string, 
       headers: { "Content-Type": "application/json", ...connection.headers },
       body: connection.gateway ? JSON.stringify({ model, stream: true, temperature: 0.7, max_tokens: 65536,
         messages: [ ...(system ? [{ role: "system", content: system }] : []), ...contents.map(c => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map(p => "text" in p ? { type: "text", text: p.text } : { type: "image_url", image_url: { url: `data:${p.inline_data.mime_type};base64,${p.inline_data.data}` } }) })) ],
-        extra_body: { google: { tools: [{ google_search: {} }] } },
       }) : body(contents, system),
       ...(signal ? { signal } : {}),
     });
