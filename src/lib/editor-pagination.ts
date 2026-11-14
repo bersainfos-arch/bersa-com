@@ -1,6 +1,7 @@
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import { pageGeometry } from "./writer-layout";
 
 export const AutoPages = Extension.create({
   name: "autoPages",
@@ -28,8 +29,8 @@ export const AutoPages = Extension.create({
             const padding = parseFloat(style.paddingTop) || 40;
             const width = dom.clientWidth || 794;
             // Hauteur proportionnelle A4 (210 x 297)
-            const pageHeight = width < 600 ? width * 2.1 : (width * 297) / 210;
-            const usable = Math.max(300, pageHeight - padding * 2);
+            const pageHeight = pageGeometry(width).height;
+            const usable = Math.max(120, pageHeight - padding * 2 - (Number(dom.dataset["noteReserve"]) || 0));
 
             const decos: Decoration[] = [];
             let used = 0;
@@ -43,6 +44,10 @@ export const AutoPages = Extension.create({
                 parseFloat(getComputedStyle(element).marginBottom || "0");
 
               if (node.type.name === "pageBreak") {
+                const rest = Math.max(0, pageHeight - padding * 2 - used);
+                element.style.setProperty("height", `${rest + padding * 2 + 16}px`, "important");
+                element.style.setProperty("--gap-rest", `${rest}px`);
+                element.classList.add("writer-explicit-gap");
                 used = 0;
                 number++;
                 return;
@@ -52,14 +57,17 @@ export const AutoPages = Extension.create({
               if (used > 0 && used + height > usable) {
                 number++;
                 const currentPage = number;
+                const rest = Math.max(0, pageHeight - padding * 2 - used);
                 decos.push(
                   Decoration.widget(
                     pos,
                     () => {
                       const el = document.createElement("div");
                       el.className = "auto-page-gap";
+                      el.style.setProperty("height", `${rest + padding * 2 + 16}px`, "important");
+                      el.style.setProperty("--gap-rest", `${rest}px`);
                       el.setAttribute("contenteditable", "false");
-                      el.innerHTML = `<span class="page-gap-badge">Page ${currentPage}</span>`;
+                      el.dataset["nextPage"] = String(currentPage);
                       return el;
                     },
                     { side: -1, key: `page-break-${pos}` }
@@ -86,6 +94,7 @@ export const AutoPages = Extension.create({
 
           // Mesure uniquement sur redimensionnement de la fenêtre, sans boucle récursive
           window.addEventListener("resize", schedule);
+          view.dom.addEventListener("writer-layout-change", schedule);
           schedule();
 
           return {
@@ -95,6 +104,7 @@ export const AutoPages = Extension.create({
             destroy: () => {
               clearTimeout(timer);
               window.removeEventListener("resize", schedule);
+              view.dom.removeEventListener("writer-layout-change", schedule);
             },
           };
         },

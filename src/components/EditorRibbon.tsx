@@ -5,13 +5,15 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify, List, ListOrdered, Indent, Outdent,
   Eraser, Table as TableIcon, Image as ImageIcon, Link2, Search, Replace, Printer, Download,
   Save, Sparkles, Sliders, Type, FileText, Layout, BookOpen, CheckSquare, Eye,
-  Plus, Trash2, Columns, ZoomIn, ZoomOut, FilePlus, FolderOpen, HelpCircle
+  Plus, Trash2, Columns, ZoomIn, ZoomOut, FilePlus, FolderOpen, HelpCircle, Paintbrush, ClipboardPaste, Highlighter, ArrowDownUp, WrapText, ScanText, Bookmark as BookmarkIcon, Signature, Calendar, Hash, Paperclip as PaperclipIcon, PanelTop, RectangleHorizontal, CaseSensitive, Minus, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { changeCase, setParagraphLayout } from "@/lib/writer-layout";
 import { changeIndent, replaceAllText } from "@/lib/writer-commands";
 import { insertFootnote } from "@/lib/footnotes";
+import { importDocumentFile } from "@/lib/document-import";
 import { TOC_TITLE, tocLines, refreshToc } from "@/lib/toc";
 import { SHAPES, SYMBOLS, shapeSrc, setTracking, isTracking, acceptAll, rejectAll, listComments, removeComment, citation, bibliographyHtml, type Source } from "@/lib/review-marks";
 
@@ -20,6 +22,7 @@ export type PageSettings = {
   orientation: "Portrait" | "Paysage";
   format: "A4" | "A5" | "Letter" | "A3" | "Legal";
   pageColor?: string;
+  pageNumbers?: boolean;
   differentFirstPage?: boolean;
   zoom: string;
   ruler: boolean;
@@ -65,7 +68,12 @@ export function EditorRibbon({
   const [sources, setSources] = useState<Source[]>(() => { try { return JSON.parse(localStorage.getItem("bersa_sources") || "[]"); } catch { return []; } });
   const [, force] = useState(0);
   const [isFull, setIsFull] = useState(false);
-  const [activeMenu, setActiveMenu] = useState<string>("Texte");
+  const [activeMenu, setActiveMenu] = useState<string>("Accueil");
+  const [copiedFormat, setCopiedFormat] = useState<{ marks: Array<{ type: string; attrs: Record<string, unknown> }>; attrs: Record<string, unknown> } | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const scanInput = useRef<HTMLInputElement>(null);
+  const objectInput = useRef<HTMLInputElement>(null);
+  const [autoNumbering, setAutoNumbering] = useState(true);
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,7 +85,62 @@ export function EditorRibbon({
     editor.on("update", fn);
     return () => { clearTimeout(t); editor.off("update", fn); };
   }, [editor]);
+  useEffect(() => {
+    if (!editor) return;
+    const update = () => force(x => x + 1);
+    editor.on("selectionUpdate", update); editor.on("transaction", update);
+    return () => { editor.off("selectionUpdate", update); editor.off("transaction", update); };
+  }, [editor]);
   if (!editor) return null;
+  const scanFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error("Image trop volumineuse (10 Mo maximum)"); return; }
+    setScanning(true);
+    let worker: Awaited<ReturnType<typeof import("tesseract.js")["createWorker"]>> | undefined;
+    try {
+      const { createWorker } = await import("tesseract.js");
+      worker = await createWorker("fra+eng");
+      const { data } = await worker.recognize(file);
+      if (!data.text.trim()) { toast.info("Aucun texte lisible détecté"); return; }
+      editor.chain().focus().insertContent(data.text.split("\n").map(text => ({ type: "paragraph", content: text ? [{ type: "text", text }] : [] }))).run();
+      toast.success("Texte extrait et inséré");
+    } catch { toast.error("Lecture impossible. Vérifiez la connexion et la lisibilité de l’image."); }
+    finally { await worker?.terminate(); setScanning(false); }
+  };
+  const note = () => {
+    insertFootnote(editor, "");
+    setTimeout(() => { const all = document.querySelectorAll<HTMLInputElement>("input[data-fn-input]"); const el = all[all.length - 1]; el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }, 350);
+  };
+  const editMargin = (part: "header" | "footer") => {
+    document.querySelector<HTMLInputElement>(part === "header" ? ".writer-internal-header" : ".writer-footer-row input")?.focus();
+    document.querySelector(part === "header" ? ".writer-internal-header" : ".writer-footer-row input")?.scrollIntoView({ block: "center" });
+  };
+  const addBookmark = () => {
+    if (editor.state.selection.empty) { toast.info("Sélectionnez le texte du signet"); return; }
+    const name = window.prompt("Nom du signet :");
+    if (name?.trim()) editor.chain().focus().setMark("bookmark", { name: name.trim() }).run();
+  };
+  const seeBookmark = () => {
+    const names = Array.from(editor.view.dom.querySelectorAll<HTMLElement>("[data-bookmark]")).map(el => el.dataset["bookmark"]);
+    if (!names.length) { toast.info("Aucun signet dans le document"); return; }
+    const name = window.prompt("Signet à ouvrir : " + names.join(", "), names[0]);
+    const target = Array.from(editor.view.dom.querySelectorAll<HTMLElement>("[data-bookmark]")).find(el => el.dataset["bookmark"] === name);
+    target?.scrollIntoView({ block: "center" });
+  };
+  const copyFormat = () => {
+    const { $from } = editor.state.selection;
+    const marks = $from.nodeAfter?.marks || $from.marks();
+    setCopiedFormat({ marks: (marks.length ? marks : editor.state.storedMarks || []).map(m => ({ type: m.type.name, attrs: m.attrs })), attrs: { ...$from.parent.attrs } });
+  };
+  const pasteFormat = () => {
+    if (!copiedFormat) return;
+    const chain = editor.chain().focus().unsetAllMarks();
+    copiedFormat.marks.forEach(m => chain.setMark(m.type, m.attrs)); chain.run();
+    setParagraphLayout(editor, copiedFormat.attrs);
+  };
+  const row = (icon: React.ReactNode, label: string, action: () => void) => <Button type="button" variant="ghost" className="writer-tool-row" onMouseDown={e => e.preventDefault()} onClick={action}>{icon}<span>{label}</span><span className="ml-auto text-muted-foreground">›</span></Button>;
+  const group = (title: string, children: React.ReactNode) => <section className="writer-tool-group"><h4>{title}</h4><div className="writer-tool-surface">{children}</div></section>;
+
   const persistSources = (l: Source[]) => { setSources(l); localStorage.setItem("bersa_sources", JSON.stringify(l)); };
   const addSource = () => {
     const author = window.prompt("Auteur(s) (Nom, Initiale) :"); if (!author) return;
@@ -102,6 +165,8 @@ export function EditorRibbon({
       variant={active ? "secondary" : "ghost"}
       size="sm"
       className={`h-8 px-2 text-xs font-medium gap-1.5 ${active ? "bg-primary/15 text-primary border border-primary/20" : "text-foreground"}`}
+      onMouseDown={e => e.preventDefault()}
+      aria-label={title || label}
       onClick={onClick}
       title={title || label}
     >
@@ -116,6 +181,8 @@ export function EditorRibbon({
       variant={active ? "secondary" : "ghost"}
       size="icon"
       className={`h-8 w-8 ${active ? "bg-primary/15 text-primary" : "text-foreground"}`}
+      onMouseDown={e => e.preventDefault()}
+      aria-label={title}
       onClick={onClick}
       title={title}
     >
@@ -167,7 +234,8 @@ export function EditorRibbon({
       const sx = img.naturalWidth * l, sy = img.naturalHeight * t;
       const w = img.naturalWidth * (1 - l - r), h = img.naturalHeight * (1 - t - b);
       const c = document.createElement("canvas"); c.width = Math.round(w); c.height = Math.round(h);
-      c.getContext("2d")!.drawImage(img, sx, sy, w, h, 0, 0, w, h);
+      const ctx = c.getContext("2d"); if (!ctx) throw new Error("Canvas indisponible");
+      ctx.drawImage(img, sx, sy, w, h, 0, 0, w, h);
       editor.chain().focus().updateAttributes("image", { src: c.toDataURL("image/png") }).run();
       toast.success("Image rognée");
     } catch { toast.error("Cette image ne peut pas être rognée (source externe protégée)."); }
@@ -181,8 +249,8 @@ export function EditorRibbon({
     toast.success(`${n} remplacement(s) effectué(s)`);
   };
 
-  const menus: Array<[string, any]> = [["Texte", Type], ["Paragraphe", AlignLeft], ["Insertion", Plus], ["Mise en page", Layout]];
-  const moreMenus = ["Fichier", "Références", "Révision", "Affichage"];
+  const menus: Array<[string, any]> = [["Accueil", Type], ["Insérer", Plus], ["Afficher", Eye]];
+  const moreMenus = ["Mise en page", "Fichier", "Références", "Révision"];
   const curSize = () => parseFloat((editor.getAttributes("textStyle")["fontSize"] as string) || settings.fontSize || "13") || 13;
   const stepSize = (d: number) => { const v = Math.min(96, Math.max(6, curSize() + d)) + "pt"; setSettings((s) => ({ ...s, fontSize: v })); (editor.chain().focus() as any).setFontSize(v).run(); };
   const askTable = () => {
@@ -193,15 +261,22 @@ export function EditorRibbon({
 
   return (
     <div className="no-print border-b border-border bg-card/95 backdrop-blur-sm select-none">
+      <input type="file" ref={objectInput} accept=".docx,.doc,.txt,.md,.csv,.html,.pdf" className="hidden" onChange={async e => {
+        const file = e.target.files?.[0]; e.target.value = "";
+        if (!file) return;
+        try { const result = await importDocumentFile(file); editor.chain().focus().insertContent(result.html).run(); toast.success("Contenu du fichier inséré"); }
+        catch (error) { toast.error(error instanceof Error ? error.message : "Insertion impossible"); }
+      }} />
+      <input type="file" ref={scanInput} accept="image/*" className="hidden" onChange={e => { void scanFile(e.target.files?.[0]); e.target.value = ""; }} />
       <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
 
       {/* Onglets principaux du Ruban WPS / Word */}
       <div className="flex flex-nowrap items-center gap-0.5 px-1.5 pt-0.5 border-b border-border/60 overflow-x-auto scrollbar-none">
         {menus.map(([m, Icon]) => (
-          <button key={m} type="button" onClick={() => setActiveMenu(m)} aria-pressed={activeMenu === m}
+          <Button variant="ghost" key={m} type="button" onClick={() => setActiveMenu(m)} aria-pressed={activeMenu === m}
             className={`shrink-0 flex flex-col items-center gap-0.5 px-3 py-1 text-[11px] font-semibold rounded-md transition-colors ${activeMenu === m ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/40"}`}>
             <Icon className="h-4 w-4" />{m}
-          </button>
+          </Button>
         ))}
         <select aria-label="Autres outils" value={moreMenus.includes(activeMenu) ? activeMenu : ""} onChange={(e) => e.target.value && setActiveMenu(e.target.value)}
           className={`shrink-0 h-7 px-1 text-[11px] rounded-md border border-input bg-background ${moreMenus.includes(activeMenu) ? "text-primary font-semibold" : "text-muted-foreground"}`}>
@@ -209,24 +284,11 @@ export function EditorRibbon({
           {moreMenus.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
 
-        {/* Bouton rapide d'amélioration BERSA */}
-        <div className="ml-auto flex items-center gap-1.5 pb-1">
-          <Button
-            type="button"
-            size="sm"
-            variant="default"
-            className="h-7 text-xs gap-1.5 bg-royal-gradient text-white shadow-xs font-medium"
-            onClick={correct}
-            title="Optimiser, corriger et enrichir le document avec BERSA"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-gold" />
-            <span>Améliorer</span>
-          </Button>
-        </div>
+
       </div>
       
       {/* Boîte à outils horizontale défilable sans empilement désordonné */}
-      <div className="px-1.5 py-1 flex flex-nowrap items-center gap-1 overflow-x-auto scrollbar-none touch-pan-x min-h-[38px] bg-background/50 whitespace-nowrap">
+      <div className={`writer-tool-panel ${["Accueil", "Insérer"].includes(activeMenu) ? "writer-tool-panel-primary" : ""}`}>
     
         {/* 1. FICHIER */}
         {activeMenu === "Fichier" && (
@@ -249,214 +311,41 @@ export function EditorRibbon({
           </div>
         )}
 
-        {/* 2. ACCUEIL */}
-        {activeMenu === "Texte" && (
-          <div className="flex flex-nowrap items-center gap-1">
-            {/* Police */}
-            <select
-              className="h-8 px-2 text-xs rounded-md border border-input bg-background font-medium"
-              value={settings.fontFamily || "Times New Roman"}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSettings((s) => ({ ...s, fontFamily: val }));
-                const chain = editor.chain().focus();
-                if (editor.state.selection.empty) chain.selectAll().setFontFamily(val).run();
-                else chain.setFontFamily(val).run();
-              }}
-              title="Police du document"
-            >
-              <option value="Times New Roman">Times New Roman (Standard)</option>
-              <option value="Arial">Arial</option>
-              <option value="Calibri">Calibri</option>
-              <option value="Georgia">Georgia</option>
-              <option value="Aptos">Aptos</option>
-              <option value="Cambria">Cambria</option>
-              <option value="Garamond">Garamond</option>
-              <option value="Verdana">Verdana</option>
-              <option value="Courier New">Courier New</option>
-            </select>
-
-            {/* Taille de police */}
-            <select
-              aria-label="Taille du texte"
-              title="Taille du texte"
-              className="h-8 px-1 text-xs rounded-md border border-input bg-background font-semibold"
-              value={(editor.getAttributes("textStyle")["fontSize"] as string) || settings.fontSize || "13pt"}
-              onChange={(e) => {
-                const size = e.target.value;
-                setSettings((s) => ({ ...s, fontSize: size }));
-                const chain = editor.chain().focus() as any;
-                if (editor.state.selection.empty) chain.selectAll().setFontSize(size).run();
-                else chain.setFontSize(size).run();
-              }}
-            >
-              {["8pt","9pt","10pt","11pt","12pt","13pt","14pt","16pt","18pt","20pt","24pt","28pt","36pt","48pt","72pt"].map((v) => (
-                <option key={v} value={v}>{v.replace("pt", " pt")}</option>
-              ))}
-            </select>
-
-            <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {/* Gras, Italique, Souligné, Barré */}
-            {iconOnly(<Bold className="w-4 h-4" />, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"), "Gras (Ctrl+B)")}
-            {iconOnly(<Italic className="w-4 h-4" />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"), "Italique (Ctrl+I)")}
-            {iconOnly(<Underline className="w-4 h-4" />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"), "Souligné (Ctrl+U)")}
-            {iconOnly(<Strikethrough className="w-4 h-4" />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"), "Barré")}
-            {iconOnly(<Subscript className="w-4 h-4" />, () => editor.chain().focus().toggleSubscript().run(), editor.isActive("subscript"), "Indice")}
-            {iconOnly(<Superscript className="w-4 h-4" />, () => editor.chain().focus().toggleSuperscript().run(), editor.isActive("superscript"), "Exposant")}        
-            <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {iconOnly(<span className="text-xs font-bold">A+</span>, () => stepSize(1), false, "Augmenter la taille")}
-            {iconOnly(<span className="text-[10px] font-bold">A-</span>, () => stepSize(-1), false, "Diminuer la taille")}
-            <label className="flex h-8 items-center gap-1 rounded-md px-1.5 text-xs hover:bg-muted" title="Couleur du texte">
-              <span className="font-bold underline decoration-2">A</span>
-              <input type="color" aria-label="Couleur du texte" className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0" onChange={(e) => (editor.chain().focus() as any).setColor(e.target.value).run()} />
-            </label>
-            <label className="flex h-8 items-center gap-1 rounded-md px-1.5 text-xs hover:bg-muted" title="Surlignage">
-              <span className="rounded bg-accent px-0.5 font-bold">ab</span>
-              <input type="color" aria-label="Surlignage" defaultValue="#fff59d" className="h-5 w-5 cursor-pointer border-0 bg-transparent p-0" onChange={(e) => editor.chain().focus().toggleHighlight({ color: e.target.value }).run()} />
-            </label>
-            {iconOnly(<Eraser className="w-4 h-4" />, () => editor.chain().focus().unsetAllMarks().run(), false, "Effacer la mise en forme")}
-          </div>
-        )}
-
-        {activeMenu === "Paragraphe" && (
-          <div className="flex flex-nowrap items-center gap-1">
-            {/* Styles rapides */}
-            <Button
-              type="button"
-              variant={editor.isActive("paragraph") ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 px-2 text-xs"
-              onClick={() => editor.chain().focus().setParagraph().run()}
-            >
-              Normal
-            </Button>
-            <Button
-              type="button"
-              variant={editor.isActive("heading", { level: 1 }) ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 px-2 text-xs font-bold"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            >
-              Titre 1
-            </Button>
-            <Button
-              type="button"
-              variant={editor.isActive("heading", { level: 2 }) ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 px-2 text-xs font-semibold"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            >
-              Titre 2
-            </Button>
-            <Button
-              type="button"
-              variant={editor.isActive("heading", { level: 3 }) ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 px-2 text-xs italic"
-              onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            >
-              Titre 3
-            </Button>
-
-            <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {/* Alignements : G, C, D, Justifié */}
-            {iconOnly(<AlignLeft className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("left").run(), editor.isActive({ textAlign: "left" }), "Aligner à gauche")}
-            {iconOnly(<AlignCenter className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("center").run(), editor.isActive({ textAlign: "center" }), "Centrer")}
-            {iconOnly(<AlignRight className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("right").run(), editor.isActive({ textAlign: "right" }), "Aligner à droite")}
-            {iconOnly(<AlignJustify className="w-4 h-4" />, () => editor.chain().focus().setTextAlign("justify").run(), editor.isActive({ textAlign: "justify" }) || (!editor.isActive({ textAlign: "left" }) && !editor.isActive({ textAlign: "center" }) && !editor.isActive({ textAlign: "right" })), "Justifier (Standard A4)")}
-
-            <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {/* Listes et retraits */}
-            {iconOnly(<List className="w-4 h-4" />, () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Puces")}
-            {iconOnly(<ListOrdered className="w-4 h-4" />, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numérotation")}
-            {iconOnly(<Indent className="w-4 h-4" />, () => changeIndent(editor, 1), false, "Augmenter le retrait")}
-            {iconOnly(<Outdent className="w-4 h-4" />, () => changeIndent(editor, -1), false, "Diminuer le retrait")}
-            <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {/* Outil d'Espacement et Interligne (WPS / Word) */}
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] text-muted-foreground font-semibold">Interligne :</span>
-              <select
-                className="h-8 px-2 text-xs rounded-md border border-input bg-background font-medium"
-                value={settings.lineSpacing || "1.5"}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSettings((s) => ({ ...s, lineSpacing: val }));
-                  toast.success(`Interligne réglé à ${val}`);
-                }}
-                title="Espacement des lignes (Interligne)"
-              >
-                <option value="1.0">1,0 (Simple)</option>
-                <option value="1.15">1,15 (Normal)</option>
-                <option value="1.5">1,5 (Standard académique)</option>
-                <option value="2.0">2,0 (Double)</option>
-              </select>
-
-              {/* Supprimer / Ajouter l'espace de paragraphe */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={() => {
-                  const sheet = document.querySelector(".home-ai-sheet") as HTMLElement;
-                  if (sheet) {
-                    const isZero = sheet.classList.toggle("no-para-spacing");
-                    sheet.querySelectorAll("p").forEach((p) => {
-                      (p as HTMLElement).style.marginBottom = isZero ? "0px" : "0.65em";
-                    });
-                    toast.success(isZero ? "Espace après paragraphe supprimé" : "Espace après paragraphe activé");
-                  }
-                }}
-                title="Activer ou désactiver l'espacement après les paragraphes"
-              >
-               Espacement §
-              </Button>
+        {activeMenu === "Accueil" && <div className="writer-home-tools">
+          {group("Format de police", <>
+            <div className="writer-tool-line">
+              {iconOnly(<Bold />, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"), "Gras")}
+              {iconOnly(<Italic />, () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"), "Italique")}
+              {iconOnly(<Underline />, () => editor.chain().focus().toggleUnderline().run(), editor.isActive("underline"), "Souligné")}
+              {iconOnly(<Strikethrough />, () => editor.chain().focus().toggleStrike().run(), editor.isActive("strike"), "Barré")}
+              {iconOnly(<Superscript />, () => editor.chain().focus().toggleSuperscript().run(), editor.isActive("superscript"), "Exposant")}
+              {iconOnly(<Subscript />, () => editor.chain().focus().toggleSubscript().run(), editor.isActive("subscript"), "Indice")}
+              {iconOnly(<Eraser />, () => editor.chain().focus().unsetAllMarks().run(), false, "Effacer la mise en forme")}
             </div>
-          </div>
-        )}
-        
-        {/* 3. INSERTION */}
-        {activeMenu === "Insertion" && (
-          <div className="flex flex-nowrap items-center gap-1">
-            {btn(<FileText className="w-4 h-4 text-amber-600" />, "Note de bas de page", () => { insertFootnote(editor, ""); setTimeout(() => { const all = document.querySelectorAll<HTMLInputElement>("input[data-fn-input]"); const el = all[all.length - 1]; el?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus({ preventScroll: true }); }, 80); })}
-            {btn(<TableIcon className="w-4 h-4 text-primary" />, "Tableau…", askTable)}
-            {btn(<Columns className="w-4 h-4" />, "Fusionner", () => { if (!editor.chain().focus().mergeCells().run()) toast.error("Sélectionnez plusieurs cellules"); })}
-            {btn(<Columns className="w-4 h-4" />, "Fractionner", () => { if (!editor.chain().focus().splitCell().run()) toast.error("Placez-vous dans une cellule fusionnée"); })}
-            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "Suppr. tableau", () => editor.chain().focus().deleteTable().run())}
-            {btn(<Plus className="w-4 h-4" />, "+ Colonne", () => editor.chain().focus().addColumnAfter?.().run())}
-            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "- Colonne", () => editor.chain().focus().deleteColumn?.().run())}
-            {btn(<Plus className="w-4 h-4" />, "+ Ligne", () => editor.chain().focus().addRowAfter?.().run())}
-            {btn(<Trash2 className="w-4 h-4 text-destructive" />, "- Ligne", () => editor.chain().focus().deleteRow?.().run())}
-            
-            <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {btn(<ImageIcon className="w-4 h-4 text-emerald-600" />, "Image...", () => fileInputRef.current?.click())}
-            {btn(<Link2 className="w-4 h-4 text-blue-600" />, "Lien", handleInsertLink)}
-            {btn(<FileText className="w-4 h-4" />, "Date et heure", () => editor.chain().focus().insertContent(new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })).run())}
-            {btn(<span className="text-xs">―</span>, "Ligne", () => editor.chain().focus().setHorizontalRule().run())}
-            {btn(<FileText className="w-4 h-4 text-purple-600" />, "Saut de page", () => {
-              editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run();
-              toast.success("Saut de page inséré");
-            })}
-            <div className="h-5 w-[1px] bg-border mx-1" />
-            <select aria-label="Formes" className="h-8 px-1 text-xs rounded-md border border-input bg-background" value="" onChange={e => { const v = e.target.value; if (v) { editor.chain().focus().setImage({ src: shapeSrc(v), alt: v }).run(); toast.success(`Forme « ${v} » insérée`); } }}>
-              <option value="">Formes…</option>
-              {Object.keys(SHAPES).map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-            <select aria-label="Symboles" className="h-8 px-1 text-xs rounded-md border border-input bg-background" value="" onChange={e => { const v = e.target.value; if (v) editor.chain().focus().insertContent(v).run(); }}>
-              <option value="">Symboles Ω</option>
-              {SYMBOLS.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <Input aria-label="En-tête" placeholder="En-tête de page" value={settings.headerText} onChange={e => setSettings(s => ({ ...s, headerText: e.target.value }))} className="h-8 w-32 text-xs" />
-            <Input aria-label="Pied de page" placeholder="Pied de page" value={settings.footerText} onChange={e => setSettings(s => ({ ...s, footerText: e.target.value }))} className="h-8 w-32 text-xs" />
-          </div>
-        )}
-
+            <div className="writer-tool-line">{[1,2,3].map(level => <Button key={level} variant={editor.isActive("heading", { level }) ? "secondary" : "ghost"} size="sm" onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleHeading({ level: level as 1|2|3 }).run()}>Titre{level}</Button>)}<Button variant="ghost" size="sm" onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().setParagraph().run()}>Normales</Button></div>
+            <label className="writer-select-row"><Type /><span>Police</span><select aria-label="Police" value={editor.getAttributes("textStyle")["fontFamily"] || settings.fontFamily || "Times New Roman"} onChange={e => { setSettings(s => ({ ...s, fontFamily: e.target.value })); editor.chain().focus().setFontFamily(e.target.value).run(); }}>{["Times New Roman", "Arial", "Calibri", "Aptos", "Cambria", "Georgia", "Garamond", "Verdana", "Courier New"].map(f => <option key={f}>{f}</option>)}</select></label>
+            <div className="writer-select-row"><Type /><span>Taille de police</span>{iconOnly(<Minus />, () => stepSize(-1), false, "Diminuer la taille")}<input type="number" aria-label="Taille du texte" min="6" max="96" value={curSize()} onChange={e => { const v = Number(e.target.value); if (v < 6 || v > 96) return; setSettings(s => ({ ...s, fontSize: v + "pt" })); editor.chain().focus().setFontSize(v + "pt").run(); }} />{iconOnly(<Plus />, () => stepSize(1), false, "Augmenter la taille")}</div>
+            <div className="writer-tool-line"><label className="writer-color-control" title="Couleur du texte"><Type /><input aria-label="Couleur du texte" type="color" onChange={e => editor.chain().focus().setColor(e.target.value).run()} /></label><select aria-label="Modifier la casse" value="" onChange={e => { if (!changeCase(editor, e.target.value as "upper"|"lower"|"sentence")) toast.info("Sélectionnez le texte à transformer"); }}><option value="">Aa</option><option value="upper">MAJUSCULES</option><option value="lower">minuscules</option><option value="sentence">Phrase</option></select></div>
+          </>)}
+          {group("Reproduire la mise en forme", <div className="writer-tool-line"><Button variant="ghost" size="sm" onMouseDown={e => e.preventDefault()} onClick={copyFormat}><Paintbrush />Copier le format</Button><Button variant="ghost" size="sm" disabled={!copiedFormat} onMouseDown={e => e.preventDefault()} onClick={pasteFormat}><ClipboardPaste />Coller le format</Button></div>)}
+          {group("Surlignage", <div className="writer-tool-line">{iconOnly(<Eraser />, () => editor.chain().focus().unsetHighlight().run(), false, "Sans surlignage")}<label className="writer-color-control"><Highlighter /><input type="color" aria-label="Surlignage" onChange={e => editor.chain().focus().setHighlight({ color: e.target.value }).run()} /></label></div>)}
+          {group("Paragraphes", <>
+            <div className="writer-tool-line">{[["left", AlignLeft, "Aligner à gauche"], ["center", AlignCenter, "Centrer"], ["right", AlignRight, "Aligner à droite"], ["justify", AlignJustify, "Justifier"]].map(([align, Icon, label]) => { const I = Icon as typeof AlignLeft; return <Button key={String(align)} size="icon" variant={editor.isActive({ textAlign: align }) ? "secondary" : "ghost"} aria-label={String(label)} title={String(label)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().setTextAlign(String(align)).run()}><I /></Button>; })}{iconOnly(<Indent />, () => changeIndent(editor, 1), false, "Augmenter le retrait")}{iconOnly(<Outdent />, () => changeIndent(editor, -1), false, "Diminuer le retrait")}</div>
+            <label className="writer-select-row"><ArrowDownUp /><span>Espace</span><select aria-label="Interligne" value={editor.getAttributes("paragraph")["paragraphLine"] || "1.6"} onChange={e => setParagraphLayout(editor, { paragraphLine: e.target.value })}>{["1", "1.15", "1.5", "1.6", "2", "2.5", "3"].map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+            {row(<ArrowDownUp />, "Espacement avant / après", () => { const value = window.prompt("Espace après le paragraphe (pt) :", "8"); if (value !== null && Number(value) >= 0) setParagraphLayout(editor, { paragraphSpacing: `${Number(value)}pt` }); })}
+            {row(<WrapText />, "Disposition des paragraphes", () => setParagraphLayout(editor, { keepTogether: !editor.getAttributes("paragraph")["keepTogether"] }))}
+            {row(<Sliders />, "Format de paragraphe", () => setParagraphLayout(editor, { paragraphBorder: !editor.getAttributes("paragraph")["paragraphBorder"] }))}
+          </>)}
+          {group("Numérotation", <><div className="writer-tool-line">{iconOnly(<Eraser />, () => { if (editor.isActive("listItem")) editor.chain().focus().liftListItem("listItem").run(); }, false, "Sans liste")}{iconOnly(<List />, () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"), "Puces")}{iconOnly(<ListOrdered />, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"), "Numérotation")}{iconOnly(<Indent />, () => changeIndent(editor, 1), false, "Augmenter le niveau")}{iconOnly(<Outdent />, () => changeIndent(editor, -1), false, "Diminuer le niveau")}</div>{row(<ListOrdered />, "Recommencer la numérotation", () => { if (!editor.chain().focus().updateAttributes("orderedList", { start: 1 }).run()) toast.info("Placez le curseur dans une liste numérotée"); })}{row(<ListOrdered />, "Continuer la numérotation", () => { let previous = 0; editor.state.doc.descendants((n, pos) => { if (n.type.name === "orderedList" && pos < editor.state.selection.from - editor.state.selection.$from.parentOffset - 2) previous = (Number(n.attrs["start"]) || 1) + n.childCount; }); editor.chain().focus().updateAttributes("orderedList", { start: previous || 1 }).run(); })}</>)}
+          {group("Colonnes", <div className="writer-tool-line">{[1,2,3].map(n => <Button key={n} variant={(settings.columns || 1) === n ? "secondary" : "ghost"} onClick={() => setSettings(s => ({ ...s, columns: n }))}><Columns />{["Une", "Deux", "Trois"][n-1]}</Button>)}</div>)}
+        </div>}
+        {activeMenu === "Insérer" && <div className="writer-insert-tools">
+          <div className="writer-insert-shortcuts">{row(<ImageIcon />, "Image", () => fileInputRef.current?.click())}{row(<TableIcon />, "Table", askTable)}{row(<FilePlus />, "Page vierge", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}{row(<FileText />, "Note", note)}</div>
+          {group("", <><label className="writer-select-row"><RectangleHorizontal /><span>Forme</span><select aria-label="Formes" value="" onChange={e => { if (e.target.value) editor.chain().focus().setImage({ src: shapeSrc(e.target.value), alt: e.target.value }).run(); }}><option value="">Choisir…</option>{Object.keys(SHAPES).map(n => <option key={n}>{n}</option>)}</select></label>{row(<RectangleHorizontal />, "Zone de texte", () => editor.chain().focus().insertContent({ type: "paragraph", attrs: { textBox: true }, content: [] }).run())}<Button variant="ghost" className="writer-tool-row" disabled={scanning} onClick={() => scanInput.current?.click()}><ScanText /><span>{scanning ? "Lecture en cours…" : "Scanner un Texte"}</span></Button>{row(<FolderOpen />, "Ressources du document", attach)}</>)}
+          {group("Pages", <>{row(<FilePlus />, "Page vierge en portrait", () => { setSettings(s => ({ ...s, orientation: "Portrait" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<FilePlus />, "Page vierge Paysage", () => { setSettings(s => ({ ...s, orientation: "Paysage" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<WrapText />, "Sauts", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}{row(<Hash />, "Numéro de page", () => setSettings(s => ({ ...s, pageNumbers: !s.pageNumbers })))}{row(<PanelTop />, "En-tête", () => editMargin("header"))}{row(<PanelTop />, "Pied de page", () => editMargin("footer"))}</>)}
+          {group("Notes et objets", <>{row(<FileText />, "Note de fin", () => { const text = window.prompt("Texte de la note de fin :"); if (!text) return; editor.chain().focus().insertContent([{ type: "text", text: "*", marks: [{ type: "superscript" }] }]).run(); editor.chain().focus("end").insertContent([{ type: "horizontalRule" }, { type: "paragraph", content: [{ type: "text", text: `* ${text}` }] }]).run(); })}{row(<Signature />, "Signature", () => fileInputRef.current?.click())}{row(<Calendar />, "Date et heure", () => editor.chain().focus().insertContent(new Date().toLocaleString("fr-FR")).run())}{row(<Link2 />, "Lien", handleInsertLink)}{row(<BookmarkIcon />, "Insérer un signet", addBookmark)}{row(<BookmarkIcon />, "Voir le Signet", seeBookmark)}{row(<CaseSensitive />, "Lettrine", () => setParagraphLayout(editor, { dropCap: !editor.getAttributes("paragraph")["dropCap"] }))}{row(<PaperclipIcon />, "Insérer un objet à partir du fichier", attach)}<label className="writer-select-row"><Type /><span>Symboles</span><select aria-label="Symboles" value="" onChange={e => { if (e.target.value) editor.chain().focus().insertContent(e.target.value).run(); }}><option value="">Ω</option>{SYMBOLS.map(c => <option key={c}>{c}</option>)}</select></label></>)}
+          {group("Tableau", <>{row(<Columns />, "Fusionner les cellules", () => { if (!editor.chain().focus().mergeCells().run()) toast.info("Sélectionnez plusieurs cellules"); })}{row(<Columns />, "Fractionner la cellule", () => { if (!editor.chain().focus().splitCell().run()) toast.info("Sélectionnez une cellule fusionnée"); })}{row(<Plus />, "Ajouter une ligne", () => editor.chain().focus().addRowAfter().run())}{row(<Plus />, "Ajouter une colonne", () => editor.chain().focus().addColumnAfter().run())}{row(<Trash2 />, "Supprimer une ligne", () => editor.chain().focus().deleteRow().run())}{row(<Trash2 />, "Supprimer une colonne", () => editor.chain().focus().deleteColumn().run())}{row(<Trash2 />, "Supprimer le tableau", () => editor.chain().focus().deleteTable().run())}</>)}
+        </div>}
         {/* 4. MISE EN PAGE */}
         {activeMenu === "Mise en page" && (
           <div className="flex flex-nowrap items-center gap-1">
@@ -528,10 +417,6 @@ export function EditorRibbon({
         {activeMenu === "Références" && (
           <div className="flex flex-nowrap items-center gap-1">
             {btn(<BookOpen className="w-4 h-4 text-primary" />, "Générer Sommaire / Table des matières", handleInsertTOC)}
-            {btn(<FileText className="w-4 h-4 text-amber-600" />, "Insérer Note de bas de page", () => {
-              insertFootnote(editor, "");
-              setTimeout(() => { const all = document.querySelectorAll<HTMLInputElement>("input[data-fn-input]"); const el = all[all.length - 1]; el?.scrollIntoView({ behavior: "smooth", block: "center" }); el?.focus({ preventScroll: true }); }, 80);
-            })}
             {btn(<Type className="w-4 h-4 text-purple-600" />, "Citation APA 7ème", () => {
               const author = window.prompt("Auteur (ex: BERSA, 2026) :", "BERSA, 2026");
               if (author) {
@@ -596,7 +481,7 @@ export function EditorRibbon({
         )}
 
         {/* 7. AFFICHAGE */}
-        {activeMenu === "Affichage" && (
+        {activeMenu === "Afficher" && (
           <div className="flex flex-nowrap items-center gap-1">
             <Button
               type="button"

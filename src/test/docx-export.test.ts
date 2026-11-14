@@ -26,4 +26,10 @@ describe("export Word réel", () => {
   it("calcule le CRC32 standard", () => {
     expect(crc32(new TextEncoder().encode("123456789"))).toBe(0xcbf43926);
   });
+  it("exporte les vraies notes de bas de page et leur contenu", async () => {
+    const bytes = buildDocxBytes({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Document" }, { type: "footnote", attrs: { number: 1, note: "Référence administrative" } }] }] });
+    const { value } = await mammoth.convertToHtml({ buffer: Buffer.from(bytes) });
+    expect(value).toContain("Référence administrative");
+    expect(value).toContain('id="footnote-1"');
+  });
 });

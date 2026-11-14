@@ -1,4 +1,8 @@
 # BERSA roadmap (reconstruction)
+## Demande actuelle : commandes des captures et marges internes
+- [ ] Remplacer Accueil / Insérer par les outils des captures sans doublons
+- [ ] Placer en-têtes, pieds et notes dans la surface blanche de chaque page
+- [ ] Vérifier les commandes sur document réel, téléphone et exports
 ## Corrections demandées, dans l’ordre
 - [x] Accueil : recherche, photo reliée au profil, quatre cartes, catalogue et menus des documents
 - [x] CV : aperçus ajustés, vignettes compactes, sauvegarde locale vérifiée à 360px

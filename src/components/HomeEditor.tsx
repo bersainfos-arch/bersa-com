@@ -14,6 +14,8 @@ import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { ParagraphIndent } from "@/lib/writer-commands";
+import { WriterLayout, Bookmark } from "@/lib/writer-layout";
+import { WriterPaper } from "@/components/WriterPaper";
 import { toast } from "sonner";
 import { ArrowUp, Share2,
   Send,
@@ -163,7 +165,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   }, []);
   const editor = useEditor({
     immediatelyRender: false,
-    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle, Subscript, Superscript, ParagraphIndent, CommentMark, InsertionMark, TrackChanges],
+    extensions: [StarterKit, TextStyleKit, TextAlign.configure({ types: ["heading", "paragraph"] }), Image.configure({ allowBase64: true }), Table.configure({ resizable: true }), TableRow, TableCell, TableHeader, Highlight.configure({ multicolor: true }), PageBreak, Footnote, AutoPages, KeepBlockStyle, Subscript, Superscript, ParagraphIndent, WriterLayout, Bookmark, CommentMark, InsertionMark, TrackChanges],
     content: "<p></p>",
     onUpdate: ({ editor: e }) => {
       renumberFootnotes(e);
@@ -301,7 +303,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     try {
       toast.info("Création du PDF…");
       const { buildPdf } = await import("@/lib/pdf-export");
-      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, differentFirstPage: settings.differentFirstPage, columns: settings.columns, landscape: settings.orientation === "Paysage" });
+      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, differentFirstPage: settings.differentFirstPage, pageNumbers: !!settings.pageNumbers, columns: settings.columns, landscape: settings.orientation === "Paysage" });
       const name = `${(docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_")}.pdf`;
       if (await pickAndWrite(blob, name, "Document PDF", { "application/pdf": [".pdf"] })) { toast.success("PDF enregistré."); return; }
       const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -626,12 +628,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!editor?.view?.dom) return;
     const dom = editor.view.dom as HTMLElement;
     const updatePages = () => {
-      const isMobile = window.innerWidth <= 640;
-      // Hauteur calibrée pour contenir une vraie page dense Word (~3 200 caractères)
-      const pageHeight = isMobile ? 780 : 1100;
-      const contentHeight = dom.scrollHeight || dom.clientHeight;
-      const count = Math.max(1, Math.ceil(contentHeight / pageHeight));
-      setTotalPages(count);
+      setTotalPages(Number(dom.dataset["pages"]) || 1);
     };
     updatePages();
     const observer = new ResizeObserver(updatePages);
@@ -649,22 +646,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     onSaveAsWord: () => void (async () => {
       if (!editor) return;
       const { buildDocx } = await import("@/lib/docx-export");
-      const blob = await buildDocx(editor.getJSON() as any, { marginCm: settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5, lineSpacing: Number(settings.lineSpacing) || 1.6, landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText, pageNumbers: true });
+      const blob = await buildDocx(editor.getJSON() as any, { marginCm: settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5, lineSpacing: Number(settings.lineSpacing) || 1.6, landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${docFileName || "Document_BERSA"}.docx`;
       a.click();
       toast.success("Document Word téléchargé.");
     })(),
-    onSaveAsPdf: () => void (async () => {
-      if (!editor) return;
-      const w = window.open("", "_blank");
-      if (!w) { toast.error("Autorisez les fenêtres pour exporter en PDF."); return; }
-      w.document.write(`<html><head><meta charset="utf-8"><title>${docFileName}</title><style>@page{size:A4;margin:2cm}body{font-family:'Times New Roman';font-size:13pt;line-height:1.6}</style></head><body>${editor.getHTML()}</body></html>`);
-      w.document.close();
-      w.focus();
-      setTimeout(() => w.print(), 300);
-    })(),
+    onSaveAsPdf: () => void exportPdf(),
     onSaveAsTxt: () => void (async () => {
       if (!editor) return;
       const blob = new Blob([editor.getText()], { type: "text/plain" });
@@ -701,7 +690,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       const clean = (docFileName.trim() || "Document_BERSA").replace(/[^\p{L}\p{N}_\- ]/gu, "_");
       try {
         const { buildDocx } = await import("@/lib/docx-export");
-        const blob = await buildDocx(editor.getJSON() as any, { pageNumbers: true });
+        const blob = await buildDocx(editor.getJSON() as any, { pageNumbers: !!settings.pageNumbers });
         const file = new File([blob], `${clean}.docx`, { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
         if (navigator.canShare?.({ files: [file] })) {
           await navigator.share({ title: docFileName, files: [file] });
@@ -851,7 +840,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               setTab={setTab}
               settings={settings}
               setSettings={setSettings}
-              attach={() => fileInput.current?.click()}
+              attach={() => openFileInput.current?.click()}
               save={() => void save()}
               correct={() => { setAction("correct"); void run("correct"); }}
               exportPdf={() => void exportPdf()}
@@ -952,9 +941,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           )}
 
-          {!settings.differentFirstPage && <div className="bersa-page-header mx-auto flex w-full max-w-[794px] items-center"><span className="bersa-page-num">1</span><input aria-label="En-tête de page" placeholder="" value={settings.headerText} onChange={e => setSettings(st => ({ ...st, headerText: e.target.value }))} className="min-w-0 flex-1 bg-transparent focus:outline-none" /></div>}
-          <EditorContent editor={editor} className="home-paper-content" />
-          {!settings.differentFirstPage && <input aria-label="Pied de page" placeholder="" value={settings.footerText} onChange={e => setSettings(st => ({ ...st, footerText: e.target.value }))} className="bersa-page-footer mx-auto block w-full max-w-[794px] bg-transparent text-center focus:outline-none placeholder:text-muted-foreground/50" />}
+          <WriterPaper editor={editor} settings={settings} setSettings={setSettings} footnotes={footnotes}>
+            <EditorContent editor={editor} className="home-paper-content" />
+          </WriterPaper>
           {versions && (
             <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center" onClick={() => setVersions(null)}>
               <div className="w-full max-w-md rounded-xl bg-card p-4 shadow-xl" onClick={e => e.stopPropagation()}>
@@ -968,49 +957,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             </div>
           )}
         
-          {footnotes.length > 0 && (
-            <div className="a4-footnotes mx-auto max-w-[794px]" aria-label="Notes de bas de page">
-              <hr className="a4-footnotes-rule" />
-              <ol className="a4-footnotes-list">
-                {footnotes.map(fn => (
-                  <li key={fn.pos} id={`fn-${fn.number}`} className="a4-footnote-item scroll-mt-24">
-                    <a
-                      href={`#fnref-${fn.number}`}
-                      className="a4-footnote-backlink inline-flex items-center text-primary font-semibold hover:underline"
-                      title="Retourner à l'appel de note dans le texte"
-                      aria-label={`Retourner à l'appel de note ${fn.number}`}
-                      onClick={e => {
-                        e.preventDefault();
-                        scrollToTarget(`fnref-${fn.number}`);
-                      }}
-                    >
-                      <sup className="a4-footnote-number mr-1">{fn.number} ↩</sup>
-                    </a>
-                    <input
-                      data-fn-input={fn.number}
-                      className="a4-footnote-text flex-1 min-w-0 bg-transparent border-b border-dashed border-border focus:border-primary focus:outline-none"
-                      placeholder="Tapez le texte de la note…"
-                      defaultValue={fn.note}
-                      key={`${fn.pos}-${fn.note}`}
-                      aria-label={`Texte de la note ${fn.number}`}
-                      onBlur={(e) => { if (editor && e.target.value !== fn.note) updateFootnote(editor, fn.pos, e.target.value); }}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); (e.target as HTMLInputElement).blur(); } }}
-                    />
-                    <button
-                      type="button"
-                      className="no-print a4-footnote-action"
-                      aria-label={`Supprimer la note ${fn.number}`}
-                      onClick={() => {
-                        if (editor) deleteFootnote(editor, fn.pos);
-                      }}
-                    >
-                      Supprimer
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
         </div>
 
           {!embedded && !assistantOpen && (
