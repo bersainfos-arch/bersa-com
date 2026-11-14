@@ -207,7 +207,7 @@
   /* Typographie par défaut : Times New Roman 12 pt (16 px), interligne 1.5 */
   font-family: "Times New Roman", Times, "Liberation Serif", serif !important;
   font-size: 16px !important; /* 12 pt */
-  line-height: 1.5 !important;
+  line-height: 1.15 !important;
   text-align: justify !important;
   text-justify: inter-word;
   hyphens: auto;
@@ -286,7 +286,7 @@
   height: 24px !important;
   margin: 24px 0 !important;
   margin-inline: 0 !important;
-  width: 100% !important;
+  width: 50% !important;
   box-sizing: border-box !important;
   background: #e2e8f0 !important;
   border-top: 1px dashed #cbd5e1 !important;
@@ -338,7 +338,7 @@
   }
   .home-ai-sheet,
   .a4-page {
-    width: 100% !important;
+    width: 50% !important;
     min-height: auto !important;
     padding: 20px 14px !important;
     font-size: 16px !important;
@@ -408,7 +408,7 @@
   display: block;
   break-after: page;
   margin: 20px -44px;
-  height: 16px; /* Très petit espace vide entre deux feuilles */
+  height: 8px; /* Très petit espace vide entre deux feuilles */
   background: hsl(var(--muted) / 0.65); /* Couleur du bureau sous la feuille */
   border: none !important;
   position: relative;
@@ -510,7 +510,7 @@
   .a4-page-sheet {
     box-shadow: none !important;
     padding: 0 !important;
-    width: 100% !important;
+    width: 50% !important;
     min-height: 0 !important;
     page-break-after: always;
     break-after: page;
@@ -529,7 +529,7 @@
 .a4-footnotes { background: #fff; padding: 0 24px 24px; font-family: "Times New Roman", serif; }
 .a4-footnotes-rule { border: none; border-top: 1px solid #000; width: 150px; max-width: 30%; margin: 0 0 6px; }
 .a4-footnotes-list { list-style: none; margin: 0; padding: 0; }
-.a4-footnote-item { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.5; padding: 1px 0; }
+.a4-footnote-item { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.15; padding: 1px 0; }
 .a4-footnote-number { color: hsl(var(--primary)); font-size: 0.75em; min-width: 14px; }
 .a4-footnote-text { flex: 1; }
 .a4-footnote-action { font-size: 10px; color: hsl(var(--muted-foreground)); text-decoration: underline; margin-left: 6px; }
@@ -731,7 +731,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
   position: relative !important;
   height: calc(var(--pad-y) * 2 + 16px) !important;
   margin: 0 calc(var(--pad-x) * -1) !important;
-  width: calc(100% + var(--pad-x) * 2) !important;
+  width: calc(50% + var(--pad-x) * 2) !important;
   max-width: none !important;
   background: transparent !important;
   border: 0 !important;
@@ -756,9 +756,9 @@ img, video, canvas, iframe, table { max-width: 100%; }
     var(--mark) 1px, 1px var(--mark), var(--mark) 1px, 1px var(--mark);
   background-position:
     calc(var(--pad-x) - var(--mark)) 0, var(--pad-x) 0,
-    calc(100% - var(--pad-x)) 0, calc(100% - var(--pad-x)) 0,
+    calc(50% - var(--pad-x)) 0, calc(100% - var(--pad-x)) 0,
     calc(var(--pad-x) - var(--mark)) 100%, var(--pad-x) 100%,
-    calc(100% - var(--pad-x)) 100%, calc(100% - var(--pad-x)) 100%;
+    calc(50% - var(--pad-x)) 100%, calc(100% - var(--pad-x)) 100%;
 }
 .home-editor .home-ai-sheet .auto-page-gap .page-gap-badge {
   position: absolute; left: 50%; top: var(--pad-y); transform: translate(-50%, -2px); z-index: 1;
