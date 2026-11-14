@@ -3,6 +3,7 @@ export type GeminiPart = { text: string } | { inline_data: { mime_type: string; 
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
 const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-2.5-flash"];
+const SEARCH_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export class GeminiError extends Error {
@@ -40,11 +41,26 @@ function body(contents: GeminiContent[], system?: string) {
   });
 }
 
+async function searchStream(contents: GeminiContent[], system?: string, signal?: AbortSignal) {
+  // Google Search grounding only exists on the native endpoint; fall back silently when quota/entitlement refuses it.
+  const key = process.env["GEMINI_API_KEY"];
+  if (!key) return null;
+  for (const model of SEARCH_MODELS) {
+    try {
+      const res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key }, body: body(contents, system), ...(signal ? { signal } : {}) });
+      if (res.ok && res.body) return res;
+      await res.body?.cancel();
+    } catch (e) { if (signal?.aborted) throw e; }
+  }
+  return null;
+}
+
 export async function* geminiStream(contents: GeminiContent[], system?: string, signal?: AbortSignal) {
-  const connection = apiKey();
-  let res: Response | null = null;
+  const searched = await searchStream(contents, system, signal);
+  const connection = searched ? { base: BASE, gateway: false, headers: {} } : apiKey();
+  let res: Response | null = searched;
   let lastError: GeminiError | null = null;
-  for (const model of MODELS) {
+  for (const model of searched ? [] : MODELS) {
     res = await fetch(connection.gateway ? `${connection.base}/chat/completions` : `${connection.base}/${model}:streamGenerateContent?alt=sse`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...connection.headers },
