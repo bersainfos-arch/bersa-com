@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-import {
   Outlet,
   Link,
   createRootRouteWithContext,
@@ -13,7 +12,6 @@ import {
 } from "@tanstack/react-router";
 
 import { useEffect, type ReactNode } from "react";
-
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider } from "../lib/i18n";
