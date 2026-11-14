@@ -1,0 +1,59 @@
+.document-viewer {
+  --viewer-desk: #e5e5e5;
+  --viewer-page: #fff;
+  --viewer-ink: #171717;
+  --viewer-header: #79a379;
+  --viewer-corner: #b8b8b8;
+  --viewer-border: #d3d3d3;
+  --viewer-bar: #fafafa;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: var(--viewer-desk);
+  color: var(--viewer-ink);
+  font-family: Arial, Helvetica, sans-serif;
+  letter-spacing: 0;
+}
+.document-viewer .dv-toolbar { background: var(--viewer-bar); border-color: var(--viewer-border); flex-shrink: 0; }
+.document-viewer .dv-top { padding-top: env(safe-area-inset-top); }
+.document-viewer .dv-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.document-viewer .dv-button { color: var(--viewer-ink); min-width: 40px; }
+.document-viewer .dv-button:hover { background: var(--viewer-desk); }
+.document-viewer .dv-button[aria-pressed="true"] { color: var(--primary); background: var(--accent); }
+.document-viewer .dv-bottom .dv-button { flex: 1 0 66px; min-height: 64px; height: auto; padding: 7px 3px; white-space: normal; gap: 4px; font-size: 10px; line-height: 1.2; }
+.document-viewer .dv-bottom .dv-button span { max-width: 78px; }
+.dv-viewport { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: none; overscroll-behavior: none; outline: none; }
+.dv-content { position: absolute; inset: 0 auto auto 0; transform-origin: 0 0; }
+.dv-content[data-moving="true"] { will-change: transform; }
+.dv-page { position: relative; width: 794px; height: 1123px; flex-shrink: 0; background: var(--viewer-page); color: var(--viewer-ink); font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; }
+.dv-page-header { position: absolute; left: var(--dv-margin); right: var(--dv-margin); top: 57px; color: var(--viewer-header); font-size: 8pt; line-height: 1.5; text-transform: uppercase; overflow-wrap: anywhere; }
+.dv-page-body { position: absolute; inset: var(--dv-margin); }
+.dv-page p { margin: 0 0 12px; text-align: justify; text-indent: 1.25cm; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dv-page p[data-continuation="true"] { text-indent: 0; }
+.dv-page h2 { font-family: inherit; font-size: 12pt; line-height: 24px; font-weight: 700; text-transform: uppercase; margin: 0 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dv-page sup { font-size: 8pt; line-height: 0; vertical-align: super; }
+.dv-notes { position: absolute; left: var(--dv-margin); right: var(--dv-margin); bottom: var(--dv-margin); font-size: 8pt; line-height: 1.5; }
+.dv-notes::before { content: ""; display: block; width: 33%; border-top: 1px solid var(--viewer-ink); margin-bottom: 16px; }
+.dv-note { display: flex; gap: 8px; margin-bottom: 4px; text-align: justify; }
+.dv-note sup { width: 12px; flex-shrink: 0; line-height: 16px; }
+.dv-note span { white-space: pre-wrap; overflow-wrap: anywhere; }
+.dv-corner { position: absolute; width: 13px; height: 13px; border: solid var(--viewer-corner); border-width: 0; pointer-events: none; }
+.dv-corner-tl { top: var(--dv-margin); left: var(--dv-margin); border-top-width: 1px; border-left-width: 1px; transform: translate(-100%, -100%); }
+.dv-corner-tr { top: var(--dv-margin); right: var(--dv-margin); border-top-width: 1px; border-right-width: 1px; transform: translate(100%, -100%); }
+.dv-corner-bl { bottom: var(--dv-margin); left: var(--dv-margin); border-bottom-width: 1px; border-left-width: 1px; transform: translate(-100%, 100%); }
+.dv-corner-br { bottom: var(--dv-margin); right: var(--dv-margin); border-bottom-width: 1px; border-right-width: 1px; transform: translate(100%, 100%); }
+.dv-page [contenteditable="true"] { outline: 1px dotted var(--viewer-corner); cursor: text; }
+.dv-panel { background: var(--viewer-bar); border-color: var(--viewer-border); max-height: 45dvh; overflow: auto; flex-shrink: 0; }
+.dv-panel input { min-width: 0; border: 1px solid var(--viewer-border); border-radius: 4px; padding: 6px 8px; background: var(--viewer-page); color: var(--viewer-ink); }
+.dv-page mark { background: var(--gold); color: var(--viewer-ink); }
+@media print {
+  .document-viewer { position: static; display: block; background: var(--viewer-page); }
+  .document-viewer .dv-toolbar, .document-viewer .dv-panel { display: none; }
+  .dv-viewport { overflow: visible; height: auto; }
+  .dv-content { position: static; transform: none !important; width: auto !important; }
+  .dv-page { margin: 0 !important; break-after: page; }
+  .dv-corner { display: none; }
+  @page { size: A4; margin: 0; }
+}

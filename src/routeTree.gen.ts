@@ -18,6 +18,7 @@ import { Route as AssistantRouteImport } from './routes/assistant'
 import { Route as BibliothequeRouteImport } from './routes/bibliotheque'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CvStudioRouteImport } from './routes/cv-studio'
+import { Route as DocumentViewerRouteImport } from './routes/document-viewer'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as FormationsRouteImport } from './routes/formations'
 import { Route as GestionRouteImport } from './routes/gestion'
@@ -77,6 +78,11 @@ const ContactRoute = ContactRouteImport.update({
 const CvStudioRoute = CvStudioRouteImport.update({
   id: '/cv-studio',
   path: '/cv-studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentViewerRoute = DocumentViewerRouteImport.update({
+  id: '/document-viewer',
+  path: '/document-viewer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentsRoute = DocumentsRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
   '/cv-studio': typeof CvStudioRoute
+  '/document-viewer': typeof DocumentViewerRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
   '/cv-studio': typeof CvStudioRoute
+  '/document-viewer': typeof DocumentViewerRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/bibliotheque': typeof BibliothequeRoute
   '/contact': typeof ContactRoute
   '/cv-studio': typeof CvStudioRoute
+  '/document-viewer': typeof DocumentViewerRoute
   '/documents': typeof DocumentsRoute
   '/formations': typeof FormationsRoute
   '/gestion': typeof GestionRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/bibliotheque'
     | '/contact'
     | '/cv-studio'
+    | '/document-viewer'
     | '/documents'
     | '/formations'
     | '/gestion'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/bibliotheque'
     | '/contact'
     | '/cv-studio'
+    | '/document-viewer'
     | '/documents'
     | '/formations'
     | '/gestion'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/bibliotheque'
     | '/contact'
     | '/cv-studio'
+    | '/document-viewer'
     | '/documents'
     | '/formations'
     | '/gestion'
@@ -325,6 +337,7 @@ export interface RootRouteChildren {
   BibliothequeRoute: typeof BibliothequeRoute
   ContactRoute: typeof ContactRoute
   CvStudioRoute: typeof CvStudioRoute
+  DocumentViewerRoute: typeof DocumentViewerRoute
   DocumentsRoute: typeof DocumentsRoute
   FormationsRoute: typeof FormationsRoute
   GestionRoute: typeof GestionRoute
@@ -405,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/cv-studio'
       fullPath: '/cv-studio'
       preLoaderRoute: typeof CvStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/document-viewer': {
+      id: '/document-viewer'
+      path: '/document-viewer'
+      fullPath: '/document-viewer'
+      preLoaderRoute: typeof DocumentViewerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documents': {
@@ -525,6 +545,7 @@ const rootRouteChildren: RootRouteChildren = {
   BibliothequeRoute: BibliothequeRoute,
   ContactRoute: ContactRoute,
   CvStudioRoute: CvStudioRoute,
+  DocumentViewerRoute: DocumentViewerRoute,
   DocumentsRoute: DocumentsRoute,
   FormationsRoute: FormationsRoute,
   GestionRoute: GestionRoute,

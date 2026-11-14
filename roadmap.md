@@ -1,4 +1,8 @@
 # BERSA roadmap (reconstruction)
+## Current request: independent mobile DocumentViewer
+- [x] Create typed A4 block pagination, page footnotes and scoped WPS-style reader
+- [x] Implement fit-to-text, anchored pinch, double tap and inertial pan
+- [x] Verify example and controls at 360px–430px without changing existing pages — browser Pointer Events tested; physical phone gestures not verified
 ## Current request: secure Gemini and Groq services
 - [x] Connect Gemini securely and verify both provider credentials without exposing values
 - [x] Wire Gemini writing and Groq audio transcription in server-only authenticated flows
