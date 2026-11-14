@@ -1,5 +1,6 @@
+import { formatPageNumber } from "./writer-layout";
 /** Paginate exported blocks and keep each note with its reference page. */
-export async function buildPdf(html: string, opts: { marginPx: number; lineSpacing: number; headerText?: string; footerText?: string; differentFirstPage?: boolean | undefined; pageNumbers?: boolean; columns?: number | undefined; landscape?: boolean }) {
+export async function buildPdf(html: string, opts: { marginPx: number; lineSpacing: number; headerText?: string; footerText?: string; differentFirstPage?: boolean | undefined; pageNumbers?: boolean; pageNumberAlign?: "left" | "center" | "right" | undefined; pageNumberFormat?: "arabic" | "roman" | undefined; columns?: number | undefined; landscape?: boolean }) {
   const [{ toPng }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
   const width = opts.landscape ? 1123 : 794, pageH = opts.landscape ? 794 : 1123;
   const host = document.createElement("div");
@@ -48,7 +49,12 @@ export async function buildPdf(html: string, opts: { marginPx: number; lineSpaci
       pdf.setFontSize(9);
       if (!(opts.differentFirstPage && i === 0)) {
         if (opts.headerText) pdf.text(opts.headerText, wmm / 2, 8, { align: "center" });
-        pdf.text(`${opts.footerText || ""}${opts.pageNumbers ? `  ${i + 1}` : ""}`, wmm / 2, hmm - 5, { align: "center" });
+        if (opts.footerText) pdf.text(opts.footerText, wmm / 2, hmm - 5, { align: "center" });
+        if (opts.pageNumbers) {
+          const align = opts.pageNumberAlign || "center";
+          const x = align === "left" ? 20 : align === "right" ? wmm - 20 : wmm / 2;
+          pdf.text(formatPageNumber(i + 1, opts.pageNumberFormat), x, hmm - (opts.footerText && align === "center" ? 9 : 5), { align });
+        }
       }
     }
     return pdf.output("blob");

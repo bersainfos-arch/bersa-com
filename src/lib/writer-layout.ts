@@ -50,11 +50,12 @@ export function changeCase(editor: Editor, mode: "upper" | "lower" | "sentence")
 }
 
 export function pageGeometry(width: number) {
-  const height = width < 600 ? width * 2.1 : width * 297 / 210;
+  // Vraie proportion A4 (210 × 297 mm), identique à Word/WPS, sur toutes les tailles d'écran.
+  const height = width * 297 / 210;
   return { height, stride: height + 16 };
 }
 /** Page layout (header/footer/numbering) saved alongside document HTML as a trailing comment. */
-export type SavedLayout = { headerText?: string; footerText?: string; pageNumbers?: boolean; differentFirstPage?: boolean; margin?: string; orientation?: string };
+export type SavedLayout = { headerText?: string; footerText?: string; pageNumbers?: boolean; differentFirstPage?: boolean; margin?: string; orientation?: string; pageNumberAlign?: PageNumberAlign | undefined; pageNumberFormat?: PageNumberFormat | undefined };
 const LAYOUT_RE = /<!--BERSA_LAYOUT:([A-Za-z0-9+/=]*)-->\s*$/;
 export function attachLayout(html: string, layout: SavedLayout): string {
   const clean = html.replace(LAYOUT_RE, "");
@@ -67,4 +68,15 @@ export function extractLayout(html: string): { html: string; layout: SavedLayout
   if (!m) return { html, layout: null };
   try { return { html: html.replace(LAYOUT_RE, ""), layout: JSON.parse(decodeURIComponent(escape(atob(m[1] ?? "")))) }; }
   catch { return { html: html.replace(LAYOUT_RE, ""), layout: null }; }
+}
+
+export type PageNumberAlign = "left" | "center" | "right";
+export type PageNumberFormat = "arabic" | "roman";
+/** Numéro de page affiché selon le format choisi (arabe 1, 2, 3 ou romain i, ii, iii). */
+export function formatPageNumber(n: number, format: PageNumberFormat = "arabic"): string {
+  if (format !== "roman" || n < 1) return String(n);
+  const table: Array<[number, string]> = [[1000, "m"], [900, "cm"], [500, "d"], [400, "cd"], [100, "c"], [90, "xc"], [50, "l"], [40, "xl"], [10, "x"], [9, "ix"], [5, "v"], [4, "iv"], [1, "i"]];
+  let out = "", rest = n;
+  for (const [v, r] of table) while (rest >= v) { out += r; rest -= v; }
+  return out;
 }

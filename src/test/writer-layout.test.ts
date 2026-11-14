@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { Editor } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
-import { WriterLayout, Bookmark, setParagraphLayout, changeCase, pageGeometry } from "@/lib/writer-layout";
+import { WriterLayout, Bookmark, setParagraphLayout, changeCase, pageGeometry, formatPageNumber } from "@/lib/writer-layout";
 import { Footnote, insertFootnote, collectFootnotes, deleteFootnote } from "@/lib/footnotes";
 
 let editor: Editor | undefined;
@@ -36,6 +36,10 @@ describe("commandes Writer persistantes", () => {
     expect(collectFootnotes(e).map(item => [item.number, item.note])).toEqual([[1, "Source conservée"]]);
   });
   it("utilise la même hauteur et un intercalaire de 16px pour chaque page mobile", () => {
-    expect(pageGeometry(360)).toEqual({ height: 756, stride: 772 });
+    expect(pageGeometry(360).height).toBeCloseTo(509.14, 1);
+    expect(pageGeometry(794).height).toBeCloseTo(1122.9, 0);
+    expect(formatPageNumber(4, "roman")).toBe("iv");
+    expect(formatPageNumber(14, "roman")).toBe("xiv");
+    expect(formatPageNumber(7, "arabic")).toBe("7");
   });
 });

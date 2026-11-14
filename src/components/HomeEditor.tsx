@@ -259,7 +259,26 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     editor.on("update", onUpdate);
     return () => { clearInterval(saveTimer); editor.off("update", onUpdate); };
   }, [editor]);
-  const layoutOf = () => ({ headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage, margin: settings.margin, orientation: settings.orientation });
+  // Zoom à deux doigts (et Ctrl + molette) sur le papier : le texte se ré-agence proportionnellement, sans flou.
+  useEffect(() => {
+    const desk = document.querySelector<HTMLElement>(".bersa-writer-workspace");
+    if (!desk) return;
+    let start = 0, base = 1;
+    const read = () => (parseInt(desk.style.getPropertyValue("--writer-zoom") ? String(Number(desk.style.getPropertyValue("--writer-zoom")) * 100) : "100") || 100) / 100;
+    const apply = (z: number) => { const v = Math.round(Math.min(3, Math.max(0.5, z)) * 100); desk.style.setProperty("--writer-zoom", String(v / 100)); return v; };
+    const dist = (t: TouchList) => Math.hypot(t[0]!.clientX - t[1]!.clientX, t[0]!.clientY - t[1]!.clientY);
+    const onStart = (e: TouchEvent) => { if (e.touches.length === 2) { start = dist(e.touches); base = read(); } };
+    const onMove = (e: TouchEvent) => { if (e.touches.length === 2 && start) { e.preventDefault(); apply(base * dist(e.touches) / start); } };
+    const onEnd = (e: TouchEvent) => { if (start && e.touches.length < 2) { start = 0; const v = Math.round(read() * 100); setSettings(s => ({ ...s, zoom: `${v}%` })); } };
+    const onWheel = (e: WheelEvent) => { if (!e.ctrlKey) return; e.preventDefault(); const v = apply(read() * Math.exp(-e.deltaY * 0.002)); setSettings(s => ({ ...s, zoom: `${v}%` })); };
+    desk.addEventListener("touchstart", onStart, { passive: true });
+    desk.addEventListener("touchmove", onMove, { passive: false });
+    desk.addEventListener("touchend", onEnd);
+    desk.addEventListener("touchcancel", onEnd);
+    desk.addEventListener("wheel", onWheel, { passive: false });
+    return () => { desk.removeEventListener("touchstart", onStart); desk.removeEventListener("touchmove", onMove); desk.removeEventListener("touchend", onEnd); desk.removeEventListener("touchcancel", onEnd); desk.removeEventListener("wheel", onWheel); };
+  }, [editor]);
+  const layoutOf = () => ({ headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage, margin: settings.margin, orientation: settings.orientation, pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat });
   const loadWithLayout = (raw: string) => {
     if (!editor) return;
     const { html: body, layout } = extractLayout(raw);
@@ -310,7 +329,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     try {
       toast.info("Création du PDF…");
       const { buildPdf } = await import("@/lib/pdf-export");
-      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, differentFirstPage: settings.differentFirstPage, pageNumbers: !!settings.pageNumbers, columns: settings.columns, landscape: settings.orientation === "Paysage" });
+      const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, differentFirstPage: settings.differentFirstPage, pageNumbers: !!settings.pageNumbers, pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat, columns: settings.columns, landscape: settings.orientation === "Paysage" });
       const name = `${(docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_")}.pdf`;
       if (await pickAndWrite(blob, name, "Document PDF", { "application/pdf": [".pdf"] })) { toast.success("PDF enregistré."); return; }
       const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -654,7 +673,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     onSaveAsWord: () => void (async () => {
       if (!editor) return;
       const { buildDocx } = await import("@/lib/docx-export");
-      const blob = await buildDocx(editor.getJSON() as any, { marginCm: settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5, lineSpacing: Number(settings.lineSpacing) || 1.6, landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers });
+      const blob = await buildDocx(editor.getJSON() as any, { marginCm: settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5, lineSpacing: Number(settings.lineSpacing) || 1.6, landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers, pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `${docFileName || "Document_BERSA"}.docx`;
@@ -925,8 +944,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
         <div
-          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", ["--writer-page-color" as string]: settings.pageColor || "#ffffff" } as React.CSSProperties}
-          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}`}
+          style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", ["--writer-page-color" as string]: settings.pageColor || "#ffffff", ["--writer-zoom" as string]: String((parseInt(settings.zoom) || 100) / 100) } as React.CSSProperties}
+          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${settings.eyeCare ? " writer-eye-care" : ""}${settings.showComments === false ? " hide-comments" : ""}${settings.showRevisions === false ? " hide-revisions" : ""}${settings.showMarks ? " show-marks" : ""}`}
           onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
             if (anchor) {

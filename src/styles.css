@@ -660,7 +660,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
   min-height: calc(var(--sheet-w) * 297 / 210) !important;
   padding: var(--pad-y) var(--pad-x) !important;
   font-family: "Times New Roman", Times, serif;
-  font-size: max(7px, calc(var(--sheet-w) * 0.02015)) !important;
+  font-size: max(7px, calc(var(--sheet-w) * 0.02183)) !important; /* 13 pt réels sur une feuille A4 de 794 px */
   line-height: 1.5 !important;
   text-align: justify;
   hyphens: auto;
@@ -867,3 +867,36 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .writer-tool-line { gap: 1px !important; }
 .home-ai-sheet { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 .home-ai-sheet p { hyphens: auto; }
+
+/* Papier réel A4 : vraie proportion, zoom à deux doigts, marges internes lisibles */
+.home-editor .home-paper-desk { overflow-x: auto; touch-action: pan-x pan-y; }
+.writer-paper-host { width: calc(100% * var(--writer-zoom, 1)) !important; max-width: calc(794px * var(--writer-zoom, 1)) !important; margin-inline: auto; align-self: flex-start; }
+.home-editor .home-paper-content .home-ai-sheet { --sheet-w: min(100cqw, calc(794px * var(--writer-zoom, 1))); max-width: none !important; }
+.home-editor :is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { --pad-x: calc(var(--sheet-w) * 0.119 * var(--writer-margin-scale, 1)); }
+@container (max-width: 599px) { .home-editor .home-paper-content .home-ai-sheet { min-height: calc(var(--sheet-w) * 297 / 210) !important; } }
+@media (max-width: 640px) { .home-editor .home-ai-sheet { min-height: 0; } .home-editor .home-paper-desk { padding-left: 4px !important; padding-right: 4px !important; } }
+.writer-internal-header, .writer-footer-row textarea, .writer-note-row textarea { display: block; resize: none; overflow: hidden; background: transparent; border: 0; outline: none; padding: 0; margin: 0; color: var(--paper-ink); font-family: 'Times New Roman', Times, serif; white-space: pre-wrap; overflow-wrap: anywhere; pointer-events: auto; field-sizing: content; }
+.writer-internal-header { top: 3.6%; left: 11.9%; width: 76.2%; height: auto; min-height: 1.4em; font-size: var(--margin-font, 11px); line-height: 1.3; text-align: center; }
+.writer-internal-header::placeholder, .writer-note-row textarea::placeholder { color: transparent; }
+.writer-internal-bottom { bottom: 3%; left: 11.9%; right: 11.9%; }
+.writer-footer-row { font-size: var(--margin-font, 11px); min-height: 1.4em; margin-top: 0.4em; }
+.writer-footer-row textarea { flex: 1; min-width: 0; width: 100%; text-align: center; font-size: inherit; line-height: 1.3; }
+.writer-internal-header:focus, .writer-footer-row textarea:focus { box-shadow: 0 1px 0 0 color-mix(in oklab, var(--paper-ink) 25%, transparent); }
+.writer-page-number { flex-shrink: 0; font-family: 'Times New Roman', Times, serif; }
+.writer-page-number.align-center { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; }
+.writer-footer-row { position: relative; }
+.writer-internal-notes { padding-bottom: 0.3em; background: transparent; }
+.writer-internal-notes hr { width: 33%; margin: 0 0 0.55em; border: 0; border-top: 0.75px solid var(--paper-ink); }
+.writer-note-row { display: flex; gap: 0.25em; align-items: flex-start; font-size: var(--note-font, 10px); line-height: 1.25; margin: 0 0 0.15em; }
+.writer-note-row a sup { font-size: 0.72em; top: 0; vertical-align: super; line-height: 1; }
+.writer-note-row textarea { flex: 1; font-size: inherit; line-height: 1.25; text-align: justify; }
+/* Affichage : mode nuit, protection des yeux, marques, révisions */
+.writer-night { --editor-desk: oklch(0.2 0.02 265); }
+.writer-night .home-ai-sheet { background-color: oklch(0.24 0.015 265) !important; --paper-ink: oklch(0.9 0.01 265); color: oklch(0.9 0.01 265) !important; }
+.writer-night .writer-margin-layer { --paper-ink: oklch(0.9 0.01 265); }
+.writer-eye-care .home-ai-sheet { background-color: oklch(0.95 0.04 95) !important; }
+.hide-comments .bersa-comment { background: none; border-bottom: 0; }
+.hide-revisions .bersa-track-ins { text-decoration: none; color: inherit; }
+.show-marks .home-ai-sheet p::after, .show-marks .home-ai-sheet :is(h1,h2,h3,h4)::after { content: "¶"; color: color-mix(in oklab, var(--primary) 55%, transparent); margin-left: 2px; font-weight: 400; }
+.writer-tts-on { outline: 2px solid var(--gold); }
+@media print { .writer-night .home-ai-sheet, .writer-eye-care .home-ai-sheet { background: #fff !important; color: #000 !important; } .show-marks .home-ai-sheet p::after { content: none; } }

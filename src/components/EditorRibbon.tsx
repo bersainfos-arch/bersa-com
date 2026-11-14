@@ -21,8 +21,16 @@ export type PageSettings = {
   margin: "Normales" | "Étroites" | "Larges";
   orientation: "Portrait" | "Paysage";
   format: "A4" | "A5" | "Letter" | "A3" | "Legal";
-  pageColor?: string;
+  pageColor?: string | undefined;
   pageNumbers?: boolean;
+  pageNumberAlign?: "left" | "center" | "right" | undefined;
+  pageNumberFormat?: "arabic" | "roman" | undefined;
+  nightMode?: boolean;
+  eyeCare?: boolean;
+  spellcheck?: boolean;
+  showComments?: boolean;
+  showRevisions?: boolean;
+  showMarks?: boolean;
   differentFirstPage?: boolean;
   zoom: string;
   ruler: boolean;
@@ -74,6 +82,10 @@ export function EditorRibbon({
   const scanInput = useRef<HTMLInputElement>(null);
   const objectInput = useRef<HTMLInputElement>(null);
   const [findText, setFindText] = useState("");
+  const [findOpen, setFindOpen] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const [readPage, setReadPage] = useState(1);
+  useEffect(() => () => { if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel(); }, []);
   const [replaceText, setReplaceText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,17 +122,18 @@ export function EditorRibbon({
     const position = editor.state.selection.from;
     insertFootnote(editor, "");
     const inserted = collectFootnotes(editor).find(item => item.pos === position);
-    setTimeout(() => { const el = document.querySelector<HTMLInputElement>(`input[data-fn-input="${inserted?.number}"]`); el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }, 350);
+    setTimeout(() => { const el = document.querySelector<HTMLTextAreaElement>(`[data-fn-input="${inserted?.number}"]`); el?.scrollIntoView({ block: "center" }); el?.focus({ preventScroll: true }); }, 350);
   };
   const editMargin = (part: "header" | "footer") => {
-    document.querySelector<HTMLInputElement>(part === "header" ? ".writer-internal-header" : ".writer-footer-row input")?.focus();
-    document.querySelector(part === "header" ? ".writer-internal-header" : ".writer-footer-row input")?.scrollIntoView({ block: "center" });
+    document.querySelector<HTMLTextAreaElement>(part === "header" ? ".writer-internal-header" : ".writer-footer-row textarea")?.focus();
+    document.querySelector(part === "header" ? ".writer-internal-header" : ".writer-footer-row textarea")?.scrollIntoView({ block: "center" });
   };
   const addBookmark = () => {
     if (editor.state.selection.empty) { toast.info("Sélectionnez le texte du signet"); return; }
     const name = window.prompt("Nom du signet :");
     if (name?.trim()) editor.chain().focus().setMark("bookmark", { name: name.trim() }).run();
   };
+  const goBookmark = (name: string) => { Array.from(editor.view.dom.querySelectorAll<HTMLElement>("[data-bookmark]")).find(el => el.dataset["bookmark"] === name)?.scrollIntoView({ block: "center", behavior: "smooth" }); };
   const seeBookmark = () => {
     const names = Array.from(editor.view.dom.querySelectorAll<HTMLElement>("[data-bookmark]")).map(el => el.dataset["bookmark"]);
     if (!names.length) { toast.info("Aucun signet dans le document"); return; }
@@ -158,6 +171,10 @@ export function EditorRibbon({
     } catch { toast.error("Plein écran non disponible sur cet appareil"); }
   };
   const tracking = isTracking(editor);
+  const pagesCount = Number(editor.view.dom.dataset["pages"]) || 1;
+  const goToPage = (n: number) => { const sheet = editor.view.dom; const h = sheet.clientWidth * (settings.orientation === "Paysage" ? 210 / 297 : 297 / 210); const top = sheet.getBoundingClientRect().top + window.scrollY + (n - 1) * (h + 16); const desk = sheet.closest(".home-paper-desk"); if (desk && desk.scrollHeight > desk.clientHeight) desk.scrollTo({ top: desk.scrollTop + sheet.getBoundingClientRect().top - desk.getBoundingClientRect().top + (n - 1) * (h + 16), behavior: "smooth" }); else window.scrollTo({ top, behavior: "smooth" }); };
+  const bookmarks = Array.from(new Set(Array.from(editor.view.dom.querySelectorAll<HTMLElement>("[data-bookmark]")).map(el => el.dataset["bookmark"] || "").filter(Boolean)));
+  const headingEls = Array.from(editor.view.dom.querySelectorAll<HTMLElement>("h1, h2, h3"));
   const comments = listComments(editor);
 
   const btn = (icon: any, label: string, onClick: () => void, active = false, title?: string) => (
@@ -343,7 +360,7 @@ export function EditorRibbon({
         {activeMenu === "Insérer" && <div className="writer-insert-tools">
           <div className="writer-insert-shortcuts">{row(<ImageIcon />, "Image", () => fileInputRef.current?.click())}{row(<TableIcon />, "Table", askTable)}{row(<FilePlus />, "Page vierge", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}{row(<FileText />, "Note de bas de page", note)}</div>
           {group("", <><label className="writer-select-row"><RectangleHorizontal /><span>Forme</span><select aria-label="Formes" value="" onChange={e => { if (e.target.value) editor.chain().focus().setImage({ src: shapeSrc(e.target.value), alt: e.target.value }).run(); }}><option value="">Choisir…</option>{Object.keys(SHAPES).map(n => <option key={n}>{n}</option>)}</select></label>{row(<RectangleHorizontal />, "Zone de texte", () => editor.chain().focus().insertContent({ type: "paragraph", attrs: { textBox: true }, content: [] }).run())}<Button variant="ghost" className="writer-tool-row" disabled={scanning} onClick={() => scanInput.current?.click()}><ScanText /><span>{scanning ? "Lecture en cours…" : "Scanner un Texte"}</span></Button>{row(<FolderOpen />, "Ressources du document", attach)}</>)}
-          {group("Pages", <>{row(<FilePlus />, "Page vierge en portrait", () => { setSettings(s => ({ ...s, orientation: "Portrait" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<FilePlus />, "Page vierge Paysage", () => { setSettings(s => ({ ...s, orientation: "Paysage" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<WrapText />, "Sauts", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}{row(<Hash />, "Numéro de page", () => setSettings(s => ({ ...s, pageNumbers: !s.pageNumbers })))}{row(<PanelTop />, "En-tête", () => editMargin("header"))}{row(<PanelTop />, "Pied de page", () => editMargin("footer"))}</>)}
+          {group("Pages", <>{row(<FilePlus />, "Page vierge en portrait", () => { setSettings(s => ({ ...s, orientation: "Portrait" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<FilePlus />, "Page vierge Paysage", () => { setSettings(s => ({ ...s, orientation: "Paysage" })); editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run(); })}{row(<WrapText />, "Sauts", () => editor.chain().focus().insertContent([{ type: "pageBreak" }, { type: "paragraph" }]).run())}<label className="writer-tool-row flex items-center gap-1 px-2 text-xs"><Hash className="h-4 w-4" /><span>Numéro de page</span><select aria-label="Position et format du numéro de page" className="ml-auto h-7 rounded border border-input bg-background px-1 text-xs" value={settings.pageNumbers ? `${settings.pageNumberAlign || "center"}-${settings.pageNumberFormat || "arabic"}` : "none"} onChange={e => { const v = e.target.value; if (v === "none") { setSettings(s => ({ ...s, pageNumbers: false })); return; } const [a, f] = v.split("-") as ["left" | "center" | "right", "arabic" | "roman"]; setSettings(s => ({ ...s, pageNumbers: true, pageNumberAlign: a, pageNumberFormat: f })); }}><option value="none">Aucun</option>{(["left", "center", "right"] as const).flatMap(a => (["arabic", "roman"] as const).map(f => <option key={`${a}-${f}`} value={`${a}-${f}`}>{a === "left" ? "Gauche" : a === "center" ? "Milieu" : "Droite"} · {f === "arabic" ? "1, 2, 3" : "i, ii, iii"}</option>))}</select></label>{row(<PanelTop />, "En-tête", () => editMargin("header"))}{row(<PanelTop />, "Pied de page", () => editMargin("footer"))}</>)}
           {group("Notes et objets", <>{row(<FileText />, "Note de fin", () => { const text = window.prompt("Texte de la note de fin :"); if (!text) return; editor.chain().focus().insertContent([{ type: "text", text: "*", marks: [{ type: "superscript" }] }]).run(); editor.chain().focus("end").insertContent([{ type: "horizontalRule" }, { type: "paragraph", content: [{ type: "text", text: `* ${text}` }] }]).run(); })}{row(<Signature />, "Signature", () => fileInputRef.current?.click())}{row(<Calendar />, "Date et heure", () => editor.chain().focus().insertContent(new Date().toLocaleString("fr-FR")).run())}{row(<Link2 />, "Lien", handleInsertLink)}{row(<BookmarkIcon />, "Insérer un signet", addBookmark)}{row(<BookmarkIcon />, "Voir le Signet", seeBookmark)}{row(<CaseSensitive />, "Lettrine", () => setParagraphLayout(editor, { dropCap: !editor.getAttributes("paragraph")["dropCap"] }))}{row(<PaperclipIcon />, "Insérer un objet à partir du fichier", () => objectInput.current?.click())}<label className="writer-select-row"><Type /><span>Symboles</span><select aria-label="Symboles" value="" onChange={e => { if (e.target.value) editor.chain().focus().insertContent(e.target.value).run(); }}><option value="">Ω</option>{SYMBOLS.map(c => <option key={c}>{c}</option>)}</select></label></>)}
           {group("Tableau", <>{row(<Columns />, "Fusionner les cellules", () => { if (!editor.chain().focus().mergeCells().run()) toast.info("Sélectionnez plusieurs cellules"); })}{row(<Columns />, "Fractionner la cellule", () => { if (!editor.chain().focus().splitCell().run()) toast.info("Sélectionnez une cellule fusionnée"); })}{row(<Plus />, "Ajouter une ligne", () => editor.chain().focus().addRowAfter().run())}{row(<Plus />, "Ajouter une colonne", () => editor.chain().focus().addColumnAfter().run())}{row(<Trash2 />, "Supprimer une ligne", () => editor.chain().focus().deleteRow().run())}{row(<Trash2 />, "Supprimer une colonne", () => editor.chain().focus().deleteColumn().run())}{row(<Trash2 />, "Supprimer le tableau", () => editor.chain().focus().deleteTable().run())}</>)}
         </div>}
@@ -439,89 +456,84 @@ export function EditorRibbon({
           </div>
         )}
 
-        {/* 6. RÉVISION */}
+        {/* 6. RÉVISER */}
         {activeMenu === "Révision" && (
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1">
-              <Input
-                placeholder="Rechercher..."
-                value={findText}
-                onChange={(e) => setFindText(e.target.value)}
-                className="h-8 w-28 text-xs"
-              />
-              <Input
-                placeholder="Remplacer par..."
-                value={replaceText}
-                onChange={(e) => setReplaceText(e.target.value)}
-                className="h-8 w-28 text-xs"
-              />
-              <Button type="button" size="sm" variant="secondary" className="h-8 text-xs" onClick={handleFindReplace}>
-                Remplacer
-              </Button>
-            </div>
-
+          <div className="flex flex-nowrap items-center gap-1">
+            {btn(<Hash className="w-4 h-4" />, "Nombre de mots", () => {
+              const text = editor.state.selection.empty ? editor.getText() : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, " ");
+              const words = (text.match(/[\p{L}\p{N}'’-]+/gu) || []).length;
+              const paras = editor.state.selection.empty ? editor.state.doc.childCount : text.split(/\n+/).filter(Boolean).length;
+              toast.info(`${words} mots · ${text.replace(/\s/g, "").length} caractères (sans espaces) · ${text.length} avec espaces · ${paras} paragraphes · ${pagesCount} page(s)`, { duration: 8000 });
+            })}
+            {btn(<BookOpen className="w-4 h-4" />, speaking ? "Arrêter la lecture" : "Lecture vocale", () => {
+              if (!("speechSynthesis" in window)) { toast.error("La lecture vocale n'est pas disponible sur cet appareil."); return; }
+              if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+              const text = editor.state.selection.empty ? editor.getText() : editor.state.doc.textBetween(editor.state.selection.from, editor.state.selection.to, " ");
+              if (!text.trim()) { toast.info("Le papier est vide."); return; }
+              const u = new SpeechSynthesisUtterance(text.slice(0, 30000)); u.lang = "fr-FR"; u.onend = () => setSpeaking(false); u.onerror = () => setSpeaking(false);
+              window.speechSynthesis.speak(u); setSpeaking(true);
+            }, speaking)}
+            {btn(<CheckSquare className="w-4 h-4" />, settings.spellcheck === false ? "Orthographe désactivée" : "Vérification orthographique", () => { const on = settings.spellcheck === false; editor.view.dom.setAttribute("spellcheck", String(on)); setSettings(s => ({ ...s, spellcheck: on })); toast.success(on ? "Les fautes sont soulignées sur le papier" : "Soulignement des fautes désactivé"); }, settings.spellcheck !== false)}
+            {btn(<Sparkles className="w-4 h-4 text-gold" />, "Correction & style BERSA", correct)}
             <div className="h-5 w-[1px] bg-border mx-1" />
-
-            {btn(<Sparkles className="w-4 h-4 text-gold" />, "Vérification & Style BERSA", correct)}
-            <div className="h-5 w-[1px] bg-border mx-1" />
-            {btn(<Plus className="w-4 h-4 text-amber-500" />, "Commentaire", () => {
+            {btn(<Plus className="w-4 h-4 text-amber-500" />, "Insérer un commentaire", () => {
               if (editor.state.selection.empty) { toast.info("Sélectionnez d'abord le passage à commenter."); return; }
               const text = window.prompt("Votre commentaire :"); if (!text) return;
-              editor.chain().focus().setMark("comment", { text }).run(); force(x => x + 1); toast.success("Commentaire ajouté");
+              const author = localStorage.getItem("bersa_review_author");
+              editor.chain().focus().setMark("comment", { text: author ? `${author} : ${text}` : text }).run(); force(x => x + 1); toast.success("Commentaire ajouté");
             })}
+            {btn(<Eye className="w-4 h-4" />, "Afficher les commentaires", () => setSettings(s => ({ ...s, showComments: s.showComments === false })), settings.showComments !== false)}
             {comments.length > 0 && (
               <select aria-label="Commentaires" className="h-8 px-1 text-xs rounded-md border border-input bg-background max-w-[160px]" value="" onChange={e => { const c = comments[Number(e.target.value)]; if (!c) return; if (window.confirm(`« ${c.text} »\n\nSupprimer ce commentaire ?`)) { removeComment(editor, c.from, c.to); force(x => x + 1); } else editor.chain().focus().setTextSelection({ from: c.from, to: c.to }).run(); }}>
                 <option value="">Commentaires ({comments.length})</option>
                 {comments.map((c, i) => <option key={i} value={i}>{c.text.slice(0, 40)}</option>)}
               </select>
             )}
-            {btn(<CheckSquare className="w-4 h-4 text-emerald-600" />, tracking ? "Suivi activé" : "Suivi des modifications", () => { setTracking(editor, !tracking); force(x => x + 1); toast.success(tracking ? "Suivi désactivé" : "Suivi activé : vos ajouts apparaissent en vert"); }, tracking)}
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            {btn(<CheckSquare className="w-4 h-4 text-emerald-600" />, "Suivi des modifications", () => { setTracking(editor, !tracking); force(x => x + 1); toast.success(tracking ? "Suivi désactivé" : "Suivi activé : vos ajouts apparaissent en vert"); }, tracking)}
+            {btn(<Eye className="w-4 h-4" />, "Afficher les révisions", () => setSettings(s => ({ ...s, showRevisions: s.showRevisions === false })), settings.showRevisions !== false)}
+            {btn(<Type className="w-4 h-4" />, "Afficher les marques", () => setSettings(s => ({ ...s, showMarks: !s.showMarks })), !!settings.showMarks)}
             {btn(<CheckSquare className="w-4 h-4" />, "Tout accepter", () => { const n = acceptAll(editor); toast.success(`${n} ajout(s) accepté(s)`); })}
             {btn(<Trash2 className="w-4 h-4 text-destructive" />, "Tout refuser", () => { const n = rejectAll(editor); toast.success(`${n} ajout(s) retiré(s)`); })}
+            {btn(<Signature className="w-4 h-4" />, "Modifier le nom d'utilisateur", () => { const v = window.prompt("Nom affiché dans vos commentaires :", localStorage.getItem("bersa_review_author") || ""); if (v === null) return; localStorage.setItem("bersa_review_author", v.trim()); toast.success(v.trim() ? `Nom enregistré : ${v.trim()}` : "Nom retiré"); })}
           </div>
         )}
 
-        {/* 7. AFFICHAGE */}
+        {/* 7. AFFICHER */}
         {activeMenu === "Afficher" && (
           <div className="flex flex-nowrap items-center gap-1">
-            <Button
-              type="button"
-              size="sm"
-              variant={settings.ruler ? "secondary" : "ghost"}
-              className="h-8 text-xs"
-              onClick={() => setSettings((s) => ({ ...s, ruler: !s.ruler }))}
-            >
-              {settings.ruler ? "Masquer la Règle" : "Afficher la Règle"}
-            </Button>
-
+            {btn(<Search className="w-4 h-4" />, "Rechercher et remplacer", () => setFindOpen(o => !o), findOpen)}
+            {findOpen && <>
+              <Input placeholder="Rechercher" value={findText} onChange={e => setFindText(e.target.value)} className="h-8 w-24 shrink-0 text-xs" />
+              <Input placeholder="Remplacer par" value={replaceText} onChange={e => setReplaceText(e.target.value)} className="h-8 w-24 shrink-0 text-xs" />
+              <Button type="button" size="sm" variant="secondary" className="h-8 shrink-0 text-xs" onClick={handleFindReplace}><Replace className="mr-1 h-3 w-3" />Remplacer</Button>
+            </>}
+            {btn(<Eye className="w-4 h-4" />, "Mode nuit", () => setSettings(s => ({ ...s, nightMode: !s.nightMode, eyeCare: false })), !!settings.nightMode)}
+            {btn(<Eye className="w-4 h-4 text-amber-600" />, "Protection des yeux", () => setSettings(s => ({ ...s, eyeCare: !s.eyeCare, nightMode: false })), !!settings.eyeCare)}
+            {btn(<RectangleHorizontal className="w-4 h-4" />, "Faire pivoter", () => setSettings(s => ({ ...s, orientation: s.orientation === "Portrait" ? "Paysage" : "Portrait" })), settings.orientation === "Paysage")}
             <div className="h-5 w-[1px] bg-border mx-1" />
-
-            <span className="text-xs text-muted-foreground font-medium">Zoom :</span>
-            {["75%", "100%", "125%"].map((z) => (
-              <Button
-                key={z}
-                type="button"
-                size="sm"
-                variant={settings.zoom === z ? "secondary" : "ghost"}
-                className="h-8 text-xs"
-                onClick={() => setSettings((s) => ({ ...s, zoom: z }))}
-              >
-                {z}
-              </Button>
+            <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">Lecture
+              <input type="range" min={1} max={Math.max(1, pagesCount)} value={Math.min(readPage, pagesCount)} aria-label="Progression de la lecture" className="w-20" onChange={e => { const n = Number(e.target.value); setReadPage(n); goToPage(n); }} />
+              <span className="rounded bg-muted px-1.5 py-0.5 font-semibold text-foreground">{Math.min(readPage, pagesCount)}</span>/{pagesCount}
+            </label>
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            <span className="shrink-0 text-xs text-muted-foreground">Fond</span>
+            {[["#ffffff", "Aucun (blanc)"], ["#1f2937", "Noir"], ["#9ca3af", "Gris"], ["#bfdbfe", "Bleu"], ["#fed7aa", "Pêche"], ["#fef3c7", "Crème"]].map(([c, n]) => (
+              <button key={c} type="button" aria-label={`Arrière-plan ${n}`} title={n} onClick={() => setSettings(s => ({ ...s, pageColor: c }))} className={`h-6 w-6 shrink-0 rounded-full border ${(settings.pageColor || "#ffffff") === c ? "ring-2 ring-primary" : "border-border"}`} style={{ background: c }} />
             ))}
-            
             <div className="h-5 w-[1px] bg-border mx-1" />
-
-            <Button
-              type="button"
-              size="sm"
-              variant={settings.viewMode === "lecture" ? "secondary" : "ghost"}
-              className="h-8 text-xs"
-              onClick={() => setSettings((s) => ({ ...s, viewMode: s.viewMode === "lecture" ? "page" : "lecture" }))}
-            >
-              <Eye className="w-4 h-4 mr-1" />
-              {settings.viewMode === "lecture" ? "Mode Page" : "Mode Lecture"}
-            </Button>
+            <select aria-label="Marges" value={settings.margin} onChange={e => setSettings(s => ({ ...s, margin: e.target.value as PageSettings["margin"] }))} className="h-8 shrink-0 rounded-md border border-input bg-background px-1 text-xs"><option value="Normales">Marges normales</option><option value="Étroites">Marges étroites</option><option value="Larges">Marges larges</option></select>
+            <select aria-label="Taille du papier" value={settings.format} onChange={e => setSettings(s => ({ ...s, format: e.target.value as PageSettings["format"] }))} className="h-8 shrink-0 rounded-md border border-input bg-background px-1 text-xs">{["A4", "A5", "Letter", "Legal", "A3"].map(f => <option key={f} value={f}>Papier {f}</option>)}</select>
+            <select aria-label="Orientation" value={settings.orientation} onChange={e => setSettings(s => ({ ...s, orientation: e.target.value as PageSettings["orientation"] }))} className="h-8 shrink-0 rounded-md border border-input bg-background px-1 text-xs"><option value="Portrait">Portrait</option><option value="Paysage">Paysage</option></select>
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            <select aria-label="Signets" value="" onChange={e => { if (e.target.value) goBookmark(e.target.value); }} className="h-8 shrink-0 max-w-[120px] rounded-md border border-input bg-background px-1 text-xs"><option value="">Signets ({bookmarks.length})</option>{bookmarks.map(b => <option key={b} value={b}>{b}</option>)}</select>
+            <select aria-label="Maquette du document" value="" onChange={e => { const el = headingEls[Number(e.target.value)]; el?.scrollIntoView({ block: "start", behavior: "smooth" }); }} className="h-8 shrink-0 max-w-[140px] rounded-md border border-input bg-background px-1 text-xs"><option value="">Maquette ({headingEls.length})</option>{headingEls.map((h, i) => <option key={i} value={i}>{"— ".repeat(Number(h.tagName[1]) - 1)}{(h.textContent || "").slice(0, 40)}</option>)}</select>
+            <select aria-label="Vignettes des pages" value="" onChange={e => { if (e.target.value) goToPage(Number(e.target.value)); }} className="h-8 shrink-0 rounded-md border border-input bg-background px-1 text-xs"><option value="">Vignettes</option>{Array.from({ length: pagesCount }, (_, i) => <option key={i} value={i + 1}>Page {i + 1}</option>)}</select>
+            <div className="h-5 w-[1px] bg-border mx-1" />
+            {iconOnly(<ZoomOut />, () => setSettings(s => ({ ...s, zoom: `${Math.max(50, (parseInt(s.zoom) || 100) - 10)}%` })), false, "Réduire")}
+            <span className="shrink-0 text-xs font-semibold">{settings.zoom}</span>
+            {iconOnly(<ZoomIn />, () => setSettings(s => ({ ...s, zoom: `${Math.min(300, (parseInt(s.zoom) || 100) + 10)}%` })), false, "Agrandir")}
+            {btn(<Layout className="w-4 h-4" />, "Règle", () => setSettings(s => ({ ...s, ruler: !s.ruler })), settings.ruler)}
             {btn(<ZoomIn className="w-4 h-4" />, isFull ? "Quitter le plein écran" : "Plein écran", toggleFull, isFull)}
           </div>
         )}
