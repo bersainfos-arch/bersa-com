@@ -14,7 +14,7 @@ import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import { ParagraphIndent } from "@/lib/writer-commands";
-import { WriterLayout, Bookmark } from "@/lib/writer-layout";
+import { WriterLayout, Bookmark, attachLayout, extractLayout } from "@/lib/writer-layout";
 import { WriterPaper } from "@/components/WriterPaper";
 import { toast } from "sonner";
 import { ArrowUp, Share2,
@@ -205,8 +205,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         } else if (id) {
           const { data, error } = await supabase.from("user_docs").select("content,title").eq("id", id).single();
           if (error || !data) throw new Error("Document indisponible.");
-          if (!cancelled) { editor.commands.setContent(sanitizeDocumentHtml(data.content)); setDocFileName(data.title); setCloudId(id); }
-        } else if (html) editor.commands.setContent(sanitizeDocumentHtml(html));
+          if (!cancelled) { loadWithLayout(data.content); setDocFileName(data.title); setCloudId(id); }
+        } else if (html) loadWithLayout(html);
       } catch (error) { toast.error(error instanceof Error ? error.message : "Ouverture impossible."); }
     };
     void open();
@@ -259,12 +259,19 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     editor.on("update", onUpdate);
     return () => { clearInterval(saveTimer); editor.off("update", onUpdate); };
   }, [editor]);
+  const layoutOf = () => ({ headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage, margin: settings.margin, orientation: settings.orientation });
+  const loadWithLayout = (raw: string) => {
+    if (!editor) return;
+    const { html: body, layout } = extractLayout(raw);
+    editor.commands.setContent(sanitizeDocumentHtml(body));
+    if (layout) setSettings(s => ({ ...s, ...layout } as PageSettings));
+  };
   // Enregistrement automatique en ligne (compte connecté), toutes les 20 secondes si le texte a changé
   const lastCloud = useRef("");
   useEffect(() => {
     if (!editor) return;
     const t = setInterval(async () => {
-      const html = editor.getHTML();
+      const html = attachLayout(editor.getHTML(), layoutOf());
       if (!editor.getText().trim() || html === lastCloud.current) return;
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) { setCloudState("Hors ligne : non connecté"); return; }
@@ -285,7 +292,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) { toast.error("Connectez-vous pour garder des versions."); return; }
     const stamp = new Date().toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-    const { error: e } = await supabase.from("user_docs").insert({ user_id: u.user.id, title: `${docFileName || "Document"} — version ${stamp}`.slice(0, 200), content: editor.getHTML(), category: "version", word_count: editor.getText().trim().split(/\s+/).length });
+    const { error: e } = await supabase.from("user_docs").insert({ user_id: u.user.id, title: `${docFileName || "Document"} — version ${stamp}`.slice(0, 200), content: attachLayout(editor.getHTML(), layoutOf()), category: "version", word_count: editor.getText().trim().split(/\s+/).length });
     if (e) toast.error("Version non enregistrée."); else toast.success("Version enregistrée");
   };
   const openVersions = async () => {
@@ -296,7 +303,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const restoreVersion = async (id: string) => {
     if (!editor || !window.confirm("Remplacer le texte actuel par cette version ?")) return;
     const { data } = await supabase.from("user_docs").select("content").eq("id", id).single();
-    if (data) { editor.commands.setContent(sanitizeDocumentHtml(data.content)); toast.success("Version restaurée"); setVersions(null); }
+    if (data) { loadWithLayout(data.content); toast.success("Version restaurée"); setVersions(null); }
   };
   const exportPdf = async () => {
     if (!editor) return;
@@ -547,7 +554,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const { data, error: issue } = await supabase.from("user_docs").insert({
       title: title.slice(0, 200),
       category: "general",
-      content: editor.getHTML(),
+      content: attachLayout(editor.getHTML(), layoutOf()),
       word_count: editor.getText().trim().split(/\s+/).filter(Boolean).length,
     }).select("id").single();
     if (issue || !data) { toast.error(issue?.message ?? "Sauvegarde impossible."); return; }
@@ -711,7 +718,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       await supabase.from("user_docs").insert({
         user_id: data.user.id,
         title: `${docFileName} (Copie)`,
-        content: editor.getHTML(),
+        content: attachLayout(editor.getHTML(), layoutOf()),
         word_count: editor.getText().split(/\s+/).filter(Boolean).length,
         category: "general"
       });
@@ -967,7 +974,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   {/* Espace de commande & Résultats ChatGPT / WPS Word */}
         <div
           hidden={!embedded && !assistantOpen}
-          className={`no-print home-editor-commands border border-primary/20 bg-secondary p-2 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
+          className={`no-print home-editor-commands border border-border bg-background p-2 shadow-xl backdrop-blur-md transition-all duration-150 ease-out ${
             embedded
               ? "mx-auto w-full max-w-[794px] rounded-2xl mb-2"
               : "fixed left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[min(768px,calc(100vw-3rem))] z-50 rounded-3xl"

@@ -853,3 +853,17 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .home-paper-content .home-ai-sheet .writer-explicit-gap { position: relative; margin: 0 calc(var(--pad-x) * -1) !important; width: calc(100% + var(--pad-x) * 2) !important; border: 0; background: transparent; }
 .home-editor .home-paper-content .home-ai-sheet .writer-explicit-gap::after { content: ""; position: absolute; left: 0; right: 0; top: calc(var(--gap-rest, 0px) + var(--pad-y)); height: 16px; background: var(--editor-desk); }
 @media print { .home-editor .home-paper-content .home-ai-sheet .writer-explicit-gap { height: 0 !important; break-before: page; } .writer-explicit-gap::after { display: none; } }
+
+/* Atelier : notes de bas de page façon Word, outils compacts, lecture confortable */
+.writer-internal-notes { padding-bottom: 2px; }
+.writer-internal-notes hr { width: 33%; margin: 0 0 3px; border: 0; border-top: 0.75px solid var(--paper-ink); }
+.writer-note-row { gap: 2px; align-items: flex-start; font-size: 10px; line-height: 1.2; margin: 0; }
+.writer-note-row a { text-decoration: none; line-height: 1; }
+.writer-note-row a sup { font-size: 0.75em; vertical-align: super; position: relative; top: -0.1em; }
+.writer-note-row input { font: inherit; padding: 0; height: auto; line-height: 1.2; }
+.writer-note-row input::placeholder { color: var(--muted-foreground); font-style: italic; }
+.writer-home-tools, .writer-insert-tools { gap: 2px !important; font-size: 11px; }
+.writer-home-tools button, .writer-home-tools label, .writer-home-tools span { font-size: 11px; }
+.writer-tool-line { gap: 1px !important; }
+.home-ai-sheet { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+.home-ai-sheet p { hyphens: auto; }

@@ -53,3 +53,18 @@ export function pageGeometry(width: number) {
   const height = width < 600 ? width * 2.1 : width * 297 / 210;
   return { height, stride: height + 16 };
 }
+/** Page layout (header/footer/numbering) saved alongside document HTML as a trailing comment. */
+export type SavedLayout = { headerText?: string; footerText?: string; pageNumbers?: boolean; differentFirstPage?: boolean; margin?: string; orientation?: string };
+const LAYOUT_RE = /<!--BERSA_LAYOUT:([A-Za-z0-9+/=]*)-->\s*$/;
+export function attachLayout(html: string, layout: SavedLayout): string {
+  const clean = html.replace(LAYOUT_RE, "");
+  const json = JSON.stringify(layout);
+  const b64 = btoa(unescape(encodeURIComponent(json)));
+  return `${clean}<!--BERSA_LAYOUT:${b64}-->`;
+}
+export function extractLayout(html: string): { html: string; layout: SavedLayout | null } {
+  const m = html.match(LAYOUT_RE);
+  if (!m) return { html, layout: null };
+  try { return { html: html.replace(LAYOUT_RE, ""), layout: JSON.parse(decodeURIComponent(escape(atob(m[1] ?? "")))) }; }
+  catch { return { html: html.replace(LAYOUT_RE, ""), layout: null }; }
+}
