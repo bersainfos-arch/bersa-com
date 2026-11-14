@@ -3,6 +3,8 @@ export function writerTextFit(width: number, orientation: "Portrait" | "Paysage"
   const pageWidth = orientation === "Paysage" ? 1123 : 794;
   const multiplier = margin === "Étroites" ? 0.5 : margin === "Larges" ? 1.3 : 1;
   const padding = 794 * 0.119 * multiplier;
-  const scale = Math.max(1, width - 16) / (pageWidth - 2 * padding);
-  return { scale, scrollLeft: padding * scale, pageWidth, padding };
+  const availableWidth = Math.max(280, width - 16);
+  // S'ajuste parfaitement à l'écran sur mobile/tablette sans déborder, plafonné à 100 % sur grand écran
+  const scale = availableWidth < pageWidth ? availableWidth / pageWidth : 1;
+  return { scale, scrollLeft: 0, pageWidth, padding };
 }
