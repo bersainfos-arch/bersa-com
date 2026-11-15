@@ -210,7 +210,7 @@
   line-height: 1.15 !important;
   text-align: justify !important;
   text-justify: inter-word;
-  hyphens: auto;
+  hyphens: none !important; word-break: normal; overflow-wrap: break-word;
   outline: none;
 }
 
@@ -286,7 +286,7 @@
   height: 24px !important;
   margin: 24px 0 !important;
   margin-inline: 0 !important;
-  width: 50% !important;
+  width: 100% !important;
   box-sizing: border-box !important;
   background: #e2e8f0 !important;
   border-top: 1px dashed #cbd5e1 !important;
@@ -338,7 +338,7 @@
   }
   .home-ai-sheet,
   .a4-page {
-    width: 50% !important;
+    width: 100% !important;
     min-height: auto !important;
     padding: 20px 14px !important;
     font-size: 16px !important;
@@ -510,7 +510,7 @@
   .a4-page-sheet {
     box-shadow: none !important;
     padding: 0 !important;
-    width: 50% !important;
+    width: 100% !important;
     min-height: 0 !important;
     page-break-after: always;
     break-after: page;
@@ -663,7 +663,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
   font-size: max(7px, calc(var(--sheet-w) * 0.02183)) !important; /* 13 pt réels sur une feuille A4 de 794 px */
   line-height: 1.5 !important;
   text-align: justify;
-  hyphens: auto;
+  hyphens: none !important; word-break: normal; overflow-wrap: break-word;
   overflow-wrap: break-word;
   border-radius: 0;
   background-image:
@@ -731,7 +731,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
   position: relative !important;
   height: calc(var(--pad-y) * 2 + 16px) !important;
   margin: 0 calc(var(--pad-x) * -1) !important;
-  width: calc(50% + var(--pad-x) * 2) !important;
+  width: calc(100% + var(--pad-x) * 2) !important;
   max-width: none !important;
   background: transparent !important;
   border: 0 !important;
@@ -866,7 +866,7 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .writer-home-tools button, .writer-home-tools label, .writer-home-tools span { font-size: 11px; }
 .writer-tool-line { gap: 1px !important; }
 .home-ai-sheet { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-.home-ai-sheet p { hyphens: auto; }
+.home-ai-sheet p { hyphens: none !important; word-break: normal; overflow-wrap: break-word; }
 
 /* Papier réel A4 : vraie proportion, zoom à deux doigts, marges internes lisibles */
 .home-editor .home-paper-desk { overflow-x: auto; touch-action: pan-x pan-y; }
@@ -908,15 +908,16 @@ img, video, canvas, iframe, table { max-width: 100%; }
    Le zoom (boutons ou deux doigts) agrandit ou réduit ; le bureau défile horizontalement. */
 .home-editor .bersa-writer-workspace .writer-paper-host,
 .home-editor .bersa-writer-workspace .home-paper-content {
-  width: calc(794px * var(--writer-zoom, 1)) !important;
-  max-width: none !important;
-  min-width: calc(794px * var(--writer-zoom, 1)) !important;
-  margin-inline: auto;
+  width: min(calc(100vw - 16px), calc(794px * var(--writer-zoom, 1))) !important;
+  max-width: calc(794px * var(--writer-zoom, 1)) !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
 }
 .home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet {
-  --sheet-w: calc(794px * var(--writer-zoom, 1));
+  --sheet-w: min(calc(100vw - 16px), calc(794px * var(--writer-zoom, 1)));
   width: var(--sheet-w) !important;
-  max-width: none !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
   min-height: calc(var(--sheet-w) * 297 / 210) !important;
 }
 .home-editor .bersa-writer-workspace:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet {
@@ -930,3 +931,5 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .bersa-writer-workspace .writer-paper-host,
 .home-editor .bersa-writer-workspace .home-paper-content { margin-inline: 0 !important; }
 .home-editor .bersa-writer-workspace.orientation-Paysage:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { --pad-x: calc(794px * var(--writer-zoom, 1) * 0.119 * var(--writer-margin-scale, 1)); }
+
+.writer-margin-layer, .writer-page-margins { max-width: 100% !important; }
