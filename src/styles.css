@@ -933,3 +933,17 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .bersa-writer-workspace.orientation-Paysage:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { --pad-x: calc(794px * var(--writer-zoom, 1) * 0.119 * var(--writer-margin-scale, 1)); }
 
 .writer-margin-layer, .writer-page-margins { max-width: 100% !important; }
+
+/* Réglages Word/WPS : 12 pt, interligne 1,15, appels de note collés, marges estompées hors édition */
+.home-editor .bersa-writer-workspace .home-ai-sheet { font-size: calc(var(--sheet-w, 794px) * 0.02015) !important; line-height: var(--writer-line, 1.15) !important; }
+.home-editor .bersa-writer-workspace .writer-paper-host,
+.home-editor .bersa-writer-workspace .home-paper-content { width: calc(794px * var(--writer-zoom, 1)) !important; max-width: none !important; min-width: calc(794px * var(--writer-zoom, 1)) !important; }
+.home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet { --sheet-w: calc(794px * var(--writer-zoom, 1)); max-width: none !important; }
+.footnote-ref { font-size: 0.7em !important; vertical-align: super !important; line-height: 0 !important; padding: 0 !important; margin-left: 0.5px; color: inherit; }
+.footnote-ref a.footnote-link, .footnote-ref a { text-decoration: none !important; color: inherit !important; padding: 0 !important; }
+.writer-internal-notes { margin-inline: -5%; }
+.writer-internal-notes hr { width: 33% !important; margin-left: 5% !important; }
+.writer-note-row textarea { text-align: left; }
+.writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 0.5; transition: opacity .2s ease; }
+.writer-internal-header:focus, .writer-footer-row:focus-within, .writer-internal-notes:focus-within { opacity: 1; }
+@media print { .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 1; } }

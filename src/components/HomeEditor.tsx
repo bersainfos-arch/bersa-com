@@ -71,7 +71,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [files, setFiles] = useState<Attachment[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const openFileInput = useRef<HTMLInputElement>(null);
-  const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "" });
+  const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "", lineSpacing: "1.15" });
   const deskRef = useRef<HTMLDivElement>(null);
   const [fitText, setFitText] = useState(true);
   const fitPaper = () => {
