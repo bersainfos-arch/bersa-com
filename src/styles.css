@@ -947,3 +947,25 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 0.5; transition: opacity .2s ease; }
 .writer-internal-header:focus, .writer-footer-row:focus-within, .writer-internal-notes:focus-within { opacity: 1; }
 @media print { .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 1; } }
+
+/* Papier Word/WPS réglementaire : marges 2,5 cm, coins nets, aucune ligne parasite, feuille rigide A4 */
+.home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet {
+  --pad-x: calc(var(--sheet-w) * 0.1189);
+  --pad-y: calc(var(--sheet-w) * 0.1189);
+  padding: var(--pad-y) var(--pad-x) !important;
+  background-image: none !important;
+  border-radius: 0 !important;
+  letter-spacing: 0.012em;
+  word-spacing: 0.04em;
+  overflow-wrap: break-word !important;
+  overflow-x: hidden;
+}
+.home-editor .bersa-writer-workspace .home-ai-sheet p { margin: 0 0 0.7em !important; }
+.home-ai-sheet::before, .home-editor .home-paper-content .home-ai-sheet .auto-page-gap::before { display: none !important; content: none !important; }
+.home-editor .home-paper-content .home-ai-sheet .auto-page-gap::after { box-shadow: none !important; border: 0 !important; }
+.home-editor .home-paper-content .home-ai-sheet .auto-page-gap { border: 0 !important; }
+@container (max-width: 599px) { .home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet { min-height: calc(var(--sheet-w) * 297 / 210) !important; height: auto; } }
+/* Notes alignées exactement sur la marge gauche du texte */
+.writer-internal-notes { margin-inline: 0 !important; }
+.writer-internal-notes hr { margin-left: 0 !important; }
+.writer-note-row { align-items: baseline !important; }

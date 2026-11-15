@@ -72,7 +72,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const openFileInput = useRef<HTMLInputElement>(null);
   const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "", lineSpacing: "1.15" });
-  const deskRef = useRef<HTMLDivElement>(null);
+  const deskRef = useRef<HTMLDivElement | null>(null);
+  const [deskEl, setDeskEl] = useState<HTMLDivElement | null>(null);
   const [fitText, setFitText] = useState(true);
   const fitPaper = () => {
     const desk = deskRef.current;
@@ -202,10 +203,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
     };
     applyFit();
+    const late = window.setTimeout(applyFit, 400);
     const resize = new ResizeObserver(applyFit);
     resize.observe(desk);
-    return () => resize.disconnect();
-  }, [editor, fitText, settings.orientation, settings.margin]);
+    return () => { resize.disconnect(); window.clearTimeout(late); };
+  }, [editor, deskEl, fitText, settings.orientation, settings.margin]);
 
   useEffect(() => {
     const sheet = editor?.view.dom;
@@ -318,7 +320,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     desk.addEventListener("touchcancel", onEnd);
     desk.addEventListener("wheel", onWheel, { passive: false });
     return () => { desk.removeEventListener("touchstart", onStart); desk.removeEventListener("touchmove", onMove); desk.removeEventListener("touchend", onEnd); desk.removeEventListener("touchcancel", onEnd); desk.removeEventListener("wheel", onWheel); };
-  }, [editor]);
+  }, [editor, deskEl]);
   const layoutOf = () => ({ headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage, margin: settings.margin, orientation: settings.orientation, pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat });
   const loadWithLayout = (raw: string) => {
     if (!editor) return;
@@ -987,7 +989,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           </div>
         )}
         <div
-          ref={deskRef}
+          ref={el => { deskRef.current = el; setDeskEl(el); }}
           style={{ ["--writer-line" as string]: settings.lineSpacing || "1.6", ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", ["--writer-zoom" as string]: String((parseFloat(settings.zoom) || 100) / 100) } as React.CSSProperties}
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${settings.eyeCare ? " writer-eye-care" : ""}${settings.showComments === false ? " hide-comments" : ""}${settings.showRevisions === false ? " hide-revisions" : ""}${settings.showMarks ? " show-marks" : ""}`}
           onClick={e => {
