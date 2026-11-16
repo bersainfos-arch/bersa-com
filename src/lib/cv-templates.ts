@@ -36,6 +36,18 @@ export interface CvData {
   hobbies: string[];
   experiences: CvExperience[];
   education: CvEducation[];
+  // BERSA Writer (optionnels : les modèles existants restent identiques)
+  cvTitle?: string;
+  titleAsHeading?: boolean;
+  photoShape?: "square" | "rounded" | "circle";
+  postalCode?: string;
+  commune?: string;
+  city?: string;
+  extra?: Record<string, string>;
+  signature?: string;
+  sections?: { key: string; title: string; content: string }[];
+  customColor?: string;
+  customFont?: string;
 }
 
 export const CV_MODEL_PHOTOS = [
@@ -107,7 +119,12 @@ const classic: CvTemplate[] = Array.from({ length: 20 }, (_, i) => ({
   defaultPhoto: CV_MODEL_PHOTOS[i % CV_MODEL_PHOTOS.length]!,
 }));
 
-export const CV_TEMPLATES: CvTemplate[] = [...modern, ...classic];
+export const TEMPLATE_NO_PHOTO: CvTemplate = {
+  id: "cv-sans-photo", name: "Épuré sans photo", category: "Classiques", layout: "classique-filet",
+  primary: "#1e3a8a", accent: "#1e3a8a", font: "Calibri", premium: false, defaultPhoto: "",
+};
+
+export const CV_TEMPLATES: CvTemplate[] = [TEMPLATE_NO_PHOTO, ...modern, ...classic];
 
 // Photo portrait studio élégante sur fond blanc éclatant, conçue pour être remplacée d'un clic
 export const PLACEHOLDER_PHOTO =
@@ -266,10 +283,15 @@ function parts(d: CvData, t?: CvTemplate): Parts {
     { label: "Date de naissance", value: d.birth },
     { label: "Permis", value: d.license },
     { label: "Site web", value: d.website },
-  ].filter((c) => c.value.trim());
+    { label: "Ville", value: [d.commune, d.city, d.postalCode].filter((x) => x?.trim()).join(", ") },
+    ...Object.entries(d.extra ?? {}).map(([label, value]) => ({ label, value })),
+  ].filter((c) => (c.value ?? "").trim());
 
   // Priorité : 1) Photo de l'utilisateur si renseignée ; 2) Photo modèle du CV ; 3) Silhouette neutre
-  const effectivePhoto = d.showPhoto
+  const noPhotoModel = t?.id === TEMPLATE_NO_PHOTO.id;
+  const effectivePhoto = !d.showPhoto ? "" : noPhotoModel
+    ? (d.photo && d.photo !== PLACEHOLDER_PHOTO ? d.photo : "")
+    : d.showPhoto
     ? (d.photo && d.photo !== PLACEHOLDER_PHOTO
         ? d.photo
         : (t?.defaultPhoto || d.photo || PLACEHOLDER_PHOTO))
@@ -281,13 +303,13 @@ function parts(d: CvData, t?: CvTemplate): Parts {
 function experiences(d: CvData, t: CvTemplate, dateCol = true, roleColor = "#111") {
   return d.experiences.map((e) => dateCol
     ? `<div style="display:flex;gap:14px;margin:0 0 10px"><div style="width:78px;flex-shrink:0;font-size:8.5pt;color:#6b7280">${esc(e.start)}<br>${esc(e.end)}</div><div style="flex:1"><div style="font-weight:bold;text-transform:uppercase;font-size:9.5pt;color:${roleColor}">${esc(e.role)}${e.company ? " - " + esc(e.company) : ""}</div><div style="color:#4b5563">${rich(e.description)}</div></div></div>`
-    : `<div style="margin:0 0 10px"><div style="font-size:8.5pt;color:#6b7280">${esc(e.start)} - ${esc(e.end)}</div><div style="font-weight:bold;font-size:10pt;color:${roleColor}">${esc(e.role)}</div><div style="font-weight:600;font-size:9.5pt;color:${t.accent}">${esc(e.company)}</div><div style="color:#4b5563">${rich(e.description)}</div></div>`).join("");
+    : `<div style="margin:0 0 10px"><div style="font-size:8.5pt;color:#6b7280">${esc(formatCvPeriod(e.start, e.end))}</div><div style="font-weight:bold;font-size:10pt;color:${roleColor}">${esc(e.role)}</div><div style="font-weight:600;font-size:9.5pt;color:${t.accent}">${esc(e.company)}</div><div style="color:#4b5563">${rich(e.description)}</div></div>`).join("");
 }
 
 function education(d: CvData, t: CvTemplate, dateCol = true) {
   return d.education.map((e) => dateCol
     ? `<div style="display:flex;gap:14px;margin:0 0 8px"><div style="width:78px;flex-shrink:0;font-size:8.5pt;color:#6b7280">${esc(e.start)}<br>${esc(e.end)}</div><div style="flex:1"><div style="font-weight:bold;font-size:9.5pt">${esc(e.degree)}</div><div style="font-size:9pt;color:#4b5563;text-transform:uppercase">${esc(e.school)}</div>${rich(e.description)}</div></div>`
-    : `<div style="margin:0 0 8px"><div style="font-size:8.5pt;color:#6b7280">${esc(e.start)}${e.end ? " - " + esc(e.end) : ""}</div><div style="font-weight:bold;font-size:10pt">${esc(e.degree)}</div><div style="font-weight:600;font-size:9.5pt;color:${t.accent}">${esc(e.school)}</div>${rich(e.description)}</div>`).join("");
+    : `<div style="margin:0 0 8px"><div style="font-size:8.5pt;color:#6b7280">${esc(formatCvPeriod(e.start, e.end))}</div><div style="font-weight:bold;font-size:10pt">${esc(e.degree)}</div><div style="font-weight:600;font-size:9.5pt;color:${t.accent}">${esc(e.school)}</div>${rich(e.description)}</div>`).join("");
 }
 
 function contactList(p: Parts, labelColor: string, valueColor: string, align = "left") {
@@ -298,7 +320,25 @@ function sideBlocks(d: CvData, p: Parts, h: (s: string) => string, labelColor: s
   return `${withContact && p.contacts.length ? h("Profil") + contactList(p, labelColor, valueColor) : ""}${d.skills.length ? h("Compétences") + items(d.skills) : ""}${d.languages.length ? h("Langues") + items(d.languages) : ""}${d.hobbies.length ? h("Loisirs") + items(d.hobbies) : ""}`;
 }
 
-export function renderCvHtml(t: CvTemplate, d: CvData): string {
+export function formatCvPeriod(start: string, end: string): string {
+  return [start, end].map((x) => (x ?? "").trim()).filter(Boolean).join(" \u2014 ");
+}
+
+const SHAPE_RADIUS = { square: "0", rounded: "14px", circle: "50%" } as const;
+
+/** Applique couleur, police, forme de photo et rubriques ajoutées sans modifier le modèle d'origine. */
+export function renderCvHtml(t0: CvTemplate, d: CvData): string {
+  const t: CvTemplate = { ...t0, primary: d.customColor || t0.primary, accent: d.customColor || t0.accent, font: d.customFont || t0.font };
+  let html = renderBase(t, d);
+  if (d.photoShape) html = html.replace(/(<img src="[^"]*" alt="" style="[^"]*?)border-radius:[^;]*;/g, `$1border-radius:${SHAPE_RADIUS[d.photoShape]};`);
+  const blocks = (d.sections ?? []).filter((x) => x.content.trim());
+  if (!blocks.length && !d.signature?.trim()) return html;
+  const h = (s: string) => `<div style="font-size:12pt;font-weight:bold;text-transform:uppercase;color:${t.primary};border-bottom:1.5px solid ${t.primary};padding-bottom:4px;margin:16px 0 8px">${esc(s)}</div>`;
+  const extra = blocks.map((b) => h(b.title) + rich(b.content)).join("") + (d.signature?.trim() ? `<div style="margin-top:28px;text-align:right;font-style:italic">${esc(d.signature)}</div>` : "");
+  return `<div style="width:794px;background:#fff">${html}<div style="font-family:'${t.font}',Arial,sans-serif;font-size:9.5pt;color:#1f2937;line-height:1.45;padding:10px 48px 40px">${extra}</div></div>`;
+}
+
+function renderBase(t: CvTemplate, d: CvData): string {
     const p = parts(d, t);
   const base = `font-family:'${t.font}',Arial,sans-serif;font-size:9.5pt;color:#1f2937;line-height:1.45;background:#fff;width:794px;min-height:1123px;box-sizing:border-box;overflow:hidden;`;
   const img = (w: number, h: number, radius = "0", extra = "") =>
