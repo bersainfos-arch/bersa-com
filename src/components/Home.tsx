@@ -35,10 +35,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CV_MODEL_PHOTOS, CV_TEMPLATES, renderCvHtml, sampleCvFor } from "@/lib/cv-templates";
+import { renderCvHtml, sampleCvFor } from "@/lib/cv-templates";
+import { CV_SLIDE_INTERVAL, HOME_CV_TEMPLATES } from "@/lib/cv-catalog";
 import { CvPreview } from "@/components/CvPreview";
 
-const HOME_CV_SLIDES = CV_MODEL_PHOTOS.map((_, i) => { const t = CV_TEMPLATES[i]!; return renderCvHtml(t, sampleCvFor(t)); });
+const HOME_CV_SLIDES = HOME_CV_TEMPLATES.map(t => renderCvHtml(t, sampleCvFor(t)));
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -130,8 +131,8 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
   const [cvSlideIndex, setCvSlideIndex] = useState(0);
   useEffect(() => {
     const timer = setInterval(() => {
-      setCvSlideIndex((prev) => (prev + 1) % CV_MODEL_PHOTOS.length);
-    }, 5000);
+      setCvSlideIndex((prev) => (prev + 1) % HOME_CV_SLIDES.length);
+    }, CV_SLIDE_INTERVAL);
     return () => clearInterval(timer);
   }, []);
   const [docSlide, setDocSlide] = useState(0);

@@ -124,7 +124,7 @@ export const TEMPLATE_NO_PHOTO: CvTemplate = {
   primary: "#1e3a8a", accent: "#1e3a8a", font: "Calibri", premium: false, defaultPhoto: "",
 };
 
-export const CV_TEMPLATES: CvTemplate[] = [TEMPLATE_NO_PHOTO, ...modern, ...classic];
+export const CV_TEMPLATES: CvTemplate[] = [...modern.slice(0, 6), TEMPLATE_NO_PHOTO, ...modern.slice(6), ...classic];
 
 // Photo portrait studio élégante sur fond blanc éclatant, conçue pour être remplacée d'un clic
 export const PLACEHOLDER_PHOTO =
@@ -328,9 +328,11 @@ const SHAPE_RADIUS = { square: "0", rounded: "14px", circle: "50%" } as const;
 
 /** Applique couleur, police, forme de photo et rubriques ajoutées sans modifier le modèle d'origine. */
 export function renderCvHtml(t0: CvTemplate, d: CvData): string {
-  const t: CvTemplate = { ...t0, primary: d.customColor || t0.primary, accent: d.customColor || t0.accent, font: d.customFont || t0.font };
-  let html = renderBase(t, d);
-  if (d.photoShape) html = html.replace(/(<img src="[^"]*" alt="" style="[^"]*?)border-radius:[^;]*;/g, `$1border-radius:${SHAPE_RADIUS[d.photoShape]};`);
+  const safeColor = /^#[0-9a-f]{6}$/i.test(d.customColor || '') ? d.customColor : undefined;
+  const safeFont = /^[a-z ]+$/i.test(d.customFont || '') ? d.customFont : undefined;
+  const t: CvTemplate = { ...t0, primary: safeColor || t0.primary, accent: safeColor || t0.accent, font: safeFont || t0.font };
+  let html = renderBase(t, d.titleAsHeading === false ? { ...d, title: '' } : d);
+  if (d.photoShape) html = html.replace(/(<img src="[^"]*" alt="" style="[^"\n]*?)border-radius:[^;]*;/g, (_, prefix: string) => `${prefix}border-radius:${SHAPE_RADIUS[d.photoShape ?? 'square']};${d.photoShape === 'circle' ? 'aspect-ratio:1;height:auto;' : ''}`);
   const blocks = (d.sections ?? []).filter((x) => x.content.trim());
   if (!blocks.length && !d.signature?.trim()) return html;
   const h = (s: string) => `<div style="font-size:12pt;font-weight:bold;text-transform:uppercase;color:${t.primary};border-bottom:1.5px solid ${t.primary};padding-bottom:4px;margin:16px 0 8px">${esc(s)}</div>`;

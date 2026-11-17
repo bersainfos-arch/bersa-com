@@ -17,6 +17,6 @@ export function CvPreview({ html, compact = false }: { html: string; compact?: b
     return () => observer.disconnect();
   }, [html]);
   return <div ref={container} className="w-full min-w-0 overflow-hidden" style={{ height: size.height }}>
-    <div ref={paper} className={`w-[794px] origin-top-left ${compact ? "[&>div]:!min-h-0 [&>div>div>div]:!min-h-0" : ""}`} style={{ transform: `scale(${size.scale})` }} dangerouslySetInnerHTML={{ __html: html }} />
+    <div data-cv-paper ref={paper} className={`w-[794px] origin-top-left ${compact ? "[&>div]:!min-h-0 [&>div>div>div]:!min-h-0" : ""}`} style={{ transform: `scale(${size.scale})` }} dangerouslySetInnerHTML={{ __html: html }} />
   </div>;
 }

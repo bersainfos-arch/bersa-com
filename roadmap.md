@@ -1,4 +1,9 @@
 # BERSA roadmap (reconstruction)
+## Demande actuelle : BERSA Writer CV
+- [ ] Intégrer personnalisation, champs, rubriques et aperçu mobile sans modifier les modèles existants
+- [ ] Placer les commandes de sauvegarde et téléchargement au-dessus et en dessous de l’aperçu
+- [ ] Mettre le modèle sans photo en septième position et l’exclure du diaporama de cinq secondes
+- [ ] Tester saisie, sauvegarde, export et vérifier les deux alertes de lecture de fichiers
 ## Current request: workshop opening fit and visible controls
 - [ ] Fit real workshop text to screen on opening without changing document margins
 - [ ] Expose revision/reference tabs and fit reset; correct orientation geometry and zoom limits

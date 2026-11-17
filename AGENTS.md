@@ -35,6 +35,7 @@
 - Export PDF as separate measured pages with notes bound to their reference page, avoiding a single tall bitmap that cuts page boundaries.
 - Home and the template catalogue share Home, with category ordering in home-catalog; document actions fetch the selected document on demand to avoid eager content downloads.
 - CV previews scale through ResizeObserver to the available width; exported A4 markup stays unchanged so mobile sizing cannot alter document forms.
+- Keep CV customization in browser-safe controls and save cropped photos as image data; preview-local export actions must not appear over authentication forms or mutate catalog assets.
 - Keep DocumentViewer isolated from HomeEditor: paginate typed blocks at fixed reference A4 size and apply browser-only viewport gestures, so reading zoom cannot change document layout or existing workspaces.
 - Scope reader viewport restrictions to its example route head; TanStack Start has no index.html and global zoom restrictions would affect unrelated pages.
 - Fit HomeEditor to its measured text width on opening and expose a reset command; keep saved margins intact and use orientation-aware geometry for pagination and margin overlays.

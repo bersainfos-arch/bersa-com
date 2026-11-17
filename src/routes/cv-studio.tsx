@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import { ArrowDown, ArrowLeft, ArrowUp, Crown, Download, FileText, ImagePlus, Plus, Printer, Save, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Crown, Download, FileText, ImagePlus, Plus, Printer, Save, Trash2, Eye, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { CvPersonalization, CvExtraSections } from "@/components/CvPersonalization";
 import { CvPreview } from "@/components/CvPreview";
 import {
   CV_TEMPLATES, EMPTY_CV, sampleCvFor, renderCvHtml,
@@ -13,7 +14,7 @@ import {
 export const Route = createFileRoute("/cv-studio")({
   head: () => ({
     meta: [
-      { title: "Modèles de CV éditables | BERSA" },
+      { title: "BERSA Writer — CV personnalisables" },
       { name: "description", content: "Modèles de CV professionnels : modifiez librement chaque information et exportez en Word ou PDF." },
       { property: "og:title", content: "Modèles de CV BERSA" },
       { property: "og:description", content: "Modèles de CV professionnels, éditables et exportables en Word ou PDF." },
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/cv-studio")({
 });
 
 const STORE = "bersa-cv-data-v2";
-const inputCls = "mt-1 w-full rounded-md border bg-background p-2 text-sm text-foreground";
+const inputCls = "mt-1 w-full rounded-md border bg-muted p-2 text-sm text-foreground";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -82,6 +83,11 @@ function StringList({ label, items, onChange }: { label: string; items: string[]
 
 function CvStudio() {
   const [cat, setCat] = useState<string>("Tous");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const [tier, setTier] = useState<"all" | "free" | "premium">("all");
   const [sel, setSel] = useState<CvTemplate | null>(null);
   const [data, setData] = useState<CvData>(EMPTY_CV);
@@ -89,7 +95,16 @@ function CvStudio() {
   useEffect(() => {
     const saved = localStorage.getItem(STORE);
     if (saved) try { setData({ ...EMPTY_CV, ...JSON.parse(saved) }); } catch { /* ignore */ }
+    const template = localStorage.getItem(STORE + "-template");
+    if (template) setSel(CV_TEMPLATES.find(t => t.id === template) || null);
+    setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const timer = window.setTimeout(() => { try { localStorage.setItem(STORE, JSON.stringify(data)); if (sel) localStorage.setItem(STORE + "-template", sel.id); } catch { /* explicit save reports storage errors */ } }, 600);
+    return () => clearTimeout(timer);
+  }, [data, sel, ready]);
 
   const set = <K extends keyof CvData>(k: K, v: CvData[K]) => setData((d) => ({ ...d, [k]: v }));
 
@@ -117,29 +132,70 @@ function CvStudio() {
     a.href = URL.createObjectURL(new Blob(["\ufeff" + doc], { type: "application/msword" }));
     a.download = `${fileName}.doc`; a.click(); URL.revokeObjectURL(a.href);
   };
-  const exportPdf = () => {
-    const w = window.open("", "_blank");
-    if (!w) { toast.error("Autorisez les fenêtres pour exporter en PDF."); return; }
-    w.document.write(`<html><head><title>${fileName}</title><style>@page{size:A4;margin:0}body{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>${html}</body></html>`);
-    w.document.close(); w.focus(); setTimeout(() => w.print(), 400);
+  const exportPdf = async () => {
+    if (busy || !previewRef.current) return;
+    const paper = previewRef.current.querySelector<HTMLElement>('[data-cv-paper]');
+    if (!paper) return;
+    setBusy(true);
+    const clone = paper.cloneNode(true) as HTMLElement;
+    clone.style.transform = 'none'; clone.style.position = 'fixed'; clone.style.left = '-10000px'; clone.style.top = '0';
+    document.body.appendChild(clone);
+    try {
+      const [{ toCanvas }, { jsPDF }] = await Promise.all([import('html-to-image'), import('jspdf')]);
+      await document.fonts.ready;
+      await Promise.all(Array.from(clone.querySelectorAll('img')).map(img => img.decode().catch(() => {})));
+      const canvas = await toCanvas(clone, { pixelRatio: 2, width: 794, height: clone.scrollHeight });
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pageHeight = Math.round(canvas.width * 297 / 210);
+      for (let y = 0; y < canvas.height; y += pageHeight) {
+        if (y) pdf.addPage();
+        const page = document.createElement('canvas'); page.width = canvas.width; page.height = Math.min(pageHeight, canvas.height - y);
+        const ctx = page.getContext('2d'); if (!ctx) throw new Error('canvas');
+        ctx.drawImage(canvas, 0, y, page.width, page.height, 0, 0, page.width, page.height);
+        pdf.addImage(page.toDataURL('image/png'), 'PNG', 0, 0, 210, page.height * 210 / page.width);
+      }
+      pdf.save(`${fileName}.pdf`);
+    } catch { toast.error('Téléchargement PDF impossible. Réessayez avec une photo plus légère.'); }
+    finally { clone.remove(); setBusy(false); }
   };
+  const importCv = async (file?: File) => {
+    if (!file) return;
+    try {
+      if (/\.json$/i.test(file.name)) {
+        const imported = JSON.parse(await file.text());
+        if (typeof imported.firstName !== 'string' || !Array.isArray(imported.experiences)) throw new Error('format');
+        setData({ ...EMPTY_CV, ...imported });
+      } else {
+        const { importDocumentFile } = await import('@/lib/document-import');
+        const imported = await importDocumentFile(file);
+        const doc = new DOMParser().parseFromString(imported.html, 'text/html');
+        const text = doc.body.innerText || doc.body.textContent || '';
+        set('sections', [...(data.sections || []), { key: crypto.randomUUID(), title: 'CV importé', content: text }]);
+        toast.info('Texte importé dans une rubrique modifiable ; les champs restent à répartir.');
+      }
+    } catch { toast.error('Impossible d’importer ce CV. Choisissez un document Word, PDF texte ou une sauvegarde BERSA.'); }
+  };
+  const actions = <div className="flex flex-wrap gap-2 py-2" aria-label="Enregistrer et télécharger le CV">
+    <Button size="sm" variant="outline" onClick={save}><Save className="h-4 w-4" /> Enregistrer</Button>
+    <Button size="sm" variant="outline" onClick={exportWord}><Download className="h-4 w-4" /> Word</Button>
+    <Button size="sm" disabled={busy} onClick={exportPdf}><Download className="h-4 w-4" />{busy ? 'Préparation…' : 'Télécharger PDF'}</Button>
+  </div>;
 
   const updExp = (i: number, patch: Partial<CvExperience>) => set("experiences", data.experiences.map((e, k) => (k === i ? { ...e, ...patch } : e)));
   const updEdu = (i: number, patch: Partial<CvEducation>) => set("education", data.education.map((e, k) => (k === i ? { ...e, ...patch } : e)));
 
   if (sel) return (
     <AppShell>
-      <div className="mx-auto max-w-6xl p-3">
+      <div className="mx-auto max-w-6xl p-3 pb-24">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setSel(null)}><ArrowLeft className="h-4 w-4" /> Modèles</Button>
-          <div className="ml-auto flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={save}><Save className="h-4 w-4" /> Enregistrer</Button>
-            <Button size="sm" variant="outline" onClick={exportWord}><Download className="h-4 w-4" /> Word</Button>
-            <Button size="sm" onClick={exportPdf}><Printer className="h-4 w-4" /> PDF</Button>
-          </div>
+          <h1 className="font-serif text-xl font-bold">BERSA Writer</h1>
+          <Button className="ml-auto" size="sm" variant="outline" onClick={() => setPreviewOpen(true)}><Eye className="h-4 w-4" />Aperçu</Button>
         </div>
         <div className="grid min-w-0 gap-4 lg:grid-cols-[360px_1fr]">
           <div className="min-w-0 space-y-2">
+            <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => importRef.current?.click()}><FileText className="h-4 w-4" />Importer un CV</Button><Button size="sm" variant="outline" onClick={() => importRef.current?.click()}>Importer LinkedIn (PDF)</Button><input ref={importRef} type="file" accept=".docx,.doc,.pdf,.txt,.json" className="hidden" onChange={e => { void importCv(e.target.files?.[0]); e.target.value = ''; }} /></div>
+            <CvPersonalization data={data} template={sel} onChange={patch => setData(d => ({ ...d, ...patch }))} />
                         <Section title="Photo et identité">
               <div className="flex items-center gap-3">
                 {data.photo || sel?.defaultPhoto ? (
@@ -175,9 +231,13 @@ function CvStudio() {
                 <Field label="Nom" value={data.lastName} onChange={(v) => set("lastName", v)} />
               </div>
               <Field label="Métier / poste visé" value={data.title} onChange={(v) => set("title", v)} />
+              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={data.titleAsHeading !== false} onChange={e => set('titleAsHeading', e.target.checked)} />Afficher le poste recherché</label>
               <Field label="Profil (à propos de moi)" value={data.summary} onChange={(v) => set("summary", v)} multi />
+              <Button size="sm" variant="outline" onClick={() => { if (!data.title.trim() || !data.skills.some(s => s.trim())) { toast.info('Renseignez votre poste et vos compétences pour une suggestion.'); return; } set('summary', `${data.title.trim()}, je souhaite mettre mes compétences en ${data.skills.filter(s => s.trim()).join(', ')} au service de votre équipe.`); }}><Sparkles className="h-4 w-4" />Suggestion de profil</Button>
             </Section>
             <Section title="Coordonnées">
+              <div className="grid grid-cols-2 gap-2"><Field label="Ville" value={data.city || ''} onChange={v => set('city', v)} /><Field label="Commune" value={data.commune || ''} onChange={v => set('commune', v)} /></div>
+              <Field label="Code postal (facultatif)" value={data.postalCode || ''} onChange={v => set('postalCode', v)} />
               <Field label="Adresse" value={data.address} onChange={(v) => set("address", v)} />
               <Field label="E-mail" value={data.email} onChange={(v) => set("email", v)} />
               <Field label="Téléphone" value={data.phone} onChange={(v) => set("phone", v)} />
@@ -222,33 +282,40 @@ function CvStudio() {
             </Section>
             <StringList label="Compétences" items={data.skills} onChange={(v) => set("skills", v)} />
             <StringList label="Langues" items={data.languages} onChange={(v) => set("languages", v)} />
-            <StringList label="Loisirs" items={data.hobbies} onChange={(v) => set("hobbies", v)} />
+            <StringList label="Centres d’intérêt" items={data.hobbies} onChange={(v) => set("hobbies", v)} />
+            <CvExtraSections data={data} onChange={patch => setData(d => ({ ...d, ...patch }))} />
           </div>
-          <div className="min-w-0 self-start rounded-md border bg-muted p-2">
+          <section ref={previewRef} aria-label="Modèle généré" className={`min-w-0 self-start bg-muted p-2 ${previewOpen ? 'fixed inset-0 z-50 overflow-y-auto bg-background lg:static lg:z-auto' : 'hidden lg:block'}`}>
+            <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Votre CV</h2><Button className="lg:hidden" size="sm" variant="outline" onClick={() => setPreviewOpen(false)}>Fermer</Button></div>
+            {actions}
             <CvPreview html={html} />
-          </div>
+            {actions}
+          </section>
         </div>
       </div>
+      {!previewOpen && <Button className="fixed bottom-5 right-4 z-40 shadow-md lg:hidden" onClick={() => setPreviewOpen(true)}><Eye className="h-4 w-4" />Aperçu</Button>}
     </AppShell>
   );
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl p-3">
+      <div className="mx-auto max-w-6xl p-3 pb-24">
         <h1 className="mb-3 font-serif text-2xl font-bold">Modèles de CV</h1>
-        <div className="mb-3 flex gap-2">
+        <div className="mb-3 flex flex-wrap gap-2">
           {([["all", "Tous"], ["free", "Gratuits"], ["premium", "Premium"]] as const).map(([k, l]) => (
-            <button key={k} onClick={() => setTier(k)} className={`rounded-md border px-3 py-1 text-xs ${tier === k ? "bg-secondary font-semibold" : ""}`}>{l}</button>
+            <Button key={k} size="sm" variant={tier === k ? "default" : "outline"} onClick={() => setTier(k)}>{l}</Button>
           ))}
         </div>
+        <label className="mb-3 block text-xs">Catégorie<select className={inputCls} value={cat} onChange={e => setCat(e.target.value)}>{['Tous', 'Modernes', 'Classiques'].map(c => <option key={c}>{c}</option>)}</select></label>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {list.map((t) => (
-            <button key={t.id} onClick={() => setSel(t)} className="group overflow-hidden rounded-lg border bg-card text-left transition hover:shadow-md">
+            <Button key={t.id} aria-label={t.name} variant="outline" onClick={() => setSel(t)} className="group block h-auto min-w-0 overflow-hidden rounded-lg border bg-card p-0 text-left transition hover:shadow-md">
               <div className="relative overflow-hidden bg-muted">
                 <CvPreview compact html={renderCvHtml(t, sampleCvFor(t))} />
                 {t.premium && <span className="absolute right-1 top-1 flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground"><Crown className="h-3 w-3" /> Premium</span>}
               </div>
-            </button>
+              <span className="block truncate border-t p-2 text-xs">{t.name}</span>
+            </Button>
           ))}
         </div>
       </div>
