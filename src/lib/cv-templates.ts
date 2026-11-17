@@ -1,5 +1,5 @@
 export type CvLayout =
-  | "bandeau-photo" | "lateral-couleur" | "lateral-gris" | "diagonal" | "bandeau-sombre"
+  | "lateral-bordeaux" | "bandeau-photo" | "lateral-couleur" | "lateral-gris" | "diagonal" | "bandeau-sombre"
   | "entete-arrondi" | "lateral-plein" | "elegant" | "arche"
   | "classique-centre" | "classique-filet";
 
@@ -17,6 +17,7 @@ export interface CvTemplate {
 
 export interface CvExperience { start: string; end: string; role: string; company: string; description: string }
 export interface CvEducation { start: string; end: string; degree: string; school: string; description: string }
+export interface CvLanguageItem { name: string; level: string; details?: string; percent?: number }
 
 export interface CvData {
   photo: string;
@@ -33,16 +34,19 @@ export interface CvData {
   website: string;
   skills: string[];
   languages: string[];
+  languageItems?: CvLanguageItem[];
   hobbies: string[];
   experiences: CvExperience[];
   education: CvEducation[];
-  // BERSA Writer (optionnels : les modèles existants restent identiques)
+  // Options d'affichage
   cvTitle?: string;
   titleAsHeading?: boolean;
   photoShape?: "square" | "rounded" | "circle";
   postalCode?: string;
   commune?: string;
   city?: string;
+  civilStatus?: string;
+  gender?: string;
   extra?: Record<string, string>;
   signature?: string;
   sections?: { key: string; title: string; content: string }[];
