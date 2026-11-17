@@ -207,7 +207,72 @@ const W = (first: string, last: string, title: string, summary: string, city: st
 });
 
 /** Profils d'exemple : index pair = portrait féminin (photos 1, 3, 5), impair = masculin (2, 4, 6). */
-const SAMPLE_PROFILES = [
+  const SAMPLE_PROFILES = [
+  {
+    firstName: "Sarah",
+    lastName: "GARCIA",
+    title: "LYCÉENNE",
+    summary: "Étudiante motivée en année de terminale, je bénéficie d'une expérience pratique dans la garde d'enfants et l'aide aux devoirs. Dotée d'une grande capacité d'adaptation, je sais me montrer proactive et digne de confiance dans la réalisation de mes missions.",
+    address: "94 rue de la Mare aux Carats, 34080 Montpellier",
+    email: "sarah.garcia@exemple.com",
+    phone: "0612345678",
+    birth: "",
+    license: "",
+    website: "",
+    skills: [
+      "Fiabilité",
+      "Premiers secours",
+      "Nature sociable",
+      "Maîtrise du pack Office",
+      "Sens de l'initiative",
+      "Conduite responsable",
+      "Capacités d'adaptation",
+      "Respect des règles",
+    ],
+    languages: ["Anglais", "Espagnol"],
+    languageItems: [
+      { name: "Anglais", level: "Opérationnel", details: "Séjour linguistique de 3 semaines en Irlande", percent: 75 },
+      { name: "Espagnol", level: "Langue maternelle", percent: 100 },
+    ],
+    hobbies: [
+      "Aime découvrir les cultures étrangères à travers les voyages",
+      "Pratique le VTT-BMX en montagne",
+    ],
+    experiences: [
+      {
+        start: "01/2022",
+        end: "Actuel",
+        role: "Babysitter",
+        company: "Particuliers | Marseille",
+        description: "- Soutien scolaire pour aider les enfants à faire leurs devoirs, en les accompagnant dans l'apprentissage des leçons et la réalisation des exercices.\n- Établissement de comptes rendus auprès des parents, présentation du déroulement de la journée, mise en avant des progrès réalisés par les enfants et remise de toute information utile.",
+      },
+      {
+        start: "01/2019",
+        end: "02/2019",
+        role: "Stage de troisième",
+        company: "Préfecture de l'Hérault | Montpellier",
+        description: "- Tâches de secrétariat : accueil physique et téléphonique, gestion du courrier, traitement des mails, rédaction et mise en forme de courriers, démarches administratives.\n- Reporting d'activité auprès de mon responsable de stage, point sur l'avancement des missions confiées, rapport sur les problématiques rencontrées.",
+      },
+    ],
+    education: [
+      {
+        start: "En cours",
+        end: "",
+        degree: "Terminale: Langues, littérature, histoire, philosophie, arts",
+        school: "Lycée Jean-Jacques Rousseau | Montpellier",
+        description: "",
+      },
+      {
+        start: "06/2019",
+        end: "",
+        degree: "Diplôme National du Brevet - Mention bien",
+        school: "Collège Las Cazes | Montpellier",
+        description: "",
+      },
+    ],
+  },
+  // ... Conserver les autres profils existants ci-dessous
+  
   W("Sarah", "MOREAU", "Responsable Ressources Humaines", "Professionnelle des ressources humaines, attentive à l'accompagnement des équipes, au recrutement et au développement des talents.", "Kinshasa, RDC",
     ["Recrutement", "Gestion de la paie", "Droit du travail", "Formation", "Communication"],
     [{ start: "Déc.", end: "Présent", role: "Responsable RH", company: "Groupe Horizon", description: "- Pilotage du recrutement et de l'intégration\n- Mise en place du plan de formation" },
