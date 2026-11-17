@@ -360,6 +360,123 @@ function renderBase(t: CvTemplate, d: CvData): string {
       const hm = (s: string) => `<div style="display:flex;align-items:center;gap:10px;margin:18px 0 8px;font-size:12pt;text-transform:uppercase;color:#374151">${s}<span style="flex:1;border-bottom:1.5px solid ${t.primary}"></span></div>`;
       return `<div style="${base}display:flex"><div style="width:290px;background:${t.primary};color:#fff;padding:30px 0 30px 30px">${p.photo ? `<div style="padding-right:30px">${img(210, 210, "50%", "border:4px solid #fff;margin:0 auto")}</div>` : ""}<div style="padding-right:0">${p.contacts.length ? hs("Contact") + p.contacts.map((c) => `<div style="margin:3px 0">• ${esc(c.value)}</div>`).join("") : ""}${d.skills.length ? hs("Compétences") + items(d.skills) : ""}${d.languages.length ? hs("Langues") + items(d.languages) : ""}${d.hobbies.length ? hs("Loisirs") + items(d.hobbies) : ""}</div></div><div style="flex:1;padding:40px 36px"><div style="font-size:28pt">${esc(d.firstName)} <b>${esc(d.lastName)}</b></div><div style="font-size:12pt;margin-top:6px;color:#374151">${esc(d.title)}</div>${d.summary ? hm("Profil") + summary : ""}${exp(hm, false)}${edu(hm, false)}</div></div>`;
     }
+    case "lateral-bordeaux": {
+      const color = t.primary || "#7a2838";
+      const hSide = (title: string) => `
+        <div style="font-size:11pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#ffffff;margin:22px 0 10px;padding-bottom:2px">
+          ${esc(title)}
+        </div>
+      `;
+      const hMain = (title: string) => `
+        <div style="font-size:11.5pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${color};margin:20px 0 6px">
+          ${esc(title)}
+        </div>
+        <div style="border-bottom:1.5px solid ${color};margin-bottom:12px"></div>
+      `;
+
+      // Langues avec jauge de niveau horizontale
+      const langBlock = (d.languageItems && d.languageItems.length ? d.languageItems : d.languages.map(l => ({ name: l, level: "Opérationnel", percent: 75 }))).map(li => `
+        <div style="margin:0 0 12px">
+          <div style="font-weight:bold;font-size:9pt;color:#fff">${esc(li.name)}</div>
+          <div style="height:4px;background:rgba(255,255,255,0.25);border-radius:2px;margin:3px 0 4px;overflow:hidden">
+            <div style="height:100%;width:${li.percent ?? 75}%;background:#ffffff;border-radius:2px"></div>
+          </div>
+          <div style="font-size:8pt;color:#f3e8eb;font-style:italic">${esc(li.level)}</div>
+          ${li.details ? `<div style="font-size:7.5pt;color:#e5d0d6;margin-top:1px">${esc(li.details)}</div>` : ''}
+        </div>
+      `).join("");
+
+      return `
+        <div style="${base}display:flex">
+          <!-- Colonne gauche bordeaux -->
+          <div style="width:280px;background:${color};color:#ffffff;padding:32px 24px;box-sizing:border-box">
+            ${p.photo ? `
+              <div style="text-align:center;margin-bottom:24px">
+                <img src="${p.photo}" alt="" style="width:160px;height:160px;object-fit:cover;border-radius:50%;border:4px solid #ffffff;display:inline-block;box-shadow:0 2px 8px rgba(0,0,0,0.15)">
+              </div>
+            ` : ""}
+            
+            ${d.summary.trim() ? `
+              ${hSide("Profil Professionnel")}
+              <div style="font-size:8.5pt;line-height:1.55;color:#ffffff;text-align:justify">
+                ${rich(d.summary, "8.5pt")}
+              </div>
+            ` : ""}
+
+            ${d.skills.length ? `
+              ${hSide("Compétences")}
+              <div style="font-size:8.5pt;color:#ffffff;line-height:1.55">
+                ${d.skills.map(s => `<div style="margin:3px 0">• ${esc(s)}</div>`).join("")}
+              </div>
+            ` : ""}
+
+            ${(d.languages.length || (d.languageItems && d.languageItems.length)) ? `
+              ${hSide("Langues")}
+              ${langBlock}
+            ` : ""}
+          </div>
+
+          <!-- Colonne droite blanche -->
+          <div style="flex:1;padding:34px 34px 28px;box-sizing:border-box">
+            <!-- Nom et Titre -->
+            <div style="margin-bottom:12px">
+              <div style="font-size:32pt;font-weight:900;color:${color};line-height:1.05;letter-spacing:-0.5px">
+                ${esc(d.firstName)}<br>${esc(d.lastName)}
+              </div>
+              <div style="font-size:11pt;letter-spacing:3px;text-transform:uppercase;color:#4b5563;font-weight:600;margin-top:8px">
+                ${esc(d.title)}
+              </div>
+            </div>
+
+            <!-- Coordonnées avec icônes -->
+            <div style="font-size:8.5pt;color:#4b5563;margin-bottom:16px;line-height:1.7">
+              ${d.phone ? `<div>${ICONS.phone} ${esc(d.phone)}</div>` : ""}
+              ${d.email ? `<div>${ICONS.email} ${esc(d.email)}</div>` : ""}
+              ${(d.address || d.city) ? `<div>${ICONS.location} ${esc([d.address, d.postalCode, d.city, d.commune].filter(Boolean).join(", "))}</div>` : ""}
+              ${d.birth ? `<div>${ICONS.birth} ${esc(d.birth)}</div>` : ""}
+              ${d.civilStatus ? `<div>${ICONS.civil} ${esc(d.civilStatus)}</div>` : ""}
+              ${d.gender ? `<div>${ICONS.gender} ${esc(d.gender)}</div>` : ""}
+              ${d.license ? `<div>${ICONS.license} ${esc(d.license)}</div>` : ""}
+              ${d.website ? `<div>${ICONS.link} ${esc(d.website)}</div>` : ""}
+            </div>
+
+            <!-- Formation -->
+            ${d.education.length ? `
+              ${hMain("Formation")}
+              ${d.education.map(e => `
+                <div style="margin:0 0 12px">
+                  <div style="font-size:8.5pt;color:#6b7280;font-weight:600">${esc(e.start || '')}</div>
+                  <div style="font-weight:bold;font-size:9.5pt;color:#111">${esc(e.school)}</div>
+                  <div style="font-size:9pt;color:#374151">${esc(e.degree)}</div>
+                  ${e.description ? `<div style="color:#6b7280;font-size:8.5pt;margin-top:2px">${rich(e.description, "8.5pt")}</div>` : ""}
+                </div>
+              `).join("")}
+            ` : ""}
+
+            <!-- Parcours Professionnel -->
+            ${d.experiences.length ? `
+              ${hMain("Parcours Professionnel")}
+              ${d.experiences.map(e => `
+                <div style="margin:0 0 14px">
+                  <div style="font-size:8.5pt;color:#6b7280;font-weight:600">${esc(formatCvPeriod(e.start, e.end))}</div>
+                  <div style="font-weight:bold;font-size:9.5pt;color:#111">${esc(e.company)}</div>
+                  <div style="font-weight:600;font-size:9pt;color:#374151;margin-bottom:2px">${esc(e.role)}</div>
+                  <div style="color:#4b5563;font-size:8.5pt;line-height:1.45">${rich(e.description, "8.5pt")}</div>
+                </div>
+              `).join("")}
+            ` : ""}
+
+            <!-- Centres d'intérêt -->
+            ${d.hobbies.length ? `
+              ${hMain("Centres d'intérêt")}
+              <div style="font-size:8.5pt;color:#4b5563;line-height:1.55">
+                ${d.hobbies.map(h => `<div style="margin:2px 0">• ${esc(h)}</div>`).join("")}
+              </div>
+            ` : ""}
+          </div>
+        </div>
+      `;
+    }  
     case "lateral-gris": {
       const h = (s: string) => `<div style="font-size:12pt;margin:16px 0 8px;color:#111;text-transform:none">${s}</div>`;
       const hm = (s: string) => `<div style="font-size:12pt;margin:18px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #111;text-transform:uppercase;color:${t.accent === t.primary ? "#111" : t.accent}">${s}</div>`;
