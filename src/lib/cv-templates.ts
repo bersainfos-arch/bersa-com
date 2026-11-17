@@ -62,6 +62,17 @@ export const CV_MODEL_PHOTOS = [
 export const CV_CATEGORIES = ["Modernes", "Classiques"] as const;
 
 const MODERN_LAYOUTS: { layout: CvLayout; name: string }[] = [
+  { layout: "lateral-bordeaux", name: "Bordeaux Studio" },
+  { layout: "bandeau-photo", name: "Bandeau" },
+  { layout: "lateral-couleur", name: "Corail" },
+  { layout: "lateral-gris", name: "Clarté" },
+  { layout: "diagonal", name: "Diagonale" },
+  { layout: "bandeau-sombre", name: "Contraste" },
+  { layout: "entete-arrondi", name: "Horizon" },
+  { layout: "lateral-plein", name: "Azur" },
+  { layout: "elegant", name: "Élégance" },
+  { layout: "arche", name: "Arche" },
+];
   { layout: "bandeau-photo", name: "Bandeau" },
   { layout: "lateral-couleur", name: "Corail" },
   { layout: "lateral-gris", name: "Clarté" },
