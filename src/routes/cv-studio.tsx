@@ -154,6 +154,52 @@ function CvStudio() {
         ctx.drawImage(canvas, 0, y, page.width, page.height, 0, 0, page.width, page.height);
         pdf.addImage(page.toDataURL('image/png'), 'PNG', 0, 0, 210, page.height * 210 / page.width);
       }
+        const exportImage = async () => {
+    if (busy || !previewRef.current) return;
+    const paper = previewRef.current.querySelector<HTMLElement>('[data-cv-paper]');
+    if (!paper) return;
+    setBusy(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      await document.fonts.ready;
+      const dataUrl = await toPng(paper, { pixelRatio: 2 });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `${fileName}.png`;
+      a.click();
+      toast.success("Photo du CV téléchargée avec succès.");
+    } catch {
+      toast.error("Téléchargement de la photo impossible.");
+    } finally {
+      setBusy(false);
+    }
+  };
+        const actions = (
+    <div className="flex flex-wrap items-center gap-2 py-2" aria-label="Enregistrer et télécharger le CV">
+      <Button size="sm" variant="outline" onClick={save}><Save className="h-4 w-4" /> Enregistrer</Button>
+      <Button size="sm" variant="outline" onClick={exportWord}><Download className="h-4 w-4" /> Word</Button>
+      <Button size="sm" variant="outline" disabled={busy} onClick={exportPdf}><Download className="h-4 w-4" />{busy ? 'Préparation…' : 'PDF'}</Button>
+      <Button size="sm" variant="secondary" disabled={busy} onClick={exportImage}><ImagePlus className="h-4 w-4" /> Photo (PNG)</Button>
+    </div>
+  );
+        const improveField = (field: 'summary' | 'skills' | 'experience', index?: number) => {
+    if (field === 'summary') {
+      if (!data.summary.trim()) { toast.info("Écrivez d'abord quelques mots sur votre profil."); return; }
+      const improved = data.summary
+        .replace(/je suis/gi, "Professionnel(le)")
+        .replace(/j'aime/gi, "Passionné(e) par")
+        .trim();
+      set('summary', `${improved} Rigoureux(se), engagé(e) et orienté(e) résultats.`);
+      toast.success("Profil reformulé et valorisé.");
+    } else if (field === 'experience' && index !== undefined) {
+      const exp = data.experiences[index];
+      if (!exp || !exp.description.trim()) { toast.info("Indiquez au moins une mission."); return; }
+      const bullets = exp.description.split('\n').map(l => l.startsWith('-') ? l : `- ${l}`).join('\n');
+      updExp(index, { description: bullets });
+      toast.success("Missions structurées en puces actives.");
+    }
+  };
+      
       pdf.save(`${fileName}.pdf`);
     } catch { toast.error('Téléchargement PDF impossible. Réessayez avec une photo plus légère.'); }
     finally { clone.remove(); setBusy(false); }
