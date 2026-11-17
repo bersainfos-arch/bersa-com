@@ -277,48 +277,59 @@ function CvStudio() {
                   <Field label="Établissement" value={e.school} onChange={(v) => updEdu(i, { school: v })} />
                   <Field label="Détails" value={e.description} onChange={(v) => updEdu(i, { description: v })} multi />
                 </div>
-              ))}
-              <Button type="button" size="sm" variant="outline" onClick={() => set("education", [...data.education, { start: "", end: "", degree: "", school: "", description: "" }])}><Plus className="h-4 w-4" /> Ajouter une formation</Button>
-            </Section>
-            <StringList label="Compétences" items={data.skills} onChange={(v) => set("skills", v)} />
-            <StringList label="Langues" items={data.languages} onChange={(v) => set("languages", v)} />
-            <StringList label="Centres d’intérêt" items={data.hobbies} onChange={(v) => set("hobbies", v)} />
-            <CvExtraSections data={data} onChange={patch => setData(d => ({ ...d, ...patch }))} />
-          </div>
-          <section ref={previewRef} aria-label="Modèle généré" className={`min-w-0 self-start bg-muted p-2 ${previewOpen ? 'fixed inset-0 z-50 overflow-y-auto bg-background lg:static lg:z-auto' : 'hidden lg:block'}`}>
-            <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">Votre CV</h2><Button className="lg:hidden" size="sm" variant="outline" onClick={() => setPreviewOpen(false)}>Fermer</Button></div>
-            {actions}
-            <CvPreview html={html} />
-            {actions}
-          </section>
-        </div>
-      </div>
-      {!previewOpen && <Button className="fixed bottom-5 right-4 z-40 shadow-md lg:hidden" onClick={() => setPreviewOpen(true)}><Eye className="h-4 w-4" />Aperçu</Button>}
-    </AppShell>
-  );
-
+                // Vue Catalogue : Modèle grand format mis en avant avec bouton + et défilement
   return (
     <AppShell>
-      <div className="mx-auto max-w-6xl p-3 pb-24">
-        <h1 className="mb-3 font-serif text-2xl font-bold">Modèles de CV</h1>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {([["all", "Tous"], ["free", "Gratuits"], ["premium", "Premium"]] as const).map(([k, l]) => (
-            <Button key={k} size="sm" variant={tier === k ? "default" : "outline"} onClick={() => setTier(k)}>{l}</Button>
-          ))}
+      <div className="mx-auto max-w-4xl p-3 pb-24">
+        <div className="mb-4 text-center">
+          <h1 className="font-serif text-2xl font-bold">Modèles de CV</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Chaque modèle est entièrement rempli et prêt à l'emploi. Choisissez un modèle pour le personnaliser.
+          </p>
         </div>
-        <label className="mb-3 block text-xs">Catégorie<select className={inputCls} value={cat} onChange={e => setCat(e.target.value)}>{['Tous', 'Modernes', 'Classiques'].map(c => <option key={c}>{c}</option>)}</select></label>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {list.map((t) => (
-            <Button key={t.id} aria-label={t.name} variant="outline" onClick={() => setSel(t)} className="group block h-auto min-w-0 overflow-hidden rounded-lg border bg-card p-0 text-left transition hover:shadow-md">
-              <div className="relative overflow-hidden bg-muted">
-                <CvPreview compact html={renderCvHtml(t, sampleCvFor(t))} />
-                {t.premium && <span className="absolute right-1 top-1 flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-foreground"><Crown className="h-3 w-3" /> Premium</span>}
+
+        {/* Modèle mis en avant (premier modèle Sarah Garcia) */}
+        {list[0] && (
+          <div className="mb-8 rounded-xl border bg-card p-4 shadow-lg">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-semibold text-sm">{list[0].name} (Recommandé)</span>
+              <Button size="lg" className="gap-2 bg-primary px-6 font-bold shadow-md" onClick={() => setSel(list[0])}>
+                <Plus className="h-5 w-5" /> Créer ce CV
+              </Button>
+            </div>
+            
+            {/* Aperçu complet du modèle */}
+            <div className="overflow-hidden rounded-lg border bg-muted shadow-inner">
+              <CvPreview compact={false} html={renderCvHtml(list[0], sampleCvFor(list[0]))} />
+            </div>
+
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <Button size="lg" className="w-full max-w-md gap-2 text-base font-bold shadow-md" onClick={() => setSel(list[0])}>
+                <Plus className="h-6 w-6" /> Choisir ce modèle (+ Créer un nouveau CV)
+              </Button>
+              <p className="text-xs text-muted-foreground">Ou défilez vers le bas pour découvrir les autres modèles ↓</p>
+            </div>
+          </div>
+        )}
+
+        {/* Défilement vertical des autres modèles */}
+        <div className="space-y-6">
+          <h2 className="font-serif text-lg font-bold">Autres modèles disponibles</h2>
+          {list.slice(1).map((t) => (
+            <div key={t.id} className="rounded-lg border bg-card p-3 shadow-sm hover:shadow-md transition">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-medium text-sm">{t.name}</span>
+                <Button size="sm" onClick={() => setSel(t)} className="gap-1">
+                  <Plus className="h-4 w-4" /> Utiliser ce modèle
+                </Button>
               </div>
-              <span className="block truncate border-t p-2 text-xs">{t.name}</span>
-            </Button>
+              <div className="overflow-hidden rounded border bg-muted">
+                <CvPreview compact html={renderCvHtml(t, sampleCvFor(t))} />
+              </div>
+            </div>
           ))}
         </div>
       </div>
     </AppShell>
   );
-}
+            
