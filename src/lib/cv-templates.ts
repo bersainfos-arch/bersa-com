@@ -796,7 +796,10 @@ export function renderCvHtml(t0: CvTemplate, d: CvData): string {
   const safeRight = /^#[0-9a-f]{6}$/i.test(d.rightColor || "") ? d.rightColor : undefined;
   const t: CvTemplate = { ...t0, primary: safeColor || t0.primary, accent: safeRight || safeColor || t0.accent, font: safeFont || t0.font };
   let html = renderBase(t, d.titleAsHeading === false ? { ...d, title: "" } : d);
-
+  if (d.fontSize && d.fontSize !== "normal") {
+    const scale = d.fontSize === "compact" ? "0.92" : d.fontSize === "large" ? "1.12" : "1.22";
+    html = `<div style="font-size:${scale}em;line-height:1.42">${html}</div>`;
+    }
   if (d.photoShape) {
     html = html.replace(/(<img [^>]*?style="[^"]*?)border-radius:[^;]*;/g, (_, prefix: string) => `${prefix}border-radius:${SHAPE_RADIUS[d.photoShape ?? "circle"]};`);
   }
