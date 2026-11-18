@@ -584,6 +584,10 @@ function CvStudio() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+          
                       
                 {/* Étape 4 : Expériences */}
                 {step === 4 && (
