@@ -227,7 +227,7 @@ function CvStudio() {
       canvas.height = 600;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.filter = `brightness(${bright}%) contrast(${contrast}%)`;
+      ctx.filter = `brightness(${bright}%) contrast(${contrast}%)${filterBw ? " grayscale(100%)" : ""}`;
       ctx.drawImage(img, (img.naturalWidth - side) * (cropX / 100), (img.naturalHeight - side) * (cropY / 100), side, side, 0, 0, 600, 600);
       ctx.filter = "none";
       if (bgWhite) {
