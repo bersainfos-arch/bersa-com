@@ -29,7 +29,7 @@ export const Route = createFileRoute("/cv-studio")({
 
 const STORE = "bersa-cv-data-v3";
 const SIG_STORE = "bersa-user-signature";
-const inputCls = "mt-1 w-full rounded-md border bg-muted p-2 text-sm text-foreground focus:ring-2 focus:ring-primary focus:outline-none";
+const inputCls = "mt-1 w-full rounded-md border bg-muted p-2.5 text-base text-foreground focus:ring-2 focus:ring-primary focus:outline-none";
 
 const WIZARD_STEPS = [
   { id: 1, label: "Photo & Cadrage" },
@@ -43,14 +43,16 @@ const WIZARD_STEPS = [
   { id: 9, label: "Signature" },
 ] as const;
 
+const DEMO_VALUES = new Set<string>();
 function Field({ label, value, onChange, multi, placeholder }: { label: string; value: string; onChange: (v: string) => void; multi?: boolean; placeholder?: string }) {
+  const onFocus = () => { if (value && DEMO_VALUES.has(value)) onChange(""); };
   return (
     <label className="block text-xs font-medium text-muted-foreground">
       {label}
       {multi ? (
-        <textarea rows={3} placeholder={placeholder} className={inputCls} value={value} onChange={(e) => onChange(e.target.value)} />
+        <textarea rows={4} placeholder={placeholder || value} className={inputCls} value={value} onFocus={onFocus} onChange={(e) => onChange(e.target.value)} />
       ) : (
-        <input placeholder={placeholder} className={inputCls} value={value} onChange={(e) => onChange(e.target.value)} />
+        <input placeholder={placeholder} className={inputCls} value={value} onFocus={onFocus} onChange={(e) => onChange(e.target.value)} />
       )}
     </label>
   );
@@ -124,6 +126,68 @@ function CvStudio() {
 
   const fileName = (`${data.firstName}_${data.lastName}` || "cv").replace(/[^\w-]+/g, "_");
   const html = sel ? renderCvHtml(sel, data) : "";
+  const [cvScale, setCvScale] = useState(1);
+  const [pinch, setPinch] = useState(1);
+  const pinchStart = useRef<{ d: number; z: number } | null>(null);
+  const [bright, setBright] = useState(100);
+  const [contrast, setContrast] = useState(100);
+  const [bgWhite, setBgWhite] = useState(false);
+  const dragRef = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
+  const [extraKey, setExtraKey] = useState("");
+
+  const saveBlob = async (blob: Blob, name: string, ext: string, description: string) => {
+    const w = window as unknown as { showSaveFilePicker?: (o: unknown) => Promise<{ createWritable: () => Promise<{ write: (b: Blob) => Promise<void>; close: () => Promise<void> }> }> };
+    if (typeof w.showSaveFilePicker === "function") {
+      try {
+        const handle = await w.showSaveFilePicker({ suggestedName: name, types: [{ description, accept: { [blob.type || "application/octet-stream"]: [`.${ext}`] } }] });
+        const out = await handle.createWritable(); await out.write(blob); await out.close();
+        toast.success("CV enregistré dans le dossier choisi."); return;
+      } catch (e) { if ((e as Error).name === "AbortError") return; }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast.success("CV téléchargé.");
+  };
+
+  const auditSteps = [
+    { label: "Prénom et nom", ok: Boolean(data.firstName.trim() && data.lastName.trim()), step: 2 },
+    { label: "Métier / poste visé", ok: Boolean(data.title.trim()), step: 2 },
+    { label: "Profil de plus de 150 caractères", ok: data.summary.trim().length >= 150, step: 2 },
+    { label: "Téléphone et e-mail", ok: Boolean(data.phone.trim() && data.email.trim()), step: 3 },
+    { label: "Ville et adresse", ok: Boolean((data.city || "").trim() && data.address.trim()), step: 3 },
+    { label: "Au moins une expérience avec missions", ok: data.experiences.some((e) => e.role.trim() && e.description.trim().length > 20), step: 4 },
+    { label: "Au moins une formation", ok: data.education.some((e) => e.degree.trim()), step: 5 },
+    { label: "Au moins 4 compétences", ok: data.skills.filter((x) => x.trim()).length >= 4, step: 6 },
+    { label: "Au moins 2 langues avec niveau", ok: (data.languageItems || []).filter((l) => l.name.trim()).length >= 2 || data.languages.length >= 2, step: 7 },
+    { label: "Signature", ok: Boolean(data.signature?.trim() || data.signatureImage), step: 9 },
+  ];
+  const [showAudit, setShowAudit] = useState(false);
+
+  const onPreviewTap = (e: React.MouseEvent) => {
+    const text = ((e.target as HTMLElement).textContent || "").trim();
+    if (!text) return;
+    const has = (v?: string) => Boolean(v && v.trim() && (v.includes(text) || text.includes(v.trim())));
+    if (has(data.firstName) || has(data.lastName) || has(data.title) || has(data.summary)) setStep(2);
+    else if (data.experiences.some((x) => has(x.role) || has(x.company) || has(x.description))) setStep(4);
+    else if (data.education.some((x) => has(x.degree) || has(x.school) || has(x.grade))) setStep(5);
+    else if (data.skills.some(has)) setStep(6);
+    else if ((data.languageItems || []).some((l) => has(l.name)) || data.languages.some(has)) setStep(7);
+    else if ((data.sections || []).some((x) => has(x.title) || has(x.content))) setStep(8);
+    else if ([data.phone, data.email, data.address, data.city, data.commune, data.birth, data.license, data.website, data.birthPlace, data.gender, data.nationality, data.civilStatus].some(has)) setStep(3);
+    else return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const improveText = (v: string, kind: "profil" | "mission") => {
+    const clean = v.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (!clean.length) return v;
+    const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+    if (kind === "mission") return clean.map((l) => `- ${cap(l.replace(/^[-•]\s*/, "").replace(/\.$/, ""))}.`).join("\n");
+    const t = clean.join(" ").replace(/\s+/g, " ").replace(/\bje suis\b/gi, "Je suis").trim();
+    const ending = data.title ? ` Je souhaite mettre ces atouts au service d'un poste de ${data.title.toLowerCase()}.` : "";
+    return cap(t.endsWith(".") ? t : t + ".") + (t.includes("souhaite mettre") ? "" : ending);
+  };
 
   // Calcul du score de qualité (%) du CV
   const qualityScore = useMemo(() => {
@@ -163,7 +227,17 @@ function CvStudio() {
       canvas.height = 600;
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
+      ctx.filter = `brightness(${bright}%) contrast(${contrast}%)`;
       ctx.drawImage(img, (img.naturalWidth - side) * (cropX / 100), (img.naturalHeight - side) * (cropY / 100), side, side, 0, 0, 600, 600);
+      ctx.filter = "none";
+      if (bgWhite) {
+        const px = ctx.getImageData(0, 0, 600, 600);
+        for (let i = 0; i < px.data.length; i += 4) {
+          const r = px.data[i]!, g = px.data[i + 1]!, b = px.data[i + 2]!;
+          if (r > 185 && g > 185 && b > 185 && Math.max(r, g, b) - Math.min(r, g, b) < 30) { px.data[i] = 255; px.data[i + 1] = 255; px.data[i + 2] = 255; }
+        }
+        ctx.putImageData(px, 0, 0);
+      }
       set("photo", canvas.toDataURL("image/jpeg", 0.92));
       toast.success("Cadrage de la photo appliqué.");
     } catch { toast.error("Impossible de rogner cette photo."); }
@@ -353,6 +427,11 @@ function CvStudio() {
                           <ImagePlus className="h-3.5 w-3.5" /> Changer la photo
                           <input type="file" accept="image/*" className="hidden" onChange={(e) => onPhoto(e.target.files?.[0])} />
                         </label>
+                        {(data.photo || data.showPhoto) && (
+                          <Button size="sm" variant="outline" className="h-8 gap-1 text-destructive" onClick={() => { set("photo", ""); set("showPhoto", false); toast.info("Photo effacée du CV."); }}>
+                            <Trash2 className="h-3.5 w-3.5" /> Effacer la photo
+                          </Button>
+                        )}
                         <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <input type="checkbox" checked={data.showPhoto} onChange={(e) => set("showPhoto", e.target.checked)} />
                           Afficher la photo sur le CV
@@ -361,6 +440,22 @@ function CvStudio() {
                     </div>
 
                     <div className="border-t pt-2 space-y-2">
+                      <div className="text-xs font-semibold">Rognage manuel : glissez la photo avec le doigt, pincez ou utilisez le zoom</div>
+                      <div
+                        className={`relative mx-auto h-56 w-56 touch-none overflow-hidden border-2 border-primary bg-muted ${data.photoShape === "circle" ? "rounded-full" : data.photoShape === "rounded" ? "rounded-2xl" : ""}`}
+                        onPointerDown={(e) => { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); dragRef.current = { x: e.clientX, y: e.clientY, cx: cropX, cy: cropY }; }}
+                        onPointerMove={(e) => { const d = dragRef.current; if (!d) return; setCropX(Math.max(0, Math.min(100, d.cx - (e.clientX - d.x) / 2))); setCropY(Math.max(0, Math.min(100, d.cy - (e.clientY - d.y) / 2))); }}
+                        onPointerUp={() => { dragRef.current = null; }}
+                        onWheel={(e) => setCropZoom((z) => Math.max(1, Math.min(4, z - e.deltaY / 500)))}
+                      >
+                        <img src={data.photo || sel.defaultPhoto || "/cv-photos/photo-1.png"} alt="Cadrage" draggable={false} className="pointer-events-none h-full w-full select-none object-cover" style={{ objectPosition: `${cropX}% ${cropY}%`, transform: `scale(${cropZoom})`, transformOrigin: `${cropX}% ${cropY}%`, filter: `brightness(${bright}%) contrast(${contrast}%)` }} />
+                      </div>
+                      <div className="text-xs font-semibold pt-1">Retouche de la photo</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <label>Luminosité {bright}%<input type="range" min={60} max={150} value={bright} onChange={(e) => setBright(Number(e.target.value))} className="w-full" /></label>
+                        <label>Contraste / netteté {contrast}%<input type="range" min={60} max={150} value={contrast} onChange={(e) => setContrast(Number(e.target.value))} className="w-full" /></label>
+                      </div>
+                      <label className="flex items-center gap-1.5 text-xs text-muted-foreground"><input type="checkbox" checked={bgWhite} onChange={(e) => setBgWhite(e.target.checked)} /> Éclaircir le fond (fonds clairs → blanc)</label>
                       <div className="text-xs font-semibold">Forme de la photo</div>
                       <div className="flex gap-1">
                         {(["circle", "rounded", "square"] as const).map((sh) => (
@@ -444,10 +539,7 @@ function CvStudio() {
                             key={btn.key}
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              const val = window.prompt(`Saisir : ${btn.label.replace("+ ", "")}`);
-                              if (val) set(btn.key as keyof CvData, val);
-                            }}
+                            onClick={() => { if (data[btn.key as keyof CvData] === undefined) set(btn.key as keyof CvData, "" as never); }}
                           >
                             {btn.label}
                           </Button>
@@ -455,17 +547,31 @@ function CvStudio() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            const name = window.prompt("Nom du champ personnalisé (ex: Skype, WhatsApp) :");
-                            if (name) {
-                              const val = window.prompt(`Valeur pour ${name} :`);
-                              if (val) set("extra", { ...(data.extra || {}), [name]: val });
-                            }
-                          }}
+                          onClick={() => setExtraKey(extraKey ? "" : " ")}
                         >
                           + Champ personnalisé
                         </Button>
                       </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        {data.birthPlace !== undefined && <Field label="Lieu de naissance" value={data.birthPlace} onChange={(v) => set("birthPlace", v)} placeholder="Ex : Kinshasa" />}
+                        {data.gender !== undefined && <label className="block text-xs font-medium text-muted-foreground">Sexe<select className={inputCls} value={data.gender} onChange={(e) => set("gender", e.target.value)}><option value="">—</option><option>Masculin</option><option>Féminin</option></select></label>}
+                        {data.nationality !== undefined && <Field label="Nationalité" value={data.nationality} onChange={(v) => set("nationality", v)} placeholder="Ex : Congolaise" />}
+                        {data.civilStatus !== undefined && <label className="block text-xs font-medium text-muted-foreground">État civil<select className={inputCls} value={data.civilStatus} onChange={(e) => set("civilStatus", e.target.value)}><option value="">—</option><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf / Veuve</option><option>Union libre</option></select></label>}
+                        {Object.entries(data.extra || {}).map(([k, v]) => (
+                          <div key={k} className="flex items-end gap-1">
+                            <div className="flex-1"><Field label={k} value={v} onChange={(nv) => set("extra", { ...(data.extra || {}), [k]: nv })} /></div>
+                            <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive" aria-label={`Supprimer ${k}`} onClick={() => { const n = { ...(data.extra || {}) }; delete n[k]; set("extra", n); }}><Trash2 className="h-4 w-4" /></Button>
+                          </div>
+                        ))}
+                      </div>
+                      {extraKey && (
+                        <div className="mt-2 flex items-end gap-2 rounded-md border bg-muted/40 p-2">
+                          <label className="flex-1 text-xs font-medium text-muted-foreground">Nom du champ (ex : WhatsApp)
+                            <input autoFocus className={inputCls} value={extraKey.trim()} onChange={(e) => setExtraKey(e.target.value || " ")} />
+                          </label>
+                          <Button size="sm" onClick={() => { const k = extraKey.trim(); if (!k) return; set("extra", { ...(data.extra || {}), [k]: "" }); setExtraKey(""); }}>Ajouter</Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

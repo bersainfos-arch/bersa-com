@@ -84,6 +84,7 @@ export interface CvData {
   sections?: { key: string; title: string; content: string }[];
   customColor?: string;
   customFont?: string;
+  rightColor?: string;
 }
 
 export const CV_MODEL_PHOTOS = [
@@ -735,9 +736,9 @@ function parts(d: CvData, t?: CvTemplate): Parts {
 }
 
 function renderLanguageGauges(d: CvData, isDarkBg = false): string {
-  const items = d.languageItems && d.languageItems.length
+  const items: CvLanguageItem[] = d.languageItems && d.languageItems.length
     ? d.languageItems
-    : d.languages.map((l) => ({ name: l, level: "Opérationnel", percent: 75 }));
+    : d.languages.map((l) => ({ name: l, level: "Opérationnel", percent: 75, details: "" }));
   if (!items.length) return "";
 
   const nameColor = isDarkBg ? "#ffffff" : "#111827";
@@ -792,7 +793,8 @@ const SHAPE_RADIUS = { square: "0px", rounded: "16px", circle: "50%" } as const;
 export function renderCvHtml(t0: CvTemplate, d: CvData): string {
   const safeColor = /^#[0-9a-f]{6}$/i.test(d.customColor || "") ? d.customColor : undefined;
   const safeFont = /^[a-z ]+$/i.test(d.customFont || "") ? d.customFont : undefined;
-  const t: CvTemplate = { ...t0, primary: safeColor || t0.primary, accent: safeColor || t0.accent, font: safeFont || t0.font };
+  const safeRight = /^#[0-9a-f]{6}$/i.test(d.rightColor || "") ? d.rightColor : undefined;
+  const t: CvTemplate = { ...t0, primary: safeColor || t0.primary, accent: safeRight || safeColor || t0.accent, font: safeFont || t0.font };
   let html = renderBase(t, d.titleAsHeading === false ? { ...d, title: "" } : d);
 
   if (d.photoShape) {
@@ -840,7 +842,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
     const sideBg = isDark ? color : "#f3f4f6";
     const sideText = isDark ? "#ffffff" : "#1f2937";
     const sideHead = (s: string) => `<div style="font-size:10pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${isDark ? '#fff' : color};margin:16px 0 8px;border-bottom:1.5px solid ${isDark ? 'rgba(255,255,255,0.3)' : color};padding-bottom:2px">${esc(s)}</div>`;
-    const mainHead = (s: string) => `<div style="font-size:11pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${color};margin:16px 0 6px;border-bottom:1.5px solid ${color};padding-bottom:2px">${esc(s)}</div>`;
+    const mainHead = (s: string) => `<div style="font-size:11pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${t.accent};margin:16px 0 6px;border-bottom:1.5px solid ${t.accent};padding-bottom:2px">${esc(s)}</div>`;
 
     return `
       <div style="${base}display:flex">
