@@ -44,15 +44,44 @@ const WIZARD_STEPS = [
 ] as const;
 
 const DEMO_VALUES = new Set<string>();
+function collectDemoStrings(obj: unknown) {
+  if (!obj) return;
+  if (typeof obj === "string") {
+    const s = obj.trim();
+    if (s.length > 0) DEMO_VALUES.add(s);
+  } else if (Array.isArray(obj)) {
+    obj.forEach(collectDemoStrings);
+  } else if (typeof obj === "object") {
+    Object.values(obj).forEach(collectDemoStrings);
+  }
+}
+CV_TEMPLATES.forEach((t) => collectDemoStrings(sampleCvFor(t)));
+
 function Field({ label, value, onChange, multi, placeholder }: { label: string; value: string; onChange: (v: string) => void; multi?: boolean; placeholder?: string }) {
-  const onFocus = () => { if (value && DEMO_VALUES.has(value)) onChange(""); };
+  const isDemo = Boolean(value && DEMO_VALUES.has(value.trim()));
+  const onFocus = () => {
+    if (isDemo) onChange("");
+  };
   return (
     <label className="block text-xs font-medium text-muted-foreground">
       {label}
       {multi ? (
-        <textarea rows={4} placeholder={placeholder || value} className={inputCls} value={value} onFocus={onFocus} onChange={(e) => onChange(e.target.value)} />
+        <textarea
+          rows={4}
+          placeholder={placeholder || (isDemo ? value : "")}
+          className={inputCls}
+          value={value}
+          onFocus={onFocus}
+          onChange={(e) => onChange(e.target.value)}
+        />
       ) : (
-        <input placeholder={placeholder} className={inputCls} value={value} onFocus={onFocus} onChange={(e) => onChange(e.target.value)} />
+        <input
+          placeholder={placeholder || (isDemo ? value : "")}
+          className={inputCls}
+          value={value}
+          onFocus={onFocus}
+          onChange={(e) => onChange(e.target.value)}
+        />
       )}
     </label>
   );
