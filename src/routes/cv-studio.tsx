@@ -599,4 +599,273 @@ function CvStudio() {
                         <div className="flex items-center justify-between text-xs font-semibold">
                           <span>Langue {i + 1}</span>
                           <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => set("languageItems", (data.languageItems || []).filter((_, k) => k !== i))}>
-                  
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            className={inputCls + " mt-0"}
+                            value={li.name}
+                            placeholder="Nom de la langue"
+                            onChange={(e) => set("languageItems", (data.languageItems || []).map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))}
+                          />
+                          <select
+                            className={inputCls + " mt-0"}
+                            value={li.level}
+                            onChange={(e) => {
+                              const lvl = e.target.value;
+                              const pctMap: Record<string, number> = {
+                                "Langue maternelle": 100,
+                                "Bilingue": 95,
+                                "Excellent / C2": 90,
+                                "Avancé / C1": 80,
+                                "Intermédiaire élevé / B2": 70,
+                                "Intermédiaire / B1": 60,
+                                "Élémentaire / A2": 45,
+                                "Débutant / A1": 30,
+                              };
+                              set("languageItems", (data.languageItems || []).map((x, k) => (k === i ? { ...x, level: lvl, percent: pctMap[lvl] || 70 } : x)));
+                            }}
+                          >
+                            <option>Langue maternelle</option>
+                            <option>Bilingue</option>
+                            <option>Excellent / C2</option>
+                            <option>Avancé / C1</option>
+                            <option>Intermédiaire élevé / B2</option>
+                            <option>Intermédiaire / B1</option>
+                            <option>Élémentaire / A2</option>
+                            <option>Débutant / A1</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="w-full gap-1"
+                      onClick={() => set("languageItems", [...(data.languageItems || []), { name: "", level: "Intermédiaire élevé / B2", percent: 70 }])}
+                    >
+                      <Plus className="h-4 w-4" /> Ajouter une langue
+                    </Button>
+                  </div>
+                )}
+
+                {/* Étape 8 : Rubriques supplémentaires */}
+                {step === 8 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold mb-1">Ajouter une nouvelle rubrique :</div>
+                    <div className="flex flex-wrap gap-1">
+                      {["Cours", "Stages", "Activités", "Références", "Qualités", "Certificats", "Réalisations", "Bas de page", "Rubrique personnalisée"].map((rub) => (
+                        <Button
+                          key={rub}
+                          size="sm"
+                          variant="outline"
+                          onClick={() => set("sections", [...(data.sections || []), { key: crypto.randomUUID(), title: rub, content: "" }])}
+                        >
+                          + {rub}
+                        </Button>
+                      ))}
+                    </div>
+                    {(data.sections || []).map((sec) => (
+                      <div key={sec.key} className="space-y-1 rounded-md border p-2 mt-2">
+                        <div className="flex items-center justify-between">
+                          <input
+                            className={inputCls + " mt-0 font-semibold"}
+                            value={sec.title}
+                            onChange={(e) => set("sections", (data.sections || []).map((s) => (s.key === sec.key ? { ...s, title: e.target.value } : s)))}
+                          />
+                          <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => set("sections", (data.sections || []).filter((s) => s.key !== sec.key))}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        <textarea
+                          rows={2}
+                          className={inputCls}
+                          value={sec.content}
+                          placeholder="Détails de la rubrique..."
+                          onChange={(e) => set("sections", (data.sections || []).map((s) => (s.key === sec.key ? { ...s, content: e.target.value } : s)))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Étape 9 : Signature */}
+                {step === 9 && (
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold">Signez au doigt ou avec la souris :</div>
+                    <div className="rounded-lg border bg-white p-1">
+                      <canvas
+                        ref={sigCanvasRef}
+                        width={350}
+                        height={120}
+                        className="w-full cursor-crosshair touch-none"
+                        onMouseDown={(e) => {
+                          setIsDrawing(true);
+                          const ctx = sigCanvasRef.current?.getContext("2d");
+                          if (ctx) {
+                            ctx.beginPath();
+                            ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+                          }
+                        }}
+                        onMouseMove={(e) => {
+                          if (!isDrawing) return;
+                          const ctx = sigCanvasRef.current?.getContext("2d");
+                          if (ctx) {
+                            ctx.strokeStyle = "#111827";
+                            ctx.lineWidth = 2;
+                            ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+                            ctx.stroke();
+                          }
+                        }}
+                        onMouseUp={() => setIsDrawing(false)}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          if (sigCanvasRef.current) {
+                            const dataUrl = sigCanvasRef.current.toDataURL("image/png");
+                            set("signatureImage", dataUrl);
+                            localStorage.setItem(SIG_STORE, dataUrl);
+                            toast.success("Signature enregistrée et intégrée au CV.");
+                          }
+                        }}
+                      >
+                        Valider la signature
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          const ctx = sigCanvasRef.current?.getContext("2d");
+                          if (ctx && sigCanvasRef.current) {
+                            ctx.clearRect(0, 0, sigCanvasRef.current.width, sigCanvasRef.current.height);
+                            set("signatureImage", "");
+                          }
+                        }}
+                      >
+                        Effacer
+                      </Button>
+                    </div>
+                    <div className="border-t pt-2">
+                      <Field label="Ou tapez votre nom pour signature texte" value={data.signature || ""} onChange={(v) => set("signature", v)} placeholder="Ex: Sarah Garcia" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Boutons Suivant / Précédent */}
+                <div className="mt-4 flex items-center justify-between border-t pt-3">
+                  <Button size="sm" variant="outline" disabled={step <= 1} onClick={() => setStep((s) => s - 1)}>
+                    <ChevronLeft className="h-4 w-4 mr-1" /> Précédent
+                  </Button>
+                  {step < WIZARD_STEPS.length ? (
+                    <Button size="sm" onClick={() => setStep((s) => s + 1)}>
+                      Suivant <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  ) : (
+                    <Button size="sm" className="bg-primary font-bold" onClick={() => toast.success("Toutes les rubriques sont remplies !")}>
+                      Finaliser le CV
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Colonne Aperçu en direct & actions */}
+            <div className="min-w-0 space-y-3" ref={previewRef}>
+              {actionsBar}
+
+              <div className="overflow-hidden rounded-xl border bg-muted shadow-lg">
+                <CvPreview compact={false} html={html} />
+              </div>
+
+              {/* Personnalisation rapide sous le CV */}
+              <div className="rounded-lg border bg-card p-3 shadow-xs space-y-2">
+                <div className="text-xs font-semibold">Style & Mise en page du modèle</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="text-xs text-muted-foreground">Police
+                    <select className={inputCls} value={data.customFont || sel.font} onChange={(e) => set("customFont", e.target.value)}>
+                      {["Arial", "Calibri", "Times New Roman", "Georgia", "Verdana", "Trebuchet MS"].map((f) => (
+                        <option key={f}>{f}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-xs text-muted-foreground">Couleur principale
+                    <input type="color" className="mt-1 block h-9 w-full cursor-pointer rounded-md border bg-muted" value={data.customColor || sel.primary} onChange={(e) => set("customColor", e.target.value)} />
+                  </label>
+                </div>
+              </div>
+
+              {actionsBar}
+            </div>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
+  // Vue Catalogue Pro folio d'accueil
+  return (
+    <AppShell>
+      <div className="mx-auto max-w-4xl p-3 pb-24">
+        <div className="mb-4 text-center">
+          <h1 className="font-serif text-2xl font-bold">Modèles de CV Professionnels</h1>
+          <p className="text-xs text-muted-foreground mt-1">
+            Modèles pré-remplis avec données complètes adaptées au genre de chaque photo. Choisissez un modèle pour le personnaliser.
+          </p>
+        </div>
+
+        {/* Modèle N°1 Sarah Garcia bordeaux mis en avant avec mention NOUVEAU */}
+        {CV_TEMPLATES[0] && (
+          <div className="mb-8 rounded-xl border-2 border-primary/40 bg-card p-4 shadow-lg">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground uppercase">Nouveau</span>
+                <span className="font-bold text-sm">{CV_TEMPLATES[0].name}</span>
+              </div>
+              <Button size="lg" className="gap-2 bg-primary px-6 font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0])}>
+                <Plus className="h-5 w-5" /> Créer ce CV
+              </Button>
+            </div>
+
+            <div className="overflow-hidden rounded-lg border bg-muted shadow-inner">
+              <CvPreview compact={false} html={renderCvHtml(CV_TEMPLATES[0], sampleCvFor(CV_TEMPLATES[0]))} />
+            </div>
+
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <Button size="lg" className="w-full max-w-md gap-2 text-base font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0])}>
+                <Plus className="h-6 w-6" /> Choisir ce modèle (+ Créer un nouveau CV)
+              </Button>
+              <p className="text-xs text-muted-foreground">Ou défilez vers le bas pour découvrir les autres modèles ↓</p>
+            </div>
+          </div>
+        )}
+
+        {/* Défilement des autres modèles */}
+        <div className="space-y-6">
+          <h2 className="font-serif text-lg font-bold">Autres modèles disponibles</h2>
+          {CV_TEMPLATES.slice(1).map((t) => (
+            <div key={t.id} className="rounded-lg border bg-card p-3 shadow-sm hover:shadow-md transition">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {t.isNew && <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-bold text-primary">Nouveau</span>}
+                  <span className="font-medium text-sm">{t.name}</span>
+                </div>
+                <Button size="sm" onClick={() => selectModel(t)} className="gap-1">
+                  <Plus className="h-4 w-4" /> Utiliser ce modèle
+                </Button>
+              </div>
+              <div className="overflow-hidden rounded border bg-muted">
+                <CvPreview compact html={renderCvHtml(t, sampleCvFor(t))} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </AppShell>
+  );
+}
