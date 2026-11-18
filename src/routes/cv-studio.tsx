@@ -193,9 +193,17 @@ function CvStudio() {
     { label: "Signature", ok: Boolean(data.signature?.trim() || data.signatureImage), step: 9 },
   ];
   const [showAudit, setShowAudit] = useState(false);
-
+  
   const onPreviewTap = (e: React.MouseEvent) => {
-    const text = ((e.target as HTMLElement).textContent || "").trim();
+  const target = e.target as HTMLElement;
+    // Si l'utilisateur touche la photo directement sur le CV affiché
+    if (target.tagName === "IMG" || target.closest("img")) {
+      setStep(1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const text = (target.textContent || "").trim();
     if (!text) return;
     const has = (v?: string) => Boolean(v && v.trim() && (v.includes(text) || text.includes(v.trim())));
     if (has(data.firstName) || has(data.lastName) || has(data.title) || has(data.summary)) setStep(2);
