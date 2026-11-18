@@ -271,3 +271,332 @@ function CvStudio() {
     </div>
   );
                                      
+  const selectModel = (t: CvTemplate) => {
+    setSel(t);
+    const demo = sampleCvFor(t);
+    setData((curr) => {
+      // Si l'utilisateur n'a pas encore saisi de prénom, on remplit avec le profil dense démo
+      if (!curr.firstName.trim()) return { ...demo, photo: curr.photo || "" };
+      return curr;
+    });
+    setStep(1);
+    toast.success(`Modèle ${t.name} sélectionné.`);
+  };
+
+  const updExp = (i: number, patch: Partial<CvExperience>) =>
+    set("experiences", data.experiences.map((e, k) => (k === i ? { ...e, ...patch } : e)));
+  const updEdu = (i: number, patch: Partial<CvEducation>) =>
+    set("education", data.education.map((e, k) => (k === i ? { ...e, ...patch } : e)));
+
+  // Vue Éditeur pas-à-pas lorsque sel != null
+  if (sel) {
+    return (
+      <AppShell>
+        <div className="mx-auto max-w-6xl p-3 pb-24">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSel(null)}>
+              <ArrowLeft className="h-4 w-4" /> Retour aux modèles
+            </Button>
+            <div className="flex items-center gap-2">
+              <span className="font-serif text-lg font-bold">BERSA Writer</span>
+              <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{sel.name}</span>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => importRef.current?.click()}>
+              <FileText className="h-4 w-4" /> Importer un CV
+            </Button>
+            <input ref={importRef} type="file" accept=".docx,.doc,.pdf,.txt,.json" className="hidden" onChange={(e) => { void importCv(e.target.files?.[0]); e.target.value = ""; }} />
+          </div>
+
+          {/* Stepper de navigation par rubriques */}
+          <div className="mb-3 flex items-center gap-1 overflow-x-auto pb-1 text-xs">
+            {WIZARD_STEPS.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setStep(s.id)}
+                className={`flex-shrink-0 rounded-md px-2.5 py-1 font-medium transition ${
+                  step === s.id ? "bg-primary text-primary-foreground shadow-xs" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                }`}
+              >
+                {s.id}. {s.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[400px_1fr]">
+            {/* Colonne Formulaire Rubrique par Rubrique */}
+            <div className="min-w-0 space-y-3">
+              <div className="rounded-xl border bg-card p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between border-b pb-2">
+                  <h2 className="font-semibold text-sm">Étape {step} / {WIZARD_STEPS.length} : {WIZARD_STEPS[step - 1]?.label}</h2>
+                  <div className="flex gap-1">
+                    <Button size="icon" variant="ghost" className="h-7 w-7" disabled={step <= 1} onClick={() => setStep((s) => s - 1)}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" disabled={step >= WIZARD_STEPS.length} onClick={() => setStep((s) => s + 1)}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Étape 1 : Photo & Cadrage */}
+                {step === 1 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={data.photo || sel.defaultPhoto || "/cv-photos/photo-1.png"}
+                        alt="Photo du CV"
+                        className={`h-20 w-20 object-cover border shadow-xs ${data.photoShape === "circle" ? "rounded-full" : data.photoShape === "rounded" ? "rounded-xl" : "rounded-none"}`}
+                      />
+                      <div className="space-y-1.5">
+                        <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90">
+                          <ImagePlus className="h-3.5 w-3.5" /> Changer la photo
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => onPhoto(e.target.files?.[0])} />
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <input type="checkbox" checked={data.showPhoto} onChange={(e) => set("showPhoto", e.target.checked)} />
+                          Afficher la photo sur le CV
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="border-t pt-2 space-y-2">
+                      <div className="text-xs font-semibold">Forme de la photo</div>
+                      <div className="flex gap-1">
+                        {(["circle", "rounded", "square"] as const).map((sh) => (
+                          <Button key={sh} size="sm" variant={data.photoShape === sh ? "default" : "outline"} onClick={() => set("photoShape", sh)}>
+                            {sh === "circle" ? "Cercle" : sh === "rounded" ? "Arrondi" : "Carré"}
+                          </Button>
+                        ))}
+                      </div>
+
+                      <div className="text-xs font-semibold pt-1">Rognage & Cadrage manuel</div>
+                      <label className="block text-xs text-muted-foreground">Zoom photo : {cropZoom.toFixed(1)}x
+                        <input type="range" min={1} max={3} step={0.1} value={cropZoom} onChange={(e) => setCropZoom(Number(e.target.value))} className="w-full" />
+                      </label>
+                      <label className="block text-xs text-muted-foreground">Position horizontale
+                        <input type="range" min={0} max={100} value={cropX} onChange={(e) => setCropX(Number(e.target.value))} className="w-full" />
+                      </label>
+                      <label className="block text-xs text-muted-foreground">Position verticale
+                        <input type="range" min={0} max={100} value={cropY} onChange={(e) => setCropY(Number(e.target.value))} className="w-full" />
+                      </label>
+                      <Button size="sm" variant="secondary" className="w-full" onClick={applyManualCrop}>Appliquer le cadrage</Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Étape 2 : Identité & Profil */}
+                {step === 2 && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Prénom" value={data.firstName} onChange={(v) => set("firstName", v)} placeholder="Ex: Sarah" />
+                      <Field label="Nom de famille" value={data.lastName} onChange={(v) => set("lastName", v)} placeholder="Ex: GARCIA" />
+                    </div>
+                    <Field label="Métier / Poste visé" value={data.title} onChange={(v) => set("title", v)} placeholder="Ex: Responsable Ressources Humaines" />
+                    <Field label="Profil (À propos de moi)" value={data.summary} onChange={(v) => set("summary", v)} multi placeholder="Décrivez vos compétences clés et votre parcours..." />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 text-primary"
+                      onClick={() => {
+                        if (!data.summary.trim()) { toast.info("Écrivez d'abord quelques mots sur votre profil."); return; }
+                        const enhanced = data.summary.replace(/je suis/gi, "Professionnel(le)").replace(/j'aime/gi, "Passionné(e) par").trim();
+                        set("summary", `${enhanced} Rigoureux(se), orienté(e) résultats et doté(e) d'un excellent esprit d'équipe.`);
+                        toast.success("Profil valorisé par l'assistant intelligent.");
+                      }}
+                    >
+                      <Sparkles className="h-4 w-4" /> Améliorer le profil avec IA
+                    </Button>
+                  </div>
+                )}
+
+                {/* Étape 3 : Coordonnées */}
+                {step === 3 && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Ville ou pays" value={data.city || ""} onChange={(v) => set("city", v)} placeholder="Ex: Kinshasa, RDC" />
+                      <Field label="Commune" value={data.commune || ""} onChange={(v) => set("commune", v)} placeholder="Ex: Gombe" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Code postal (facultatif)" value={data.postalCode || ""} onChange={(v) => set("postalCode", v)} placeholder="Ex: 1001" />
+                      <Field label="Adresse physique" value={data.address} onChange={(v) => set("address", v)} placeholder="Ex: 14 Av. de la Paix" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="E-mail" value={data.email} onChange={(v) => set("email", v)} placeholder="nom@exemple.com" />
+                      <Field label="Téléphone" value={data.phone} onChange={(v) => set("phone", v)} placeholder="+243..." />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Field label="Date de naissance" value={data.birth} onChange={(v) => set("birth", v)} placeholder="JJ/MM/AAAA" />
+                      <Field label="Permis (facultatif)" value={data.license} onChange={(v) => set("license", v)} placeholder="Ex: Permis B" />
+                    </div>
+                    <Field label="Site web / LinkedIn (facultatif)" value={data.website} onChange={(v) => set("website", v)} placeholder="linkedin.com/in/votre-nom" />
+
+                    <div className="border-t pt-2">
+                      <div className="text-xs font-semibold mb-1.5">Ajouter d'autres coordonnées :</div>
+                      <div className="flex flex-wrap gap-1">
+                        {[
+                          { label: "+ Lieu de naissance", key: "birthPlace" },
+                          { label: "+ Sexe", key: "gender" },
+                          { label: "+ Nationalité", key: "nationality" },
+                          { label: "+ État civil", key: "civilStatus" },
+                        ].map((btn) => (
+                          <Button
+                            key={btn.key}
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const val = window.prompt(`Saisir : ${btn.label.replace("+ ", "")}`);
+                              if (val) set(btn.key as keyof CvData, val);
+                            }}
+                          >
+                            {btn.label}
+                          </Button>
+                        ))}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const name = window.prompt("Nom du champ personnalisé (ex: Skype, WhatsApp) :");
+                            if (name) {
+                              const val = window.prompt(`Valeur pour ${name} :`);
+                              if (val) set("extra", { ...(data.extra || {}), [name]: val });
+                            }
+                          }}
+                        >
+                          + Champ personnalisé
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Étape 4 : Expériences */}
+                {step === 4 && (
+                  <div className="space-y-3">
+                    {data.experiences.map((e, i) => (
+                      <div key={i} className="space-y-1.5 rounded-lg border p-2.5 bg-muted/30">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span>Expérience {i + 1}</span>
+                          <ItemTools
+                            onUp={() => set("experiences", move(data.experiences, i, -1))}
+                            onDown={() => set("experiences", move(data.experiences, i, 1))}
+                            onDelete={() => set("experiences", data.experiences.filter((_, k) => k !== i))}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Field label="Début" value={e.start} onChange={(v) => updExp(i, { start: v })} placeholder="MM/AAAA" />
+                          <Field label="Fin ou en cours" value={e.end} onChange={(v) => updExp(i, { end: v })} placeholder="Actuel ou MM/AAAA" />
+                        </div>
+                        <Field label="Poste occupé" value={e.role} onChange={(v) => updExp(i, { role: v })} placeholder="Ex: Comptable Principal" />
+                        <Field label="Entreprise ou organisation" value={e.company} onChange={(v) => updExp(i, { company: v })} placeholder="Ex: Société Générale" />
+                        <Field label="Missions (commencez par « - » pour une puce)" value={e.description} onChange={(v) => updExp(i, { description: v })} multi />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs text-primary gap-1"
+                          onClick={() => {
+                            const lines = e.description.split("\n").filter(Boolean);
+                            const enhanced = lines.map((l) => (l.startsWith("-") ? l : `- ${l}`)).join("\n");
+                            updExp(i, { description: enhanced || "- Gestion des opérations clés\n- Optimisation des processus et reporting" });
+                            toast.success("Missions structurées en puces d'action.");
+                          }}
+                        >
+                          <Sparkles className="h-3 w-3" /> Améliorer la mission avec IA
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="w-full gap-1"
+                      onClick={() => set("experiences", [...data.experiences, { start: "", end: "En cours", role: "", company: "", description: "- " }])}
+                    >
+                      <Plus className="h-4 w-4" /> Ajouter une expérience
+                    </Button>
+                  </div>
+                )}
+
+                {/* Étape 5 : Formations */}
+                {step === 5 && (
+                  <div className="space-y-3">
+                    {data.education.map((e, i) => (
+                      <div key={i} className="space-y-1.5 rounded-lg border p-2.5 bg-muted/30">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span>Formation {i + 1}</span>
+                          <ItemTools
+                            onUp={() => set("education", move(data.education, i, -1))}
+                            onDown={() => set("education", move(data.education, i, 1))}
+                            onDelete={() => set("education", data.education.filter((_, k) => k !== i))}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Field label="Début" value={e.start} onChange={(v) => updEdu(i, { start: v })} placeholder="AAAA" />
+                          <Field label="Fin ou en cours" value={e.end} onChange={(v) => updEdu(i, { end: v })} placeholder="AAAA" />
+                        </div>
+                        <Field label="Diplôme obtenu" value={e.degree} onChange={(v) => updEdu(i, { degree: v })} placeholder="Ex: Licence en Gestion" />
+                        <Field label="Établissement ou Institution" value={e.school} onChange={(v) => updEdu(i, { school: v })} placeholder="Ex: Université de Kinshasa" />
+                        <Field label="Mention ou pourcentage obtenu" value={e.grade || ""} onChange={(v) => updEdu(i, { grade: v })} placeholder="Ex: Distinction (74%)" />
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="w-full gap-1"
+                      onClick={() => set("education", [...data.education, { start: "", end: "", degree: "", school: "", grade: "", description: "" }])}
+                    >
+                      <Plus className="h-4 w-4" /> Ajouter une formation
+                    </Button>
+                  </div>
+                )}
+
+                {/* Étape 6 : Compétences */}
+                {step === 6 && (
+                  <div className="space-y-2">
+                    {data.skills.map((s, i) => (
+                      <div key={i} className="flex items-center gap-1">
+                        <input
+                          className={inputCls + " mt-0"}
+                          value={s}
+                          onChange={(e) => set("skills", data.skills.map((x, k) => (k === i ? e.target.value : x)))}
+                          placeholder="Compétence..."
+                        />
+                        <ItemTools
+                          onUp={() => set("skills", move(data.skills, i, -1))}
+                          onDown={() => set("skills", move(data.skills, i, 1))}
+                          onDelete={() => set("skills", data.skills.filter((_, k) => k !== i))}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex gap-2 pt-1">
+                      <Button type="button" size="sm" variant="outline" className="flex-1 gap-1" onClick={() => set("skills", [...data.skills, ""])}>
+                        <Plus className="h-4 w-4" /> Ajouter une compétence
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="text-primary gap-1"
+                        onClick={() => {
+                          const suggestions = ["Sens de l'organisation", "Rigueur professionnelle", "Esprit d'analyse", "Travail en équipe"];
+                          set("skills", Array.from(new Set([...data.skills, ...suggestions])));
+                          toast.success("Compétences enrichies avec l'IA.");
+                        }}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" /> Suggestions IA
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Étape 7 : Langues */}
+                {step === 7 && (
+                  <div className="space-y-2.5">
+                    {(data.languageItems || []).map((li, i) => (
+                      <div key={i} className="rounded-md border p-2 bg-muted/20 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span>Langue {i + 1}</span>
+                          <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => set("languageItems", (data.languageItems || []).filter((_, k) => k !== i))}>
+                  
