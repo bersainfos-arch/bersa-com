@@ -676,11 +676,16 @@ function CvStudio() {
                   <div className="space-y-2">
                     {data.skills.map((s, i) => (
                       <div key={i} className="flex items-center gap-1">
-                        <input
+                          <input
                           className={inputCls + " mt-0"}
                           value={s}
+                          onFocus={() => {
+                            if (s && DEMO_VALUES.has(s.trim())) {
+                              set("skills", data.skills.map((x, k) => (k === i ? "" : x)));
+                            }
+                          }}
                           onChange={(e) => set("skills", data.skills.map((x, k) => (k === i ? e.target.value : x)))}
-                          placeholder="Compétence..."
+                          placeholder={s && DEMO_VALUES.has(s.trim()) ? s : "Compétence..."}
                         />
                         <ItemTools
                           onUp={() => set("skills", move(data.skills, i, -1))}
