@@ -722,10 +722,15 @@ function CvStudio() {
                           </Button>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <input
+                                                    <input
                             className={inputCls + " mt-0"}
                             value={li.name}
-                            placeholder="Nom de la langue"
+                            onFocus={() => {
+                              if (li.name && DEMO_VALUES.has(li.name.trim())) {
+                                set("languageItems", (data.languageItems || []).map((x, k) => (k === i ? { ...x, name: "" } : x)));
+                              }
+                            }}
+                            placeholder={li.name && DEMO_VALUES.has(li.name.trim()) ? li.name : "Nom de la langue"}
                             onChange={(e) => set("languageItems", (data.languageItems || []).map((x, k) => (k === i ? { ...x, name: e.target.value } : x)))}
                           />
                           <select
