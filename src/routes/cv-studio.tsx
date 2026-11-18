@@ -132,6 +132,7 @@ function CvStudio() {
   const [bright, setBright] = useState(100);
   const [contrast, setContrast] = useState(100);
   const [bgWhite, setBgWhite] = useState(false);
+  const [filterBw, setFilterBw] = useState(false); 
   const dragRef = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
   const [extraKey, setExtraKey] = useState("");
 
