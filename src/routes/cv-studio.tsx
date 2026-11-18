@@ -881,13 +881,20 @@ function CvStudio() {
               </div>
             </div>
 
-            {/* Colonne Aperçu en direct & actions */}
+                 {/* Colonne Aperçu en direct & actions */}
             <div className="min-w-0 space-y-3" ref={previewRef}>
               {actionsBar}
 
-              <div className="overflow-hidden rounded-xl border bg-muted shadow-lg">
+              <div
+                className="overflow-hidden rounded-xl border bg-muted shadow-lg cursor-pointer transition hover:ring-2 hover:ring-primary/40"
+                onClick={onPreviewTap}
+                title="Touchez un élément du CV pour ouvrir sa rubrique"
+              >
                 <CvPreview compact={false} html={html} />
               </div>
+              <p className="text-center text-xs text-muted-foreground">
+                Astuce : touchez un texte ou la photo sur le CV pour ouvrir directement sa rubrique.
+              </p>
 
               {/* Personnalisation rapide sous le CV */}
               <div className="rounded-lg border bg-card p-3 shadow-xs space-y-2">
