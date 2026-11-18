@@ -673,3 +673,283 @@ export const ICONS = {
   link: `<svg style="display:inline-block;vertical-align:-2px;width:12px;height:12px;margin-right:6px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
   custom: `<svg style="display:inline-block;vertical-align:-2px;width:12px;height:12px;margin-right:6px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
 };
+
+const esc = (s: string) =>
+  (s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
+
+export function formatCvPeriod(start: string, end: string): string {
+  return [start, end].map((x) => (x ?? "").trim()).filter(Boolean).join(" \u2014 ");
+}
+
+function rich(s: string, size = "9pt") {
+  const ls = (s ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+  let out = "";
+  let ul: string[] = [];
+  const flush = () => {
+    if (ul.length) out += `<ul style="margin:2px 0 2px 14px;padding:0">${ul.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    ul = [];
+  };
+  for (const l of ls) {
+    if (/^[-•]/.test(l)) ul.push(l.replace(/^[-•]\s*/, ""));
+    else { flush(); out += `<div style="margin:1px 0;font-size:${size}">${esc(l)}</div>`; }
+  }
+  flush();
+  return out;
+}
+
+interface Parts {
+  photo: string;
+  name: string;
+  contacts: { icon: string; label: string; value: string }[];
+}
+
+function parts(d: CvData, t?: CvTemplate): Parts {
+  const fullAddress = [d.address, d.commune, d.city, d.postalCode].filter((x) => (x ?? "").trim()).join(", ");
+  const contacts: { icon: string; label: string; value: string }[] = [
+    { icon: ICONS.phone, label: "Téléphone", value: d.phone },
+    { icon: ICONS.email, label: "E-mail", value: d.email },
+    { icon: ICONS.location, label: "Adresse", value: fullAddress },
+    { icon: ICONS.birth, label: "Date de naissance", value: d.birth },
+    { icon: ICONS.birthPlace, label: "Lieu de naissance", value: d.birthPlace || "" },
+    { icon: ICONS.nationality, label: "Nationalité", value: d.nationality || "" },
+    { icon: ICONS.gender, label: "Sexe", value: d.gender || "" },
+    { icon: ICONS.civil, label: "État civil", value: d.civilStatus || "" },
+    { icon: ICONS.license, label: "Permis", value: d.license },
+    { icon: ICONS.link, label: "Web / LinkedIn", value: d.website },
+    ...Object.entries(d.extra ?? {}).map(([label, value]) => ({ icon: ICONS.custom, label, value })),
+  ].filter((c) => (c.value ?? "").trim());
+
+  const noPhotoModel = t?.id === TEMPLATE_NO_PHOTO.id;
+  const effectivePhoto = !d.showPhoto
+    ? ""
+    : noPhotoModel
+    ? d.photo && d.photo !== PLACEHOLDER_PHOTO
+      ? d.photo
+      : ""
+    : d.photo && d.photo !== PLACEHOLDER_PHOTO
+    ? d.photo
+    : t?.defaultPhoto || d.photo || PLACEHOLDER_PHOTO;
+
+  const fullName = `${d.firstName.trim()} ${d.lastName.trim()}`.trim();
+  return { photo: effectivePhoto, name: esc(fullName), contacts };
+}
+
+function renderLanguageGauges(d: CvData, isDarkBg = false): string {
+  const items = d.languageItems && d.languageItems.length
+    ? d.languageItems
+    : d.languages.map((l) => ({ name: l, level: "Opérationnel", percent: 75 }));
+  if (!items.length) return "";
+
+  const nameColor = isDarkBg ? "#ffffff" : "#111827";
+  const barBg = isDarkBg ? "rgba(255,255,255,0.25)" : "#e5e7eb";
+  const barFill = isDarkBg ? "#ffffff" : "#2563eb";
+  const subColor = isDarkBg ? "rgba(255,255,255,0.85)" : "#6b7280";
+
+  return items.map((li) => `
+    <div style="margin:0 0 10px">
+      <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:8.5pt;color:${nameColor}">
+        <span>${esc(li.name)}</span>
+        <span style="font-size:7.5pt;font-weight:normal;color:${subColor}">${esc(li.level)}</span>
+      </div>
+      <div style="height:4px;background:${barBg};border-radius:2px;margin:3px 0 2px;overflow:hidden">
+        <div style="height:100%;width:${li.percent ?? 75}%;background:${barFill};border-radius:2px"></div>
+      </div>
+      ${li.details ? `<div style="font-size:7pt;color:${subColor};font-style:italic">${esc(li.details)}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+function renderExperiences(d: CvData, color: string): string {
+  return d.experiences.map((e) => `
+    <div style="margin:0 0 12px">
+      <div style="font-size:9.5pt;font-weight:bold;color:#111827;line-height:1.25">
+        <span style="color:#6b7280;font-size:8.5pt;font-weight:600">${esc(formatCvPeriod(e.start, e.end))}</span>
+        <span style="color:#9ca3af;margin:0 4px">•</span>
+        <span>${esc(e.role)}</span>
+      </div>
+      <div style="font-size:8.5pt;font-weight:600;color:${color};margin-top:2px">${esc(e.company)}</div>
+      ${e.description ? `<div style="color:#4b5563;font-size:8.5pt;margin-top:3px">${rich(e.description, "8.5pt")}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+function renderEducation(d: CvData, color: string): string {
+  return d.education.map((e) => `
+    <div style="margin:0 0 10px">
+      <div style="font-size:9.5pt;font-weight:bold;color:#111827;line-height:1.25">
+        <span style="color:#6b7280;font-size:8.5pt;font-weight:600">${esc(formatCvPeriod(e.start, e.end))}</span>
+        <span style="color:#9ca3af;margin:0 4px">•</span>
+        <span>${esc(e.degree)}</span>
+      </div>
+      <div style="font-size:8.5pt;color:#374151;margin-top:1px">${esc(e.school)}${e.grade ? ` <span style="color:${color};font-weight:600">— Mention : ${esc(e.grade)}</span>` : ""}</div>
+      ${e.description ? `<div style="color:#6b7280;font-size:8pt;margin-top:2px">${rich(e.description, "8pt")}</div>` : ""}
+    </div>
+  `).join("");
+}
+
+const SHAPE_RADIUS = { square: "0px", rounded: "16px", circle: "50%" } as const;
+
+export function renderCvHtml(t0: CvTemplate, d: CvData): string {
+  const safeColor = /^#[0-9a-f]{6}$/i.test(d.customColor || "") ? d.customColor : undefined;
+  const safeFont = /^[a-z ]+$/i.test(d.customFont || "") ? d.customFont : undefined;
+  const t: CvTemplate = { ...t0, primary: safeColor || t0.primary, accent: safeColor || t0.accent, font: safeFont || t0.font };
+  let html = renderBase(t, d.titleAsHeading === false ? { ...d, title: "" } : d);
+
+  if (d.photoShape) {
+    html = html.replace(/(<img [^>]*?style="[^"]*?)border-radius:[^;]*;/g, (_, prefix: string) => `${prefix}border-radius:${SHAPE_RADIUS[d.photoShape ?? "circle"]};`);
+  }
+
+  // Intégration des rubriques supplémentaires et de la signature
+  const blocks = (d.sections ?? []).filter((x) => x.content && x.content.trim());
+  const hasSignature = Boolean(d.signature?.trim() || d.signatureImage?.trim());
+
+  if (!blocks.length && !hasSignature) return html;
+
+  const h = (s: string) => `<div style="font-size:11pt;font-weight:bold;text-transform:uppercase;color:${t.primary};border-bottom:1.5px solid ${t.primary};padding-bottom:3px;margin:14px 0 6px">${esc(s)}</div>`;
+  const extraHtml = blocks.map((b) => h(b.title) + rich(b.content, "8.5pt")).join("");
+
+  const sigHtml = hasSignature ? `
+    <div style="margin-top:18px;display:flex;justify-content:flex-end">
+      <div style="text-align:center;min-width:180px">
+        <div style="font-size:8pt;color:#6b7280;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Signature</div>
+        ${d.signatureImage ? `<img src="${d.signatureImage}" alt="Signature" style="max-height:55px;max-width:160px;object-fit:contain;display:inline-block">` : ""}
+        ${d.signature ? `<div style="font-family:'Brush Script MT',cursive,italic;font-size:16pt;color:#111;margin-top:2px">${esc(d.signature)}</div>` : ""}
+      </div>
+    </div>
+  ` : "";
+
+  return `
+    <div style="width:794px;background:#fff;margin:0 auto">
+      ${html}
+      <div style="font-family:'${t.font}',Arial,sans-serif;padding:6px 36px 28px;box-sizing:border-box">
+        ${extraHtml}
+        ${sigHtml}
+      </div>
+    </div>
+  `;
+}
+
+function renderBase(t: CvTemplate, d: CvData): string {
+  const p = parts(d, t);
+  const color = t.primary;
+  const base = `font-family:'${t.font}',Arial,sans-serif;font-size:9pt;color:#1f2937;line-height:1.42;background:#fff;width:794px;min-height:1123px;box-sizing:border-box;overflow:hidden;`;
+
+  // Layout 1 : Bordeaux Studio (Modèle Sarah Garcia bicolore deux colonnes)
+  if (t.layout === "lateral-bordeaux" || t.layout === "lateral-couleur" || t.layout === "lateral-gris" || t.layout === "lateral-plein" || t.layout === "arche") {
+    const isDark = t.layout !== "lateral-gris";
+    const sideBg = isDark ? color : "#f3f4f6";
+    const sideText = isDark ? "#ffffff" : "#1f2937";
+    const sideHead = (s: string) => `<div style="font-size:10pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${isDark ? '#fff' : color};margin:16px 0 8px;border-bottom:1.5px solid ${isDark ? 'rgba(255,255,255,0.3)' : color};padding-bottom:2px">${esc(s)}</div>`;
+    const mainHead = (s: string) => `<div style="font-size:11pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${color};margin:16px 0 6px;border-bottom:1.5px solid ${color};padding-bottom:2px">${esc(s)}</div>`;
+
+    return `
+      <div style="${base}display:flex">
+        <!-- Colonne latérale gauche (280px) -->
+        <div style="width:280px;background:${sideBg};color:${sideText};padding:30px 22px;box-sizing:border-box;flex-shrink:0">
+          ${p.photo ? `
+            <div style="text-align:center;margin-bottom:20px">
+              <img src="${p.photo}" alt="" style="width:150px;height:150px;object-fit:cover;border-radius:50%;border:4px solid #ffffff;display:inline-block;box-shadow:0 3px 10px rgba(0,0,0,0.15)">
+            </div>
+          ` : ""}
+
+          ${d.summary.trim() ? `
+            ${sideHead("Profil")}
+            <div style="font-size:8.5pt;line-height:1.5;text-align:justify;color:${isDark ? '#f3f4f6' : '#4b5563'}">
+              ${rich(d.summary, "8.5pt")}
+            </div>
+          ` : ""}
+
+          ${d.skills.length ? `
+            ${sideHead("Compétences")}
+            <div style="font-size:8.5pt;line-height:1.6">
+              ${d.skills.map((s) => `<div style="margin:2px 0">• ${esc(s)}</div>`).join("")}
+            </div>
+          ` : ""}
+
+          ${(d.languages.length || (d.languageItems && d.languageItems.length)) ? `
+            ${sideHead("Langues")}
+            ${renderLanguageGauges(d, isDark)}
+          ` : ""}
+
+          ${d.hobbies.length ? `
+            ${sideHead("Centres d'intérêt")}
+            <div style="font-size:8pt;line-height:1.5;color:${isDark ? '#f3f4f6' : '#4b5563'}">
+              ${d.hobbies.map((h) => `<div style="margin:2px 0">• ${esc(h)}</div>`).join("")}
+            </div>
+          ` : ""}
+        </div>
+
+        <!-- Colonne principale droite -->
+        <div style="flex:1;padding:32px 30px;box-sizing:border-box">
+          <div style="margin-bottom:14px">
+            <div style="font-size:26pt;font-weight:900;color:${color};line-height:1.08;letter-spacing:-0.5px">
+              ${p.name}
+            </div>
+            <div style="font-size:11pt;letter-spacing:2px;text-transform:uppercase;color:#4b5563;font-weight:600;margin-top:6px">
+              ${esc(d.title)}
+            </div>
+          </div>
+
+          <!-- Coordonnées avec icônes -->
+          <div style="font-size:8.5pt;color:#4b5563;margin-bottom:14px;line-height:1.65;background:#f9fafb;padding:10px 14px;border-radius:8px">
+            ${p.contacts.map((c) => `<div style="display:flex;align-items:center">${c.icon} <span><b>${c.label} :</b> ${esc(c.value)}</span></div>`).join("")}
+          </div>
+
+          ${d.education.length ? `${mainHead("Formations")}${renderEducation(d, color)}` : ""}
+          ${d.experiences.length ? `${mainHead("Expériences Professionnelles")}${renderExperiences(d, color)}` : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  // Layout 2 : Bandeau avec 2 colonnes
+  const hMain = (s: string) => `<div style="font-size:10.5pt;font-weight:bold;text-transform:uppercase;color:${color};border-bottom:1.5px solid ${color};padding-bottom:2px;margin:14px 0 6px">${esc(s)}</div>`;
+  const isNoPhoto = t.id === TEMPLATE_NO_PHOTO.id || !p.photo;
+
+  return `
+    <div style="${base}">
+      <!-- En-tête bandeau -->
+      <div style="background:${color};color:#fff;padding:26px 36px;display:flex;align-items:center;gap:24px">
+        ${!isNoPhoto ? `<img src="${p.photo}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:3px solid #fff;flex-shrink:0">` : ""}
+        <div style="flex:1">
+          <div style="font-size:24pt;font-weight:bold;line-height:1.1">${p.name}</div>
+          <div style="font-size:11pt;letter-spacing:1px;margin-top:4px;color:rgba(255,255,255,0.9)">${esc(d.title)}</div>
+        </div>
+      </div>
+
+      <!-- Corps en deux colonnes -->
+      <div style="display:flex;padding:22px 34px;gap:28px">
+        <div style="width:230px;flex-shrink:0">
+          ${p.contacts.length ? `
+            ${hMain("Contact")}
+            <div style="font-size:8pt;color:#4b5563;line-height:1.6">
+              ${p.contacts.map((c) => `<div style="display:flex;align-items:center;margin:3px 0">${c.icon} <span>${esc(c.value)}</span></div>`).join("")}
+            </div>
+          ` : ""}
+          ${d.skills.length ? `
+            ${hMain("Compétences")}
+            <div style="font-size:8pt;line-height:1.5">${d.skills.map((s) => `<div style="margin:2px 0">• ${esc(s)}</div>`).join("")}</div>
+          ` : ""}
+          ${(d.languages.length || (d.languageItems && d.languageItems.length)) ? `
+            ${hMain("Langues")}
+            ${renderLanguageGauges(d, false)}
+          ` : ""}
+          ${d.hobbies.length ? `
+            ${hMain("Loisirs")}
+            <div style="font-size:8pt;color:#6b7280">${d.hobbies.map((h) => `<div style="margin:1px 0">• ${esc(h)}</div>`).join("")}</div>
+          ` : ""}
+        </div>
+
+        <div style="flex:1;border-left:1px solid #e5e7eb;padding-left:24px">
+          ${d.summary.trim() ? `
+            ${hMain("Profil")}
+            <div style="color:#4b5563;font-size:8.5pt;margin-bottom:10px">${rich(d.summary, "8.5pt")}</div>
+          ` : ""}
+          ${d.experiences.length ? `${hMain("Expériences professionnelles")}${renderExperiences(d, color)}` : ""}
+          ${d.education.length ? `${hMain("Formations")}${renderEducation(d, color)}` : ""}
+        </div>
+      </div>
+    </div>
+  `;
+    }
+    
