@@ -183,9 +183,9 @@ export const TEMPLATE_NO_PHOTO: CvTemplate = {
 
 export const CV_TEMPLATES: CvTemplate[] = [
   TEMPLATE_SARAH_GARCIA,
-  ...modern.slice(0, 5),
+  ...modern.slice(1, 6),
   TEMPLATE_NO_PHOTO,
-  ...modern.slice(5),
+  ...modern.slice(6),
   ...classic,
 ];
 
