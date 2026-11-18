@@ -208,13 +208,7 @@ function CvStudio() {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     toast.success("CV téléchargé sur votre appareil.");
   };
-    }
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = name; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    toast.success("CV téléchargé.");
-  };
-
+    
   const auditSteps = [
     { label: "Prénom et nom", ok: Boolean(data.firstName.trim() && data.lastName.trim()), step: 2 },
     { label: "Métier / poste visé", ok: Boolean(data.title.trim()), step: 2 },
