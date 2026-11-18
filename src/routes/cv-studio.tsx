@@ -446,12 +446,43 @@ function CvStudio() {
                 {/* Étape 1 : Photo & Cadrage */}
                 {step === 1 && (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={data.photo || sel.defaultPhoto || "/cv-photos/photo-1.png"}
-                        alt="Photo du CV"
-                        className={`h-20 w-20 object-cover border shadow-xs ${data.photoShape === "circle" ? "rounded-full" : data.photoShape === "rounded" ? "rounded-xl" : "rounded-none"}`}
-                      />
+                  <div className="flex items-center gap-3">
+                      {/* Photo cliquable directement pour importer/changer */}
+                      <label
+                        className="group relative block cursor-pointer shrink-0"
+                        title="Touchez la photo pour la changer ou en ajouter une nouvelle"
+                      >
+                        <img
+                          src={data.photo || sel.defaultPhoto || "/cv-photos/photo-1.png"}
+                          alt="Photo du CV"
+                          className={`h-20 w-20 object-cover border shadow-xs transition group-hover:opacity-85 ${
+                            data.photoShape === "circle"
+                              ? "rounded-full"
+                              : data.photoShape === "rounded"
+                              ? "rounded-xl"
+                              : "rounded-none"
+                          }`}
+                        />
+                        <div
+                          className={`absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white opacity-0 transition group-hover:opacity-100 ${
+                            data.photoShape === "circle"
+                              ? "rounded-full"
+                              : data.photoShape === "rounded"
+                              ? "rounded-xl"
+                              : ""
+                          }`}
+                        >
+                          <ImagePlus className="h-4 w-4" />
+                          <span className="text-[10px] font-bold">Changer</span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => onPhoto(e.target.files?.[0])}
+                        />
+                      </label>
+
                       <div className="space-y-1.5">
                         <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90">
                           <ImagePlus className="h-3.5 w-3.5" /> Changer la photo
