@@ -564,18 +564,20 @@ function CvStudio() {
                           </div>
                         ))}
                       </div>
-                      {extraKey && (
-                        <div className="mt-2 flex items-end gap-2 rounded-md border bg-muted/40 p-2">
-                          <label className="flex-1 text-xs font-medium text-muted-foreground">Nom du champ (ex : WhatsApp)
-                            <input autoFocus className={inputCls} value={extraKey.trim()} onChange={(e) => setExtraKey(e.target.value || " ")} />
+                         {extraKey && (
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-md border bg-muted/40 p-2.5">
+                          <label className="text-xs font-medium text-muted-foreground">
+                            Titre du champ (ex : WhatsApp, Skype)
+                            <input autoFocus className={inputCls} placeholder="Ex: WhatsApp" value={extraKey.trim()} onChange={(e) => setExtraKey(e.target.value || " ")} />
                           </label>
-                          <Button size="sm" onClick={() => { const k = extraKey.trim(); if (!k) return; set("extra", { ...(data.extra || {}), [k]: "" }); setExtraKey(""); }}>Ajouter</Button>
+                          <div className="flex items-end gap-2">
+                            <Button size="sm" className="w-full bg-primary" onClick={() => { const k = extraKey.trim(); if (!k) return; set("extra", { ...(data.extra || {}), [k]: "" }); setExtraKey(""); }}>
+                              + Insérer dans le CV
+                            </Button>
+                          </div>
                         </div>
                       )}
-                    </div>
-                  </div>
-                )}
-
+                      
                 {/* Étape 4 : Expériences */}
                 {step === 4 && (
                   <div className="space-y-3">
