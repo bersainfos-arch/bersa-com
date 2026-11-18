@@ -1009,39 +1009,142 @@ function CvStudio() {
               </div>
             </div>
 
-                 {/* Colonne Aperçu en direct & actions */}
+            {/* Colonne Aperçu en direct & actions */}
             <div className="min-w-0 space-y-3" ref={previewRef}>
               {actionsBar}
 
+              {/* Aperçu avec Zoom manuel à 2 doigts + défilement libre */}
               <div
-                className="overflow-hidden rounded-xl border bg-muted shadow-lg cursor-pointer transition hover:ring-2 hover:ring-primary/40"
+                className="overflow-auto rounded-xl border bg-muted shadow-lg cursor-pointer transition hover:ring-2 hover:ring-primary/40 touch-pan-x touch-pan-y"
                 onClick={onPreviewTap}
-                title="Touchez un élément du CV pour ouvrir sa rubrique"
+                title="Touchez un élément pour ouvrir sa rubrique, ou écartez 2 doigts pour agrandir"
+                onTouchStart={(e) => {
+                  if (e.touches.length === 2) {
+                    const d = Math.hypot(
+                      e.touches[0].clientX - e.touches[1].clientX,
+                      e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    pinchStart.current = { d, z: cvScale };
+                  }
+                }}
+                onTouchMove={(e) => {
+                  if (e.touches.length === 2 && pinchStart.current) {
+                    const d = Math.hypot(
+                      e.touches[0].clientX - e.touches[1].clientX,
+                      e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const newScale = Math.min(2.5, Math.max(0.6, pinchStart.current.z * (d / pinchStart.current.d)));
+                    setCvScale(Number(newScale.toFixed(2)));
+                  }
+                }}
+                onTouchEnd={() => {
+                  pinchStart.current = null;
+                }}
               >
-                <CvPreview compact={false} html={html} />
+                <div style={{ transform: `scale(${cvScale})`, transformOrigin: "top left", width: cvScale > 1 ? `${cvScale * 100}%` : "100%" }}>
+                  <CvPreview compact={false} html={html} />
+                </div>
               </div>
+
               <p className="text-center text-xs text-muted-foreground">
-                Astuce : touchez un texte ou la photo sur le CV pour ouvrir directement sa rubrique.
+                Astuce : pincez à 2 doigts pour agrandir • touchez la photo ou un texte pour modifier sa rubrique.
               </p>
 
-              {/* Personnalisation rapide sous le CV */}
-              <div className="rounded-lg border bg-card p-3 shadow-xs space-y-2">
-                <div className="text-xs font-semibold">Style & Mise en page du modèle</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <label className="text-xs text-muted-foreground">Police
-                    <select className={inputCls} value={data.customFont || sel.font} onChange={(e) => set("customFont", e.target.value)}>
-                      {["Arial", "Calibri", "Times New Roman", "Georgia", "Verdana", "Trebuchet MS"].map((f) => (
-                        <option key={f}>{f}</option>
-                      ))}
+              {/* Personnalisation complète sous le CV : Police, Taille de texte, Couleurs et Zoom */}
+              <div className="rounded-lg border bg-card p-3 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b pb-2">
+                  <div className="text-xs font-semibold">Taille, Police & Couleurs du CV</div>
+                  {/* Boutons d'agrandissement manuel (Loupe) */}
+                  <div className="flex items-center gap-1 text-xs">
+                    <span className="text-muted-foreground mr-1">Zoom : {Math.round(cvScale * 100)}%</span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-1.5 text-xs"
+                      onClick={() => setCvScale((z) => Math.max(0.6, Number((z - 0.2).toFixed(2))))}
+                      title="Réduire le zoom"
+                    >
+                      −
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-1.5 text-xs font-mono"
+                      onClick={() => setCvScale(1)}
+                      title="Taille normale"
+                    >
+                      100%
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-1.5 text-xs"
+                      onClick={() => setCvScale((z) => Math.min(2.5, Number((z + 0.2).toFixed(2))))}
+                      title="Agrandir"
+                    >
+                      +
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <label className="text-xs text-muted-foreground">
+                    Police de texte
+                    <select
+                      className={inputCls}
+                      value={data.customFont || sel.font}
+                      onChange={(e) => set("customFont", e.target.value)}
+                    >
+                      <option value="Calibri">Calibri (Très lisible)</option>
+                      <option value="Verdana">Verdana (Aéré & clair)</option>
+                      <option value="Arial">Arial (Moderne)</option>
+                      <option value="Times New Roman">Times New Roman</option>
+                      <option value="Georgia">Georgia (Élégant)</option>
+                      <option value="Trebuchet MS">Trebuchet MS</option>
                     </select>
                   </label>
-                  <label className="text-xs text-muted-foreground">Couleur principale
-                    <input type="color" className="mt-1 block h-9 w-full cursor-pointer rounded-md border bg-muted" value={data.customColor || sel.primary} onChange={(e) => set("customColor", e.target.value)} />
+
+                  <label className="text-xs text-muted-foreground">
+                    Taille du texte
+                    <select
+                      className={inputCls}
+                      value={data.fontSize || "normal"}
+                      onChange={(e) => set("fontSize" as any, e.target.value)}
+                    >
+                      <option value="normal">Normale (Standard)</option>
+                      <option value="large">Grande (Lecture facile)</option>
+                      <option value="xlarge">Très grande (Confort)</option>
+                      <option value="compact">Compacte (Économique)</option>
+                    </select>
+                  </label>
+
+                  <label className="text-xs text-muted-foreground">
+                    Couleur gauche
+                    <input
+                      type="color"
+                      className="mt-1 block h-9 w-full cursor-pointer rounded-md border bg-muted"
+                      value={data.customColor || sel.primary}
+                      onChange={(e) => set("customColor", e.target.value)}
+                    />
+                  </label>
+
+                  <label className="text-xs text-muted-foreground">
+                    Couleur droite
+                    <input
+                      type="color"
+                      className="mt-1 block h-9 w-full cursor-pointer rounded-md border bg-muted"
+                      value={data.rightColor || sel.accent || sel.primary}
+                      onChange={(e) => set("rightColor", e.target.value)}
+                    />
                   </label>
                 </div>
               </div>
 
               {actionsBar}
+            </div>
             </div>
           </div>
         </div>
