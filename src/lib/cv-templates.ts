@@ -85,6 +85,7 @@ export interface CvData {
   customColor?: string;
   customFont?: string;
   rightColor?: string;
+  fontSize?: "compact" | "normal" | "large" | "xlarge";
 }
 
 export const CV_MODEL_PHOTOS = [
