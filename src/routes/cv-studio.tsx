@@ -450,12 +450,19 @@ function CvStudio() {
                       >
                         <img src={data.photo || sel.defaultPhoto || "/cv-photos/photo-1.png"} alt="Cadrage" draggable={false} className="pointer-events-none h-full w-full select-none object-cover" style={{ objectPosition: `${cropX}% ${cropY}%`, transform: `scale(${cropZoom})`, transformOrigin: `${cropX}% ${cropY}%`, filter: `brightness(${bright}%) contrast(${contrast}%)` }} />
                       </div>
-                      <div className="text-xs font-semibold pt-1">Retouche de la photo</div>
+                      <div className="text-xs font-semibold pt-1">Retouche de la photo & qualité</div>
                       <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                         <label>Luminosité {bright}%<input type="range" min={60} max={150} value={bright} onChange={(e) => setBright(Number(e.target.value))} className="w-full" /></label>
                         <label>Contraste / netteté {contrast}%<input type="range" min={60} max={150} value={contrast} onChange={(e) => setContrast(Number(e.target.value))} className="w-full" /></label>
                       </div>
-                      <label className="flex items-center gap-1.5 text-xs text-muted-foreground"><input type="checkbox" checked={bgWhite} onChange={(e) => setBgWhite(e.target.checked)} /> Éclaircir le fond (fonds clairs → blanc)</label>
+                      <div className="flex flex-wrap items-center gap-3 pt-1">
+                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <input type="checkbox" checked={bgWhite} onChange={(e) => setBgWhite(e.target.checked)} /> Éclaircir le fond (fonds clairs → blanc)
+                        </label>
+                        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <input type="checkbox" checked={filterBw} onChange={(e) => setFilterBw(e.target.checked)} /> Noir & Blanc professionnel
+                        </label>
+                      </div>
                       <div className="text-xs font-semibold">Forme de la photo</div>
                       <div className="flex gap-1">
                         {(["circle", "rounded", "square"] as const).map((sh) => (
@@ -464,7 +471,6 @@ function CvStudio() {
                           </Button>
                         ))}
                       </div>
-
                       <div className="text-xs font-semibold pt-1">Rognage & Cadrage manuel</div>
                       <label className="block text-xs text-muted-foreground">Zoom photo : {cropZoom.toFixed(1)}x
                         <input type="range" min={1} max={3} step={0.1} value={cropZoom} onChange={(e) => setCropZoom(Number(e.target.value))} className="w-full" />
