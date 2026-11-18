@@ -942,17 +942,24 @@ function CvStudio() {
               <CvPreview compact={false} html={renderCvHtml(CV_TEMPLATES[0]!, sampleCvFor(CV_TEMPLATES[0]!))} />
             </div>
 
-            <div className="mt-4 flex flex-col items-center gap-2">
+               <div className="mt-4 flex flex-col items-center gap-2">
               <Button size="lg" className="w-full max-w-md gap-2 text-base font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0]!)}>
                 <Plus className="h-6 w-6" /> Choisir ce modèle (+ Créer un nouveau CV)
               </Button>
-              <p className="text-xs text-muted-foreground">Ou défilez vers le bas pour découvrir les autres modèles ↓</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground hover:text-foreground gap-1"
+                onClick={() => document.getElementById("autres-modeles")?.scrollIntoView({ behavior: "smooth" })}
+              >
+                Défiler vers les autres modèles ↓
+              </Button>
             </div>
           </div>
         )}
 
         {/* Défilement des autres modèles */}
-        <div className="space-y-6">
+        <div id="autres-modeles" className="space-y-6 scroll-mt-6">
           <h2 className="font-serif text-lg font-bold">Autres modèles disponibles</h2>
           {CV_TEMPLATES.slice(1).map((t) => (
             <div key={t.id} className="rounded-lg border bg-card p-3 shadow-sm hover:shadow-md transition">
