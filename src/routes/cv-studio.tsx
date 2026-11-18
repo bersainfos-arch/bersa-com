@@ -921,7 +921,7 @@ function CvStudio() {
         <div className="mb-4 text-center">
           <h1 className="font-serif text-2xl font-bold">Modèles de CV Professionnels</h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Modèles pré-remplis avec données complètes adaptées au genre de chaque photo. Choisissez un modèle pour le personnaliser.
+            Choisissez le modèle qui vous plaît pour créer votre CV.
           </p>
         </div>
 
@@ -933,17 +933,17 @@ function CvStudio() {
                 <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground uppercase">Nouveau</span>
                 <span className="font-bold text-sm">{CV_TEMPLATES[0].name}</span>
               </div>
-              <Button size="lg" className="gap-2 bg-primary px-6 font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0])}>
+              <Button size="lg" className="gap-2 bg-primary px-6 font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0]!)}>
                 <Plus className="h-5 w-5" /> Créer ce CV
               </Button>
             </div>
 
             <div className="overflow-hidden rounded-lg border bg-muted shadow-inner">
-              <CvPreview compact={false} html={renderCvHtml(CV_TEMPLATES[0], sampleCvFor(CV_TEMPLATES[0]))} />
+              <CvPreview compact={false} html={renderCvHtml(CV_TEMPLATES[0]!, sampleCvFor(CV_TEMPLATES[0]!))} />
             </div>
 
             <div className="mt-4 flex flex-col items-center gap-2">
-              <Button size="lg" className="w-full max-w-md gap-2 text-base font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0])}>
+              <Button size="lg" className="w-full max-w-md gap-2 text-base font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0]!)}>
                 <Plus className="h-6 w-6" /> Choisir ce modèle (+ Créer un nouveau CV)
               </Button>
               <p className="text-xs text-muted-foreground">Ou défilez vers le bas pour découvrir les autres modèles ↓</p>
