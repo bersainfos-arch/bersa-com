@@ -166,13 +166,48 @@ function CvStudio() {
   const [extraKey, setExtraKey] = useState("");
 
   const saveBlob = async (blob: Blob, name: string, ext: string, description: string) => {
-    const w = window as unknown as { showSaveFilePicker?: (o: unknown) => Promise<{ createWritable: () => Promise<{ write: (b: Blob) => Promise<void>; close: () => Promise<void> }> }> };
+    // 1. Sur ordinateur (Chrome, Edge, etc.) : ouvre l'explorateur de dossiers pour choisir l'emplacement réel
+    const w = window as unknown as {
+      showSaveFilePicker?: (o: unknown) => Promise<{
+        createWritable: () => Promise<{ write: (b: Blob) => Promise<void>; close: () => Promise<void> }>;
+      }>;
+    };
     if (typeof w.showSaveFilePicker === "function") {
       try {
-        const handle = await w.showSaveFilePicker({ suggestedName: name, types: [{ description, accept: { [blob.type || "application/octet-stream"]: [`.${ext}`] } }] });
-        const out = await handle.createWritable(); await out.write(blob); await out.close();
-        toast.success("CV enregistré dans le dossier choisi."); return;
-      } catch (e) { if ((e as Error).name === "AbortError") return; }
+        const handle = await w.showSaveFilePicker({
+          suggestedName: name,
+          types: [{ description, accept: { [blob.type || "application/octet-stream"]: [`.${ext}`] } }],
+        });
+        const out = await handle.createWritable();
+        await out.write(blob);
+        await out.close();
+        toast.success("CV enregistré dans le dossier sélectionné.");
+        return;
+      } catch (e) {
+        if ((e as Error).name === "AbortError") return;
+      }
+    }
+
+    // 2. Sur téléphone (iPhone / Android) : ouvre le menu système pour choisir « Enregistrer dans Fichiers »
+    try {
+      const file = new File([blob], name, { type: blob.type || "application/octet-stream" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: name });
+        toast.success("CV prêt dans vos fichiers.");
+        return;
+      }
+    } catch (e) {
+      if ((e as Error).name === "AbortError") return;
+    }
+
+    // 3. Téléchargement direct si le navigateur ne supporte pas le sélecteur
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast.success("CV téléchargé sur votre appareil.");
+  };
     }
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob); a.download = name; a.click();
