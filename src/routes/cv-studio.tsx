@@ -1143,8 +1143,7 @@ function CvStudio() {
                 </div>
               </div>
 
-              {actionsBar}
-            </div>
+             {actionsBar}
             </div>
           </div>
         </div>
