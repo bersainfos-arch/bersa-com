@@ -289,14 +289,10 @@ function CvStudio() {
     } catch { toast.error("Espace insuffisant sur l'appareil."); }
   };
 
-  const exportWord = () => {
+  const exportWord = async () => {
     const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{size:A4;margin:0}body{margin:0}</style></head><body>${html}</body></html>`;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob(["\ufeff" + doc], { type: "application/msword" }));
-    a.download = `${fileName}.doc`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast.success("Document Word généré.");
+    const blob = new Blob(["\ufeff" + doc], { type: "application/msword" });
+    await saveBlob(blob, `${fileName}.doc`, "doc", "Document Word (.doc)");
   };
 
   const exportPdf = async () => {
@@ -327,10 +323,14 @@ function CvStudio() {
         ctx.drawImage(canvas, 0, y, page.width, page.height, 0, 0, page.width, page.height);
         pdf.addImage(page.toDataURL("image/png"), "PNG", 0, 0, 210, (page.height * 210) / page.width);
       }
-      pdf.save(`${fileName}.pdf`);
-      toast.success("CV téléchargé en PDF.");
-    } catch { toast.error("Échec du téléchargement PDF."); }
-    finally { clone.remove(); setBusy(false); }
+      const pdfBlob = pdf.output("blob");
+      await saveBlob(pdfBlob, `${fileName}.pdf`, "pdf", "Document PDF (.pdf)");
+    } catch {
+      toast.error("Échec de l'enregistrement du PDF.");
+    } finally {
+      clone.remove();
+      setBusy(false);
+    }
   };
 
   const exportImage = async () => {
@@ -338,19 +338,27 @@ function CvStudio() {
     const paper = previewRef.current.querySelector<HTMLElement>("[data-cv-paper]");
     if (!paper) return;
     setBusy(true);
+    const clone = paper.cloneNode(true) as HTMLElement;
+    clone.style.transform = "none";
+    clone.style.position = "fixed";
+    clone.style.left = "-10000px";
+    clone.style.top = "0";
+    document.body.appendChild(clone);
     try {
-      const { toPng } = await import("html-to-image");
+      const { toBlob } = await import("html-to-image");
       await document.fonts.ready;
-      const dataUrl = await toPng(paper, { pixelRatio: 2 });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `${fileName}.png`;
-      a.click();
-      toast.success("Photo du CV téléchargée.");
-    } catch { toast.error("Téléchargement de la photo impossible."); }
-    finally { setBusy(false); }
+      await Promise.all(Array.from(clone.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
+      const blob = await toBlob(clone, { pixelRatio: 2, width: 794, height: clone.scrollHeight });
+      if (!blob) throw new Error("image");
+      await saveBlob(blob, `${fileName}.png`, "png", "Image du CV (.png)");
+    } catch {
+      toast.error("Téléchargement de la photo impossible.");
+    } finally {
+      clone.remove();
+      setBusy(false);
+    }
   };
-
+      
   const importCv = async (file?: File) => {
     if (!file) return;
     try {
