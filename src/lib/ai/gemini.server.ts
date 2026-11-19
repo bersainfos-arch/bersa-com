@@ -2,7 +2,7 @@
 export type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } };
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
-const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-2.5-flash"];
+const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.8-flash"];
 const SEARCH_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
