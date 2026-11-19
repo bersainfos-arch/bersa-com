@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { INTRO_STEP_MS, OPENING_PHOTOS, SLIDESHOW_INTERVAL_MS } from "@/lib/opening";
-import logo from "@/assets/bersa-logo.png.asset.json";
 import { ChevronRight } from "lucide-react";
 
 const SLOGAN = "Le Berceau du Savoir au service de votre plume";
@@ -62,7 +61,7 @@ export function OpeningPresentation({ onDone }: { onDone: () => void }) {
       <div className="relative z-10 flex max-w-4xl flex-col items-center space-y-6">
         <div className="flex flex-col items-center">
           <img
-            src={logo.url}
+            src="/logo.png"
             alt="Logo BERSA"
             className="h-24 w-24 rounded-2xl shadow-2xl border border-white/10 ring-2 ring-primary/40 animate-pulse"
           />
