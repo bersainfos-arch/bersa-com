@@ -369,7 +369,24 @@ function CvStudio() {
   const exportWord = () => prepareAndDownload("docx");
   const exportPdf = () => prepareAndDownload("pdf");
   const exportImage = () => prepareAndDownload("png");
-
+  const importCv = async (file?: File) => {
+    if (!file) return;
+    try {
+      if (/\.json$/i.test(file.name)) {
+        const imported = JSON.parse(await file.text());
+        setData({ ...EMPTY_CV, ...imported });
+        toast.success("Données du CV importées.");
+      } else {
+        const { importDocumentFile } = await import("@/lib/document-import");
+        const imported = await importDocumentFile(file);
+        const doc = new DOMParser().parseFromString(imported.html, "text/html");
+        const text = doc.body.innerText || doc.body.textContent || "";
+        set("sections", [...(data.sections || []), { key: crypto.randomUUID(), title: "Contenu importé", content: text }]);
+        toast.info("Texte importé dans vos rubriques supplémentaires.");
+      }
+    } catch { toast.error("Impossible d'importer ce fichier."); }
+  };
+      
     const actionsBar = (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-2 shadow-xs">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -413,7 +430,6 @@ function CvStudio() {
   if (sel) {
     return (
       <AppShell>
-      {saveDialog}
         <div className="mx-auto max-w-6xl p-3 pb-24">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <Button variant="outline" size="sm" onClick={() => setSel(null)}>
