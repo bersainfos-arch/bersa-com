@@ -319,75 +319,57 @@ function CvStudio() {
     } catch { toast.error("Espace insuffisant sur l'appareil."); }
   };
 
-  const [pending, setPending] = useState<{ blob: Blob; name: string; ext: string; description: string } | null>(null);
-  const prepare = async (kind: "pdf" | "docx" | "png") => {
+  // Téléchargement direct sans pop-up bloquante
+  const directDownloadBlob = (blob: Blob, name: string) => {
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast.success(`${name} téléchargé avec succès !`);
+    } catch {
+      toast.error("Échec du téléchargement. Vérifiez les autorisations de votre navigateur.");
+    }
+  };
+
+  const prepareAndDownload = async (kind: "pdf" | "docx" | "png") => {
     if (busy || !previewRef.current) return;
     const paper = previewRef.current.querySelector<HTMLElement>("[data-cv-paper]");
-    if (!paper) return;
+    if (!paper) {
+      toast.error("Aperçu du CV non disponible.");
+      return;
+    }
     setBusy(true);
+    const toastId = toast.loading(`Génération de votre CV (${kind.toUpperCase()})...`);
     try {
       const { renderCvPage, cvPdfBlob, cvDocxBlob, cvPngBlob } = await import("@/lib/cv-export");
-      const page = await renderCvPage(paper);
-      const blob = kind === "pdf" ? await cvPdfBlob(page) : kind === "docx" ? await cvDocxBlob(page) : await cvPngBlob(page);
-      const description = kind === "pdf" ? "Document PDF (.pdf)" : kind === "docx" ? "Document Word (.docx)" : "Image du CV (.png)";
-      setPending({ blob, name: `${fileName}.${kind}`, ext: kind, description });
-    } catch {
-      toast.error("Préparation du fichier impossible. Réessayez.");
+      const page = await renderCvPage(paper, 3);
+      const blob =
+        kind === "pdf"
+          ? await cvPdfBlob(page)
+          : kind === "docx"
+          ? await cvDocxBlob(page)
+          : await cvPngBlob(page);
+
+      const fullName = `${fileName}.${kind}`;
+      directDownloadBlob(blob, fullName);
+      toast.dismiss(toastId);
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error("Impossible de préparer le fichier. Réessayez.");
     } finally {
       setBusy(false);
     }
   };
-  const exportWord = () => prepare("docx");
-  const exportPdf = () => prepare("pdf");
-  const exportImage = () => prepare("png");
-  const chooseFolder = async () => {
-    if (!pending) return;
-    const p = pending;
-    setPending(null);
-    await saveBlob(p.blob, p.name, p.ext, p.description);
-  };
-  const directDownload = () => {
-    if (!pending) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(pending.blob);
-    a.download = pending.name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-    setPending(null);
-    toast.success("CV téléchargé dans vos Téléchargements.");
-  };
-  const saveDialog = (
-    <Dialog open={Boolean(pending)} onOpenChange={(o) => { if (!o) setPending(null); }}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Enregistrer votre CV</DialogTitle>
-          <DialogDescription>{pending?.name} — une seule page A4, identique au modèle.</DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col gap-2">
-          <Button onClick={() => void chooseFolder()}><Save className="h-4 w-4" /> Choisir un dossier sur mon appareil</Button>
-          <Button variant="outline" onClick={directDownload}><Download className="h-4 w-4" /> Téléchargement direct</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
 
-  const importCv = async (file?: File) => {
-    if (!file) return;
-    try {
-      if (/\.json$/i.test(file.name)) {
-        const imported = JSON.parse(await file.text());
-        setData({ ...EMPTY_CV, ...imported });
-        toast.success("Données du CV importées.");
-      } else {
-        const { importDocumentFile } = await import("@/lib/document-import");
-        const imported = await importDocumentFile(file);
-        const doc = new DOMParser().parseFromString(imported.html, "text/html");
-        const text = doc.body.innerText || doc.body.textContent || "";
-        set("sections", [...(data.sections || []), { key: crypto.randomUUID(), title: "Contenu importé", content: text }]);
-        toast.info("Texte importé dans vos rubriques supplémentaires.");
-      }
-    } catch { toast.error("Impossible d'importer ce fichier."); }
-  };
+  const exportWord = () => prepareAndDownload("docx");
+  const exportPdf = () => prepareAndDownload("pdf");
+  const exportImage = () => prepareAndDownload("png");
+   };
 
     const actionsBar = (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-2 shadow-xs">
