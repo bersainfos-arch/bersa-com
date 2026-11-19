@@ -46,6 +46,18 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // Transmet les secrets Cloudflare Workers vers process.env pour l'IA et Supabase
+    if (env && typeof env === "object") {
+      try {
+        Object.assign(process.env, env);
+      } catch {
+        for (const [k, v] of Object.entries(env)) {
+          try {
+            (process.env as Record<string, unknown>)[k] = v;
+          } catch { /* ignorer */ }
+        }
+      }
+    }
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
