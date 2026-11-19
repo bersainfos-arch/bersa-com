@@ -26,7 +26,6 @@ import {
   FileCode, 
   Globe
 } from "lucide-react";
-import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
 import {
@@ -150,7 +149,7 @@ export function AppShell({
               ) : (
                 <Link to="/" className="flex items-center gap-2 min-w-0">
                   <img
-                    src={logo.url}
+                    src="/logo.png"
                     alt="Logo BERSA"
                     className="h-8 w-8 rounded-lg shadow-xs bg-white p-0.5 object-contain shrink-0"
                   />
