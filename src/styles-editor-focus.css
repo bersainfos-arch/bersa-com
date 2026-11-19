@@ -1,0 +1,98 @@
+/* Vue de rédaction immersive : le papier remplit l'espace disponible à 100 %. */
+.home-editor {
+  width: 100%;
+  max-width: none !important;
+  padding-inline: 0 !important;
+}
+
+/* À 100 %, le bureau gris et le contour de la feuille disparaissent. */
+.home-editor:has(.home-paper-desk.zoom-100) .home-paper-desk {
+  gap: 0 !important;
+  padding: 0 0 24px !important;
+  background: var(--paper) !important;
+}
+
+.home-editor:has(.home-paper-desk.zoom-100) .home-paper-content {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.home-editor:has(.home-paper-desk.zoom-100) .home-ai-sheet {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100% !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Le zoom 75 % garde une feuille A4 réduite et fait réapparaître le bureau/marges.
+   Les autres commandes et contenus du document restent inchangés. */
+.home-editor:has(.home-paper-desk.zoom-75) .home-paper-desk {
+  background: var(--editor-desk) !important;
+  padding: 12px 16px 24px !important;
+  gap: 12px !important;
+}
+
+.home-editor:has(.home-paper-desk.zoom-75) .home-paper-content {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.home-editor:has(.home-paper-desk.zoom-75) .home-ai-sheet {
+  width: min(100%, 595.5px) !important;
+  max-width: 100% !important;
+  min-height: 842px !important;
+  aspect-ratio: auto !important;
+  padding: 33px !important;
+  margin: 0 auto !important;
+  border: 1px solid var(--paper-border) !important;
+  border-radius: 2px !important;
+  box-shadow: var(--shadow-paper) !important;
+  font-size: 9.75pt;
+}
+
+@media (max-width: 640px) {
+  .home-editor:has(.home-paper-desk.zoom-100) .home-paper-desk {
+    padding: 0 0 20px !important;
+  }
+
+  .home-editor:has(.home-paper-desk.zoom-100) .home-ai-sheet {
+    padding: 20px 16px !important;
+    font-size: 11.5pt;
+  }
+
+  .home-editor:has(.home-paper-desk.zoom-75) .home-paper-desk {
+    padding: 8px 8px 20px !important;
+  }
+
+  .home-editor:has(.home-paper-desk.zoom-75) .home-ai-sheet {
+    width: min(75%, 446.6px) !important;
+    min-height: 70vh !important;
+    padding: 16px 12px !important;
+    font-size: 10pt;
+  }
+}
+
+@media print {
+  .home-editor {
+    max-width: none !important;
+    padding-inline: 0 !important;
+  }
+
+  .home-editor:has(.home-paper-desk.zoom-75) .home-paper-desk {
+    padding: 0 !important;
+    background: none !important;
+  }
+
+  .home-editor:has(.home-paper-desk.zoom-75) .home-ai-sheet {
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    font-size: 13pt;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
