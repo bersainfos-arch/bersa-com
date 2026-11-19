@@ -3,7 +3,7 @@ import { geminiText } from "./ai/gemini.server";
 import { transcribe } from "./ai/transcribe.server";
 const MAX_BODY = 24 * 1024 * 1024;
 export async function handleTranscription(request: Request) {
- const url = process.env["SUPABASE_URL"]; const key = process.env["SUPABASE_PUBLISHABLE_KEY"]; const groqKey = process.env["GROQ_API_KEY"]; const aiKey = groqKey || process.env["UDC_GEMINI_BERSA_API_KEY"] || process.env["GEMINI_API_KEY"];
+ const url = process.env["SUPABASE_URL"] || (import.meta as any).env?.VITE_SUPABASE_URL; const key = process.env["SUPABASE_PUBLISHABLE_KEY"] || (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY; const groqKey = process.env["GROQ_API_KEY"]; const aiKey = groqKey || process.env["UDC_GEMINI_BERSA_API_KEY"] || process.env["GEMINI_API_KEY"];
  if (!url || !key || !aiKey) return new Response("Transcription non configurée.", { status: 503 });
  const token = request.headers.get("Authorization")?.replace(/^Bearer /, "");
  if (!token) return new Response("Connexion requise.", { status: 401 });
