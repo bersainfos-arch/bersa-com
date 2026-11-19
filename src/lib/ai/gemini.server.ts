@@ -29,11 +29,11 @@ async function failure(res: Response) {
   return new GeminiError(message, res.status);
 }
 
-function body(contents: GeminiContent[], system?: string) {
+function body(contents: GeminiContent[], system?: string, withSearch = false) {
   return JSON.stringify({
     contents,
     ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
-    tools: [{ google_search: {} }],
+    ...(withSearch ? { tools: [{ google_search: {} }] } : {}),
     generationConfig: {
       temperature: 0.7,
       maxOutputTokens: 65536,
@@ -47,7 +47,7 @@ async function searchStream(contents: GeminiContent[], system?: string, signal?:
   if (!key) return null;
   for (const model of SEARCH_MODELS) {
     try {
-      const res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key }, body: body(contents, system), ...(signal ? { signal } : {}) });
+      const res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key }, body(contents, system, true), ...(signal ? { signal } : {}) });
       if (res.ok && res.body) return res;
       await res.body?.cancel();
     } catch (e) { if (signal?.aborted) throw e; }
@@ -72,7 +72,7 @@ export async function* geminiStream(contents: GeminiContent[], system?: string, 
     if (res.ok && res.body) break;
     lastError = await failure(res);
     res = null;
-    if (lastError.status !== 503 && lastError.status !== 429 && lastError.status !== 400) throw lastError;
+   if (lastError.status !== 503 && lastError.status !== 429 && lastError.status !== 400 && lastError.status !== 404) throw lastError;
   }
   if (!res || !res.body) throw lastError ?? new GeminiError("Assistant indisponible.", 503);
   const reader = res.body.getReader();
