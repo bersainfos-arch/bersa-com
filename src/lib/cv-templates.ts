@@ -838,36 +838,36 @@ export function renderCvHtml(t0: CvTemplate, d: CvData): string {
 function renderBase(t: CvTemplate, d: CvData): string {
   const p = parts(d, t);
   const color = t.primary;
-  const base = `font-family:'${t.font}',Arial,sans-serif;font-size:9pt;color:#1f2937;line-height:1.42;background:#fff;width:794px;min-height:1123px;box-sizing:border-box;overflow:hidden;`;
+  // Base avec police 9.5pt et interligne 1.45 pour une excellente lisibilité
+  const base = `font-family:'${t.font}',Arial,sans-serif;font-size:9.5pt;color:#111827;line-height:1.45;background:#fff;width:794px;min-height:1123px;box-sizing:border-box;overflow:hidden;`;
 
-  // Layout 1 : Bordeaux Studio (Modèle Sarah Garcia bicolore deux colonnes)
   if (t.layout === "lateral-bordeaux" || t.layout === "lateral-couleur" || t.layout === "lateral-gris" || t.layout === "lateral-plein" || t.layout === "arche") {
     const isDark = t.layout !== "lateral-gris";
     const sideBg = isDark ? color : "#f3f4f6";
-    const sideText = isDark ? "#ffffff" : "#1f2937";
-    const sideHead = (s: string) => `<div style="font-size:10pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${isDark ? '#fff' : color};margin:16px 0 8px;border-bottom:1.5px solid ${isDark ? 'rgba(255,255,255,0.3)' : color};padding-bottom:2px">${esc(s)}</div>`;
-    const mainHead = (s: string) => `<div style="font-size:11pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${t.accent};margin:16px 0 6px;border-bottom:1.5px solid ${t.accent};padding-bottom:2px">${esc(s)}</div>`;
+    const sideText = isDark ? "#ffffff" : "#111827";
+    const sideHead = (s: string) => `<div style="font-size:11pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${isDark ? '#fff' : color};margin:16px 0 8px;border-bottom:1.5px solid ${isDark ? 'rgba(255,255,255,0.35)' : color};padding-bottom:3px">${esc(s)}</div>`;
+    const mainHead = (s: string) => `<div style="font-size:12pt;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:${t.accent};margin:16px 0 6px;border-bottom:1.5px solid ${t.accent};padding-bottom:3px">${esc(s)}</div>`;
 
     return `
       <div style="${base}display:flex">
         <!-- Colonne latérale gauche (280px) -->
-        <div style="width:280px;background:${sideBg};color:${sideText};padding:30px 22px;box-sizing:border-box;flex-shrink:0">
+        <div style="width:280px;background:${sideBg};color:${sideText};padding:28px 20px;box-sizing:border-box;flex-shrink:0">
           ${p.photo ? `
-            <div style="text-align:center;margin-bottom:20px">
-              <img src="${p.photo}" alt="" style="width:150px;height:150px;object-fit:cover;border-radius:50%;border:4px solid #ffffff;display:inline-block;box-shadow:0 3px 10px rgba(0,0,0,0.15)">
+            <div style="text-align:center;margin-bottom:18px">
+              <img src="${p.photo}" alt="" style="width:145px;height:145px;object-fit:cover;border-radius:50%;border:4px solid #ffffff;display:inline-block;box-shadow:0 3px 10px rgba(0,0,0,0.18)">
             </div>
           ` : ""}
 
           ${d.summary.trim() ? `
             ${sideHead("Profil")}
-            <div style="font-size:8.5pt;line-height:1.5;text-align:justify;color:${isDark ? '#f3f4f6' : '#4b5563'}">
-              ${rich(d.summary, "8.5pt")}
+            <div style="font-size:9.5pt;line-height:1.5;text-align:justify;color:${isDark ? '#f9fafb' : '#374151'}">
+              ${rich(d.summary, "9.5pt")}
             </div>
           ` : ""}
 
           ${d.skills.length ? `
             ${sideHead("Compétences")}
-            <div style="font-size:8.5pt;line-height:1.6">
+            <div style="font-size:9.5pt;line-height:1.6">
               ${d.skills.map((s) => `<div style="margin:2px 0">• ${esc(s)}</div>`).join("")}
             </div>
           ` : ""}
@@ -879,10 +879,14 @@ function renderBase(t: CvTemplate, d: CvData): string {
 
           ${d.hobbies.length ? `
             ${sideHead("Centres d'intérêt")}
-            <div style="font-size:8pt;line-height:1.5;color:${isDark ? '#f3f4f6' : '#4b5563'}">
+            <div style="font-size:9pt;line-height:1.5;color:${isDark ? '#f9fafb' : '#4b5563'}">
               ${d.hobbies.map((h) => `<div style="margin:2px 0">• ${esc(h)}</div>`).join("")}
             </div>
           ` : ""}
+        </div>
+
+        <!-- Colonne principale droite -->
+        <div style="flex:1;padding:30px 28px;box-sizing:border-box">
         </div>
 
         <!-- Colonne principale droite -->
