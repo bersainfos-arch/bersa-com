@@ -12,7 +12,7 @@ export const AutoPages = Extension.create({
         key,
         state: {
           init: () => DecorationSet.empty,
-          // Conserve les séparations existantes pendant la frappe au lieu de tout détruire
+          // Conserve les séparations existantes pendant la frappe au lieu de tout détruire.
           apply: (tr, previous) => tr.getMeta(key) ?? previous.map(tr.mapping, tr.doc),
         },
         props: { decorations: (state) => key.getState(state) },
@@ -24,67 +24,71 @@ export const AutoPages = Extension.create({
             if (running || view.isDestroyed) return;
             running = true;
 
-            const dom = view.dom;
-            const style = getComputedStyle(dom);
-            const padding = parseFloat(style.paddingTop) || 40;
-            const width = dom.clientWidth || 794;
-            // Hauteur proportionnelle A4 (210 x 297)
-            const pageHeight = pageGeometry(width, !!dom.closest(".orientation-Paysage")).height;
-            const usable = Math.max(120, pageHeight - padding * 2 - (Number(dom.dataset["noteReserve"]) || 0));
+            try {
+              const dom = view.dom;
+              const style = getComputedStyle(dom);
+              const paddingTop = parseFloat(style.paddingTop) || 40;
+              const paddingBottom = parseFloat(style.paddingBottom) || paddingTop;
+              const width = dom.clientWidth || 794;
+              // Mesure la surface utile à l'intérieur d'une feuille A4 (210 × 297 mm).
+              const pageHeight = pageGeometry(width, !!dom.closest(".orientation-Paysage")).height;
+              const noteReserve = Number(dom.dataset["noteReserve"]) || 0;
+              const usable = Math.max(120, pageHeight - paddingTop - paddingBottom - noteReserve);
 
-            const decos: Decoration[] = [];
-            let used = 0;
-            let number = 1;
+              const decos: Decoration[] = [];
+              let used = 0;
+              let number = 1;
 
-            view.state.doc.forEach((node, pos) => {
-              const element = view.nodeDOM(pos);
-              if (!(element instanceof HTMLElement)) return;
-              const height =
-                element.getBoundingClientRect().height +
-                parseFloat(getComputedStyle(element).marginBottom || "0");
+              view.state.doc.forEach((node, pos) => {
+                const element = view.nodeDOM(pos);
+                if (!(element instanceof HTMLElement)) return;
+                const elementStyle = getComputedStyle(element);
+                const marginTop = parseFloat(elementStyle.marginTop) || 0;
+                const marginBottom = parseFloat(elementStyle.marginBottom) || 0;
+                const height = element.getBoundingClientRect().height + marginTop + marginBottom;
 
-              if (node.type.name === "pageBreak") {
-                const rest = Math.max(0, pageHeight - padding * 2 - used);
-                element.style.setProperty("height", `${rest + padding * 2 + 16}px`, "important");
-                element.style.setProperty("--gap-rest", `${rest}px`);
-                element.classList.add("writer-explicit-gap");
-                used = 0;
-                number++;
-                return;
-              }
+                if (node.type.name === "pageBreak") {
+                  const rest = Math.max(0, usable - used);
+                  element.style.setProperty("height", `${rest + paddingTop + paddingBottom + 16}px`, "important");
+                  element.style.setProperty("--gap-rest", `${rest}px`);
+                  element.classList.add("writer-explicit-gap");
+                  used = 0;
+                  number++;
+                  return;
+                }
 
-              // Lorsque le texte remplit la page en cours, création de la page suivante à l'infini
-              if (used > 0 && used + height > usable) {
-                number++;
-                const currentPage = number;
-                const rest = Math.max(0, pageHeight - padding * 2 - used);
-                decos.push(
-                  Decoration.widget(
-                    pos,
-                    () => {
-                      const el = document.createElement("div");
-                      el.className = "auto-page-gap";
-                      el.style.setProperty("height", `${rest + padding * 2 + 16}px`, "important");
-                      el.style.setProperty("--gap-rest", `${rest}px`);
-                      el.setAttribute("contenteditable", "false");
-                      el.dataset["nextPage"] = String(currentPage);
-                      return el;
-                    },
-                    { side: -1, key: `page-break-${pos}` }
-                  )
-                );
-                used = 0;
-              }
-              used += height;
-            });
+                // Le bloc entier passe à la page suivante plutôt que d'être coupé au milieu.
+                if (used > 0 && used + height > usable) {
+                  number++;
+                  const currentPage = number;
+                  const rest = Math.max(0, usable - used);
+                  decos.push(
+                    Decoration.widget(
+                      pos,
+                      () => {
+                        const el = document.createElement("div");
+                        el.className = "auto-page-gap";
+                        el.style.setProperty("height", `${rest + paddingTop + paddingBottom + 16}px`, "important");
+                        el.style.setProperty("--gap-rest", `${rest}px`);
+                        el.setAttribute("contenteditable", "false");
+                        el.dataset["nextPage"] = String(currentPage);
+                        return el;
+                      },
+                      { side: -1, key: `page-break-${pos}` },
+                    ),
+                  );
+                  used = 0;
+                }
+                used += height;
+              });
 
-            view.dispatch(
-              view.state.tr.setMeta(key, DecorationSet.create(view.state.doc, decos))
-            );
-            dom.dataset["pages"] = String(number);
-            // Chaque page garde exactement la même hauteur A4, y compris la dernière
-            dom.style.setProperty("min-height", `${number * pageHeight + (number - 1) * 16}px`, "important");
-            running = false;
+              view.dispatch(view.state.tr.setMeta(key, DecorationSet.create(view.state.doc, decos)));
+              dom.dataset["pages"] = String(number);
+              // Toutes les pages, y compris la dernière, gardent la géométrie de référence A4.
+              dom.style.setProperty("min-height", `${number * pageHeight + (number - 1) * 16}px`, "important");
+            } finally {
+              running = false;
+            }
           };
 
           const schedule = () => {
@@ -92,7 +96,6 @@ export const AutoPages = Extension.create({
             timer = setTimeout(measure, 180);
           };
 
-          // Mesure uniquement sur redimensionnement de la fenêtre, sans boucle récursive
           window.addEventListener("resize", schedule);
           view.dom.addEventListener("writer-layout-change", schedule);
           schedule();
