@@ -389,20 +389,28 @@ function CvStudio() {
     } catch { toast.error("Impossible d'importer ce fichier."); }
   };
 
-  const actionsBar = (
+    const actionsBar = (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-2 shadow-xs">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Button size="sm" variant="outline" onClick={save}><Save className="h-4 w-4" /> Enregistrer</Button>
-        <Button size="sm" variant="outline" onClick={exportWord}><Download className="h-4 w-4" /> Word</Button>
-        <Button size="sm" variant="outline" disabled={busy} onClick={exportPdf}><Download className="h-4 w-4" />{busy ? "Préparation…" : "PDF"}</Button>
-        <Button size="sm" variant="secondary" disabled={busy} onClick={exportImage}><ImagePlus className="h-4 w-4" /> Photo (PNG)</Button>
+        <Button size="sm" variant="outline" onClick={save}>
+          <Save className="h-4 w-4" /> Enregistrer
+        </Button>
+        <Button size="sm" variant="outline" disabled={busy} onClick={exportWord}>
+          <Download className="h-4 w-4" /> Word (.docx)
+        </Button>
+        <Button size="sm" className="bg-primary text-primary-foreground font-semibold" disabled={busy} onClick={exportPdf}>
+          <Download className="h-4 w-4" /> {busy ? "Création..." : "Télécharger PDF"}
+        </Button>
+        <Button size="sm" variant="secondary" disabled={busy} onClick={exportImage}>
+          <ImagePlus className="h-4 w-4" /> Photo (PNG)
+        </Button>
       </div>
       <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
         <CheckCircle className="h-3.5 w-3.5 text-primary" /> Score qualité : <span className="text-foreground">{qualityScore}%</span>
       </div>
     </div>
   );
-                                     
+      
   const selectModel = (t: CvTemplate) => {
     setSel(t);
     const demo = sampleCvFor(t);
