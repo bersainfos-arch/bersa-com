@@ -884,11 +884,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
             </div>
           ` : ""}
         </div>
-
-        <!-- Colonne principale droite -->
-        <div style="flex:1;padding:30px 28px;box-sizing:border-box">
-        </div>
-
+        
         <!-- Colonne principale droite -->
         <div style="flex:1;padding:32px 30px;box-sizing:border-box">
           <div style="margin-bottom:14px">
