@@ -9,28 +9,21 @@ export function onePageScale(contentHeight: number): number {
 
 export async function renderCvPage(paper: HTMLElement, pixelRatio = 3): Promise<HTMLCanvasElement> {
   const { toCanvas } = await import("html-to-image");
-  const clone = paper.cloneNode(true) as HTMLElement;
-  Object.assign(clone.style, { transform: "none", position: "fixed", left: "-10000px", top: "0", width: `${A4_W}px`, background: "#ffffff" });
-  document.body.appendChild(clone);
-  try {
-    await document.fonts.ready;
-    await Promise.all(Array.from(clone.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
-    const h = Math.max(A4_H, clone.scrollHeight);
-    const shot = await toCanvas(clone, { pixelRatio, width: A4_W, height: h, backgroundColor: "#ffffff", cacheBust: true });
-    const page = document.createElement("canvas");
-    page.width = A4_W * pixelRatio;
-    page.height = A4_H * pixelRatio;
-    const ctx = page.getContext("2d");
-    if (!ctx) throw new Error("canvas");
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, page.width, page.height);
-    const s = onePageScale(h);
-    const w = page.width * s;
-    ctx.drawImage(shot, (page.width - w) / 2, 0, w, page.height * (h / A4_H) * s);
-    return page;
-  } finally {
-    clone.remove();
-  }
+  await document.fonts.ready;
+  await Promise.all(Array.from(paper.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
+  const h = Math.max(A4_H, paper.scrollHeight);
+  // Capture the real CV node with its preview scaling removed (an off-screen clone renders blank).
+  const shot = await toCanvas(paper, { pixelRatio, width: A4_W, height: h, backgroundColor: "#ffffff", cacheBust: true, style: { transform: "none", width: `${A4_W}px` } });
+  const page = document.createElement("canvas");
+  page.width = A4_W * pixelRatio;
+  page.height = A4_H * pixelRatio;
+  const ctx = page.getContext("2d");
+  if (!ctx) throw new Error("canvas");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, page.width, page.height);
+  const s = onePageScale(h);
+  ctx.drawImage(shot, (page.width - page.width * s) / 2, 0, page.width * s, page.height * (h / A4_H) * s);
+  return page;
 }
 
 export async function cvPdfBlob(page: HTMLCanvasElement): Promise<Blob> {
