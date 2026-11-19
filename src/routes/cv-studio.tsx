@@ -909,68 +909,117 @@ function CvStudio() {
                   </div>
                 )}
 
-                {/* Étape 9 : Signature */}
+                {/* Étape 9 : Signature Tactile & Importation */}
                 {step === 9 && (
-                  <div className="space-y-3">
-                    <div className="text-xs font-semibold">Signez au doigt ou avec la souris :</div>
-                    <div className="rounded-lg border bg-white p-1">
-                      <canvas
-                        ref={sigCanvasRef}
-                        width={350}
-                        height={120}
-                        className="w-full cursor-crosshair touch-none"
-                        onMouseDown={(e) => {
-                          setIsDrawing(true);
-                          const ctx = sigCanvasRef.current?.getContext("2d");
-                          if (ctx) {
-                            ctx.beginPath();
-                            ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-                          }
-                        }}
-                        onMouseMove={(e) => {
-                          if (!isDrawing) return;
-                          const ctx = sigCanvasRef.current?.getContext("2d");
-                          if (ctx) {
-                            ctx.strokeStyle = "#111827";
-                            ctx.lineWidth = 2;
-                            ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-                            ctx.stroke();
-                          }
-                        }}
-                        onMouseUp={() => setIsDrawing(false)}
-                      />
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-xs font-semibold mb-1">Signez directement au doigt ou à la souris :</div>
+                      <div className="rounded-lg border-2 border-primary/30 bg-white p-1">
+                        <canvas
+                          ref={sigCanvasRef}
+                          width={400}
+                          height={140}
+                          className="w-full h-32 cursor-crosshair touch-none bg-white rounded"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            setIsDrawing(true);
+                            const canvas = sigCanvasRef.current;
+                            if (!canvas) return;
+                            const rect = canvas.getBoundingClientRect();
+                            const scaleX = canvas.width / rect.width;
+                            const scaleY = canvas.height / rect.height;
+                            const ctx = canvas.getContext("2d");
+                            if (ctx) {
+                              ctx.lineWidth = 2.5;
+                              ctx.lineCap = "round";
+                              ctx.lineJoin = "round";
+                              ctx.strokeStyle = "#111827";
+                              ctx.beginPath();
+                              ctx.moveTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+                            }
+                          }}
+                          onPointerMove={(e) => {
+                            if (!isDrawing) return;
+                            e.preventDefault();
+                            const canvas = sigCanvasRef.current;
+                            if (!canvas) return;
+                            const rect = canvas.getBoundingClientRect();
+                            const scaleX = canvas.width / rect.width;
+                            const scaleY = canvas.height / rect.height;
+                            const ctx = canvas.getContext("2d");
+                            if (ctx) {
+                              ctx.lineTo((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
+                              ctx.stroke();
+                            }
+                          }}
+                          onPointerUp={() => {
+                            setIsDrawing(false);
+                            if (sigCanvasRef.current) {
+                              const dataUrl = sigCanvasRef.current.toDataURL("image/png");
+                              set("signatureImage", dataUrl);
+                              localStorage.setItem(SIG_STORE, dataUrl);
+                            }
+                          }}
+                          onPointerLeave={() => setIsDrawing(false)}
+                        />
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => {
-                          if (sigCanvasRef.current) {
-                            const dataUrl = sigCanvasRef.current.toDataURL("image/png");
-                            set("signatureImage", dataUrl);
-                            localStorage.setItem(SIG_STORE, dataUrl);
-                            toast.success("Signature enregistrée et intégrée au CV.");
-                          }
-                        }}
-                      >
-                        Valider la signature
-                      </Button>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground shadow-xs hover:bg-secondary/80">
+                        <ImagePlus className="h-3.5 w-3.5" /> Importer une signature (photo/scan)
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const res = String(reader.result);
+                              set("signatureImage", res);
+                              localStorage.setItem(SIG_STORE, res);
+                              toast.success("Signature importée et ajoutée au CV !");
+                            };
+                            reader.readAsDataURL(file);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="text-destructive text-xs"
                         onClick={() => {
                           const ctx = sigCanvasRef.current?.getContext("2d");
                           if (ctx && sigCanvasRef.current) {
                             ctx.clearRect(0, 0, sigCanvasRef.current.width, sigCanvasRef.current.height);
-                            set("signatureImage", "");
                           }
+                          set("signatureImage", "");
+                          localStorage.removeItem(SIG_STORE);
+                          toast.info("Signature effacée.");
                         }}
                       >
-                        Effacer
+                        <Trash2 className="h-3.5 w-3.5 mr-1" /> Effacer
                       </Button>
                     </div>
+
+                    {data.signatureImage && (
+                      <div className="rounded-md border bg-muted/40 p-2 text-xs flex items-center justify-between">
+                        <span className="text-muted-foreground">Signature active sur le CV</span>
+                        <img src={data.signatureImage} alt="Signature active" className="h-8 max-w-[120px] object-contain border bg-white rounded px-1" />
+                      </div>
+                    )}
+
                     <div className="border-t pt-2">
-                      <Field label="Ou tapez votre nom pour signature texte" value={data.signature || ""} onChange={(v) => set("signature", v)} placeholder="Ex: Sarah Garcia" />
+                      <Field
+                        label="Ou tapez votre nom pour signature calligraphiée"
+                        value={data.signature || ""}
+                        onChange={(v) => set("signature", v)}
+                        placeholder="Ex: Sarah Garcia"
+                      />
                     </div>
                   </div>
                 )}
