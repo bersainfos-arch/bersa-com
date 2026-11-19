@@ -442,7 +442,7 @@ export function HomeFeed() {
                     <HomeFeedPostCard
                       key={post.id}
                       post={post}
-                      currentUserId={user?.id}
+                      currentUserId={user?.id || ""}
                       onLike={handleLike}
                       onSave={handleSave}
                       onDelete={handleDelete}
@@ -461,7 +461,7 @@ export function HomeFeed() {
                   <h4 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                     <Users className="h-4 w-4 text-primary" /> Membres de BERSA
                   </h4>
-                  <Link to="/auteurs" className="text-[11px] text-primary hover:underline font-medium">Voir tous</Link>
+                  <Link to="/profil" className="text-[11px] text-primary hover:underline font-medium">Voir mon profil</Link>
                 </div>
                 <div className="space-y-3 text-xs">
                   <div className="flex items-center justify-between gap-2">
