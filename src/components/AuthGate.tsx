@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logo from "@/assets/bersa-logo.png.asset.json";
 import { authIdentifier } from "@/lib/auth-identifier";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -17,7 +16,7 @@ function Frame({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-4 py-10">
       <div className="w-full max-w-sm space-y-4 rounded-2xl bg-card p-6 shadow-soft">
         <div className="flex flex-col items-center text-center">
-          <img src={logo.url} alt="Logo BERSA" className="h-20 w-20 rounded-2xl shadow-md" />
+          <img src="/logo.png" alt="Logo BERSA" className="h-20 w-20 rounded-2xl shadow-md" />
           <h1 className="mt-3 text-3xl font-bold">BERSA</h1>
           <p className="font-display text-lg text-primary">Berceau du Savoir</p>
           <p className="font-display italic text-muted-foreground">« {t("slogan")} »</p>
@@ -313,7 +312,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (loading && !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-royal-gradient">
-        <img src={logo.url} alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" />
+        <img src= "/logo.png" alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" />
       </div>
     );
   }
