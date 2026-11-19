@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CvPreview } from "@/components/CvPreview";
 import {
   CV_TEMPLATES, EMPTY_CV, sampleCvFor, renderCvHtml,
@@ -318,76 +319,58 @@ function CvStudio() {
     } catch { toast.error("Espace insuffisant sur l'appareil."); }
   };
 
-  const exportWord = async () => {
-    const doc = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{size:A4;margin:0}body{margin:0}</style></head><body>${html}</body></html>`;
-    const blob = new Blob(["\ufeff" + doc], { type: "application/msword" });
-    await saveBlob(blob, `${fileName}.doc`, "doc", "Document Word (.doc)");
-  };
-
-  const exportPdf = async () => {
+  const [pending, setPending] = useState<{ blob: Blob; name: string; ext: string; description: string } | null>(null);
+  const prepare = async (kind: "pdf" | "docx" | "png") => {
     if (busy || !previewRef.current) return;
     const paper = previewRef.current.querySelector<HTMLElement>("[data-cv-paper]");
     if (!paper) return;
     setBusy(true);
-    const clone = paper.cloneNode(true) as HTMLElement;
-    clone.style.transform = "none";
-    clone.style.position = "fixed";
-    clone.style.left = "-10000px";
-    clone.style.top = "0";
-    document.body.appendChild(clone);
     try {
-      const [{ toCanvas }, { jsPDF }] = await Promise.all([import("html-to-image"), import("jspdf")]);
-      await document.fonts.ready;
-      await Promise.all(Array.from(clone.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
-      const canvas = await toCanvas(clone, { pixelRatio: 2, width: 794, height: clone.scrollHeight });
-      const pdf = new jsPDF({ unit: "mm", format: "a4" });
-      const pageHeight = Math.round((canvas.width * 297) / 210);
-      for (let y = 0; y < canvas.height; y += pageHeight) {
-        if (y) pdf.addPage();
-        const page = document.createElement("canvas");
-        page.width = canvas.width;
-        page.height = Math.min(pageHeight, canvas.height - y);
-        const ctx = page.getContext("2d");
-        if (!ctx) throw new Error("canvas");
-        ctx.drawImage(canvas, 0, y, page.width, page.height, 0, 0, page.width, page.height);
-        pdf.addImage(page.toDataURL("image/png"), "PNG", 0, 0, 210, (page.height * 210) / page.width);
-      }
-      const pdfBlob = pdf.output("blob");
-      await saveBlob(pdfBlob, `${fileName}.pdf`, "pdf", "Document PDF (.pdf)");
+      const { renderCvPage, cvPdfBlob, cvDocxBlob, cvPngBlob } = await import("@/lib/cv-export");
+      const page = await renderCvPage(paper);
+      const blob = kind === "pdf" ? await cvPdfBlob(page) : kind === "docx" ? await cvDocxBlob(page) : await cvPngBlob(page);
+      const description = kind === "pdf" ? "Document PDF (.pdf)" : kind === "docx" ? "Document Word (.docx)" : "Image du CV (.png)";
+      setPending({ blob, name: `${fileName}.${kind}`, ext: kind, description });
     } catch {
-      toast.error("Échec de l'enregistrement du PDF.");
+      toast.error("Préparation du fichier impossible. Réessayez.");
     } finally {
-      clone.remove();
       setBusy(false);
     }
   };
+  const exportWord = () => prepare("docx");
+  const exportPdf = () => prepare("pdf");
+  const exportImage = () => prepare("png");
+  const chooseFolder = async () => {
+    if (!pending) return;
+    const p = pending;
+    setPending(null);
+    await saveBlob(p.blob, p.name, p.ext, p.description);
+  };
+  const directDownload = () => {
+    if (!pending) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(pending.blob);
+    a.download = pending.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    setPending(null);
+    toast.success("CV téléchargé dans vos Téléchargements.");
+  };
+  const saveDialog = (
+    <Dialog open={Boolean(pending)} onOpenChange={(o) => { if (!o) setPending(null); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Enregistrer votre CV</DialogTitle>
+          <DialogDescription>{pending?.name} — une seule page A4, identique au modèle.</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-2">
+          <Button onClick={() => void chooseFolder()}><Save className="h-4 w-4" /> Choisir un dossier sur mon appareil</Button>
+          <Button variant="outline" onClick={directDownload}><Download className="h-4 w-4" /> Téléchargement direct</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
-  const exportImage = async () => {
-    if (busy || !previewRef.current) return;
-    const paper = previewRef.current.querySelector<HTMLElement>("[data-cv-paper]");
-    if (!paper) return;
-    setBusy(true);
-    const clone = paper.cloneNode(true) as HTMLElement;
-    clone.style.transform = "none";
-    clone.style.position = "fixed";
-    clone.style.left = "-10000px";
-    clone.style.top = "0";
-    document.body.appendChild(clone);
-    try {
-      const { toBlob } = await import("html-to-image");
-      await document.fonts.ready;
-      await Promise.all(Array.from(clone.querySelectorAll("img")).map((img) => img.decode().catch(() => {})));
-      const blob = await toBlob(clone, { pixelRatio: 2, width: 794, height: clone.scrollHeight });
-      if (!blob) throw new Error("image");
-      await saveBlob(blob, `${fileName}.png`, "png", "Image du CV (.png)");
-    } catch {
-      toast.error("Téléchargement de la photo impossible.");
-    } finally {
-      clone.remove();
-      setBusy(false);
-    }
-  };
-      
   const importCv = async (file?: File) => {
     if (!file) return;
     try {
@@ -441,6 +424,7 @@ function CvStudio() {
   if (sel) {
     return (
       <AppShell>
+      {saveDialog}
         <div className="mx-auto max-w-6xl p-3 pb-24">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <Button variant="outline" size="sm" onClick={() => setSel(null)}>
@@ -1021,8 +1005,8 @@ function CvStudio() {
                 onTouchStart={(e) => {
                   if (e.touches.length === 2) {
                     const d = Math.hypot(
-                      e.touches[0].clientX - e.touches[1].clientX,
-                      e.touches[0].clientY - e.touches[1].clientY
+                      e.touches[0]!.clientX - e.touches[1]!.clientX,
+                      e.touches[0]!.clientY - e.touches[1]!.clientY
                     );
                     pinchStart.current = { d, z: cvScale };
                   }
@@ -1030,8 +1014,8 @@ function CvStudio() {
                 onTouchMove={(e) => {
                   if (e.touches.length === 2 && pinchStart.current) {
                     const d = Math.hypot(
-                      e.touches[0].clientX - e.touches[1].clientX,
-                      e.touches[0].clientY - e.touches[1].clientY
+                      e.touches[0]!.clientX - e.touches[1]!.clientX,
+                      e.touches[0]!.clientY - e.touches[1]!.clientY
                     );
                     const newScale = Math.min(2.5, Math.max(0.6, pinchStart.current.z * (d / pinchStart.current.d)));
                     setCvScale(Number(newScale.toFixed(2)));
