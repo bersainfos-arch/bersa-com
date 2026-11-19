@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import logo from "@/assets/bersa-logo.png.asset.json";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -48,7 +47,7 @@ function Page() {
     <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-4">
       <div className="w-full max-w-sm space-y-4 rounded-2xl bg-card p-6 shadow-soft">
         <div className="flex flex-col items-center text-center">
-          <img src={logo.url} alt="Logo BERSA" className="h-16 w-16 rounded-xl" />
+          <img src="/logo.png" alt="Logo BERSA" className="h-16 w-16 rounded-xl" />
           <h1 className="mt-3 text-2xl font-bold">Définir mon mot de passe</h1>
         </div>
         {!ready ? (
