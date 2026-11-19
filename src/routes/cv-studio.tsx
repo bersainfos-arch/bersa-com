@@ -369,7 +369,6 @@ function CvStudio() {
   const exportWord = () => prepareAndDownload("docx");
   const exportPdf = () => prepareAndDownload("pdf");
   const exportImage = () => prepareAndDownload("png");
-   };
 
     const actionsBar = (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-2 shadow-xs">
