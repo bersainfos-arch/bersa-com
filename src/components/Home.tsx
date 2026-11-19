@@ -49,7 +49,6 @@ import { signedCommunity } from "@/lib/community";
 import { LETTER_TEMPLATES, letterPrompt, letterSheet } from "@/lib/letter-templates";
 import { DOC_TEMPLATES } from "@/lib/doc-templates";
 import { homeCards, TEMPLATE_DOMAINS, templateDomain } from "@/lib/home-catalog";
-import logo from "@/assets/bersa-logo.png.asset.json";
 
 interface TemplateItem {
   id: string;
@@ -227,7 +226,7 @@ export function Home({ catalog = false }: { catalog?: boolean }) {
       <header className="px-3 pt-3 pb-2 flex items-center gap-2">
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
-            src={logo.url}
+            src="/logo.png"
             alt="Logo officiel BERSA"
             className="w-9 h-9 object-contain rounded-lg shadow-xs"
           />
