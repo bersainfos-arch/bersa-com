@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthGate } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
 import { MOBILE_MONEY } from "@/lib/catalog";
-import logo from "@/assets/bersa-logo.png.asset.json";
 
 export const Route = createFileRoute("/facture/$id")({
   head: () => ({
@@ -46,7 +45,7 @@ function Invoice() {
       <div className="mx-auto max-w-2xl rounded-2xl bg-card p-8 shadow-soft print:shadow-none">
         <div className="flex items-start justify-between gap-4 border-b pb-6">
           <div className="flex items-center gap-3">
-            <img src={logo.url} alt="Logo BERSA" className="h-16 w-16 rounded-xl" />
+            <img src="/logo.png" alt="Logo BERSA" className="h-16 w-16 rounded-xl" />
             <div>
               <div className="font-display text-3xl font-bold">BERSA</div>
               <div className="text-xs text-muted-foreground">Berceau du Savoir</div>
