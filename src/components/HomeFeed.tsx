@@ -7,7 +7,6 @@ import {
   Loader2, Copy, ShieldAlert, MessageSquare, Bell, ArrowRight,
   PenTool, Award, Check, MoreHorizontal
 } from "lucide-react";
-import logo from "@/assets/bersa-logo.png.asset.json";
 import { AuthGate } from "@/components/AuthGate";
 import { HomeMessagesModal } from "@/components/HomeMessagesModal";
 import { useAuth } from "@/hooks/use-auth";
@@ -422,7 +421,7 @@ export function HomeFeed() {
           <div className="mx-auto flex max-w-xl items-center justify-between gap-2">
             <Link to="/" className="flex items-center gap-2 shrink-0">
               <img
-                src={logo.url}
+                src="/logo.png"
                 alt="Logo BERSA"
                 className="h-9 w-9 rounded-xl object-contain shadow-xs bg-white p-0.5 border border-slate-100"
               />
