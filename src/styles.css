@@ -869,142 +869,32 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-ai-sheet p { hyphens: none !important; word-break: normal; overflow-wrap: break-word; }
 
 /* Taille réelle Word/WPS : A4 = 794 × 1123 px à 100 %, rigide et sans déformation.
-   Le zoom agrandit ou réduit la feuille ; le bureau défile horizontalement si nécessaire. */
+/* Papier réel A4 rigide : vraie proportion, zoom à deux doigts, marges Word/WPS */
+.home-editor .home-paper-desk { 
+  overflow-x: auto; 
+  touch-action: pan-x pan-y !important; 
+  padding-inline: 8px !important;
+  align-items: flex-start;
+}
+.writer-paper-host { 
+  width: calc(100% * var(--writer-zoom, 1)) !important; 
+  max-width: calc(794px * var(--writer-zoom, 1)) !important; 
+  margin-inline: auto; 
+  align-self: flex-start; 
+}
 .home-editor .bersa-writer-workspace .writer-paper-host,
 .home-editor .bersa-writer-workspace .home-paper-content {
-  width: min(calc(100vw - 16px), calc(794px * var(--writer-zoom, 0.58))) !important;
-  max-width: calc(794px * var(--writer-zoom, 0.58)) !important;
-  min-width: 0 !important;
-  margin-inline: auto !important;
+  width: calc(794px * var(--writer-zoom, 1)) !important;
+  max-width: none !important;
+  min-width: calc(794px * var(--writer-zoom, 1)) !important;
+  margin-inline: 0 !important;
 }
 .home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet {
-  --sheet-w: min(calc(100vw - 16px), calc(794px * var(--writer-zoom, 0.58)));
+  --sheet-w: calc(794px * var(--writer-zoom, 1));
   width: var(--sheet-w) !important;
-  max-width: 100% !important;
+  max-width: none !important;
   box-sizing: border-box !important;
   min-height: calc(var(--sheet-w) * 297 / 210) !important;
-}
-.home-editor .bersa-writer-workspace:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet {
-  --pad-x: calc(var(--sheet-w) * 0.119 * var(--writer-margin-scale, 1));
-}
-.home-editor .bersa-writer-workspace.orientation-Paysage .home-paper-content .home-ai-sheet { 
-  min-height: calc(var(--sheet-w) * 210 / 297) !important; 
-}
-.home-editor .bersa-writer-workspace.home-paper-desk { 
-  overflow-x: auto; 
-  justify-content: flex-start; 
-  padding-inline: 8px !important; 
-  align-items: flex-start; 
-}
-.home-editor .bersa-writer-workspace.orientation-Paysage :is(.writer-paper-host, .home-paper-content) { 
-  width: calc(1123px * var(--writer-zoom, 0.58)) !important; 
-  min-width: calc(1123px * var(--writer-zoom, 0.58)) !important; 
-}
-.home-editor .bersa-writer-workspace.orientation-Paysage .home-paper-content .home-ai-sheet { 
-  --sheet-w: calc(1123px * var(--writer-zoom, 0.58)); 
-  --pad-x: calc(794px * var(--writer-zoom, 0.58) * 0.119); 
-  --pad-y: calc(794px * var(--writer-zoom, 0.58) * 0.1); 
-  font-size: calc(794px * var(--writer-zoom, 0.58) * 0.02183) !important; 
-}
-.home-editor .bersa-writer-workspace .writer-paper-host,
-.home-editor .bersa-writer-workspace .home-paper-content { 
-  margin-inline: 0 !important; 
-}
-.home-editor .bersa-writer-workspace.orientation-Paysage:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet { 
-  --pad-x: calc(794px * var(--writer-zoom, 0.58) * 0.119 * var(--writer-margin-scale, 1)); 
-}
-
-.writer-margin-layer, .writer-page-margins { max-width: 100% !important; }
-
-/* Réglages Word/WPS : 12 pt, interligne 1,15, papier dur */
-.home-editor .bersa-writer-workspace .home-ai-sheet { 
-  font-size: calc(var(--sheet-w, 794px) * 0.02015) !important; 
-  line-height: var(--writer-line, 1.15) !important; 
-}
-.home-editor .bersa-writer-workspace .writer-paper-host,
-.home-editor .bersa-writer-workspace .home-paper-content { 
-  width: calc(794px * var(--writer-zoom, 0.58)) !important; 
-  max-width: none !important; 
-  min-width: calc(794px * var(--writer-zoom, 0.58)) !important; 
-}
-.home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet { 
-  --sheet-w: calc(794px * var(--writer-zoom, 0.58)); 
-  max-width: none !important; 
-}
-
-/* Appel de note : collé au mot, en exposant net sans toucher la ligne du dessus */
-.footnote-ref { 
-  font-size: 0.72em !important; 
-  vertical-align: super !important; 
-  line-height: 1 !important; 
-  padding: 0 !important; 
-  margin-left: 0.5px; 
-  color: inherit; 
-  display: inline-block;
-  transform: translateY(-0.15em);
-}
-.footnote-ref a.footnote-link, .footnote-ref a { 
-  text-decoration: none !important; 
-  color: inherit !important; 
-  padding: 0 !important; 
-}
-
-/* Notes de bas de page : 10 pt, interligne simple 1,0, texte justifié, ligne fixe à 33 % */
-.writer-internal-notes { 
-  margin-inline: 0 !important; 
-}
-.writer-internal-notes hr { 
-  width: 33% !important; 
-  margin-left: 0 !important; 
-  margin-bottom: 0.45em !important;
-  border: 0 !important;
-  border-top: 0.75px solid var(--paper-ink) !important;
-  opacity: 0.75;
-}
-.writer-note-row { 
-  align-items: baseline !important; 
-  gap: 0.35em !important;
-  font-size: var(--note-font, 10pt) !important;
-  line-height: 1.0 !important;
-  margin-bottom: 0.25em !important;
-}
-.writer-note-row a sup {
-  font-size: 0.75em !important;
-  line-height: 1 !important;
-  font-weight: 600;
-  vertical-align: baseline !important;
-}
-.writer-note-row textarea { 
-  text-align: justify !important; 
-  font-size: inherit !important;
-  line-height: 1.0 !important;
-  background: transparent;
-  border: 0;
-  resize: none;
-}
-
-/* En-tête et pied de page : lignes nettes et estompées hors focus */
-.writer-internal-header {
-  border-bottom: 0.75px solid color-mix(in oklab, var(--paper-ink) 25%, transparent) !important;
-  padding-bottom: 3px;
-}
-.writer-footer-row {
-  border-top: 0.75px solid color-mix(in oklab, var(--paper-ink) 25%, transparent) !important;
-  padding-top: 3px;
-}
-.writer-internal-header, .writer-footer-row, .writer-internal-notes { 
-  opacity: 0.6; 
-  transition: opacity .2s ease; 
-}
-.writer-internal-header:focus, .writer-footer-row:focus-within, .writer-internal-notes:focus-within { 
-  opacity: 1; 
-}
-@media print { 
-  .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 1; } 
-}
-
-/* Papier Word/WPS réglementaire : marges 2,5 cm, coins nets, feuille rigide A4 */
-.home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet {
   --pad-x: calc(var(--sheet-w) * 0.1189);
   --pad-y: calc(var(--sheet-w) * 0.1189);
   padding: var(--pad-y) var(--pad-x) !important;
@@ -1014,14 +904,133 @@ img, video, canvas, iframe, table { max-width: 100%; }
   word-spacing: 0.04em;
   overflow-wrap: break-word !important;
   overflow-x: hidden;
+  font-size: calc(var(--sheet-w, 794px) * 0.02015) !important;
+  line-height: var(--writer-line, 1.15) !important;
 }
-.home-editor .bersa-writer-workspace .home-ai-sheet p { margin: 0 0 0.7em !important; }
-.home-ai-sheet::before, .home-editor .home-paper-content .home-ai-sheet .auto-page-gap::before { display: none !important; content: none !important; }
-.home-editor .home-paper-content .home-ai-sheet .auto-page-gap::after { box-shadow: none !important; border: 0 !important; }
-.home-editor .home-paper-content .home-ai-sheet .auto-page-gap { border: 0 !important; }
-@container (max-width: 599px) { 
-  .home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet { 
-    min-height: calc(var(--sheet-w) * 297 / 210) !important; 
-    height: auto; 
-  } 
+.home-editor .bersa-writer-workspace:is(.margin-Étroites, .margin-Larges) .home-paper-content .home-ai-sheet {
+  --pad-x: calc(var(--sheet-w) * 0.119 * var(--writer-margin-scale, 1));
 }
+.home-editor .bersa-writer-workspace.orientation-Paysage .home-paper-content .home-ai-sheet { 
+  min-height: calc(var(--sheet-w) * 210 / 297) !important; 
+  --sheet-w: calc(1123px * var(--writer-zoom, 1));
+  --pad-x: calc(794px * var(--writer-zoom, 1) * 0.119);
+  --pad-y: calc(794px * var(--writer-zoom, 1) * 0.1);
+}
+
+.writer-margin-layer, .writer-page-margins { max-width: 100% !important; }
+
+/* Suppression définitive du carré : champs d'en-tête, pied et notes transparents */
+.writer-internal-header, 
+.writer-footer-row textarea, 
+.writer-note-row textarea { 
+  display: block; 
+  resize: none; 
+  overflow: hidden; 
+  background: transparent !important; 
+  border: 0 !important; 
+  outline: none !important; 
+  box-shadow: none !important;
+  padding: 0; 
+  margin: 0; 
+  color: var(--paper-ink); 
+  font-family: 'Times New Roman', Times, serif; 
+  white-space: pre-wrap; 
+  overflow-wrap: anywhere; 
+  pointer-events: auto; 
+  field-sizing: content; 
+}
+.writer-internal-header { 
+  top: 3.6%; 
+  left: 11.9%; 
+  width: 76.2%; 
+  height: auto; 
+  min-height: 1.4em; 
+  font-size: var(--margin-font, 11px); 
+  line-height: 1.3; 
+  text-align: center;
+  border-bottom: 0.5px solid color-mix(in oklab, var(--paper-ink) 20%, transparent) !important;
+}
+.writer-internal-header::placeholder, .writer-note-row textarea::placeholder { color: transparent; }
+.writer-internal-bottom { 
+  bottom: 3%; 
+  left: 11.9%; 
+  right: 11.9%; 
+}
+.writer-footer-row { 
+  position: relative;
+  font-size: var(--margin-font, 11px); 
+  min-height: 1.4em; 
+  margin-top: 0.3em;
+  border-top: 0.5px solid color-mix(in oklab, var(--paper-ink) 20%, transparent) !important;
+}
+.writer-footer-row textarea { 
+  flex: 1; 
+  min-width: 0; 
+  width: 100%; 
+  text-align: center; 
+  font-size: inherit; 
+  line-height: 1.3; 
+}
+.writer-page-number { flex-shrink: 0; font-family: 'Times New Roman', Times, serif; }
+.writer-page-number.align-center { position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; }
+
+/* Notes de bas de page : 10 pt, interligne simple 1,0, texte justifié, barre 33 % */
+.writer-internal-notes { 
+  padding-bottom: 0.3em; 
+  background: transparent; 
+  margin-inline: 0 !important;
+}
+.writer-internal-notes hr { 
+  width: 33% !important; 
+  margin-left: 0 !important;
+  margin-bottom: 0.4em !important; 
+  border: 0 !important; 
+  border-top: 0.75px solid var(--paper-ink) !important; 
+}
+.writer-note-row { 
+  display: flex; 
+  gap: 0.3em; 
+  align-items: baseline !important; 
+  font-size: var(--note-font, 10pt) !important; 
+  line-height: 1.0 !important; 
+  margin: 0 0 0.15em; 
+}
+.writer-note-row a sup { 
+  font-size: 0.75em !important; 
+  line-height: 1 !important; 
+  vertical-align: baseline !important; 
+}
+.writer-note-row textarea { 
+  flex: 1; 
+  font-size: inherit !important; 
+  line-height: 1.0 !important; 
+  text-align: justify !important; 
+}
+
+/* Appel de note dans le texte : exposant collé sans toucher la ligne du dessus */
+.footnote-ref { 
+  font-size: 0.72em !important; 
+  vertical-align: super !important; 
+  line-height: 0 !important; 
+  padding: 0 !important; 
+  margin-left: 0.5px; 
+  color: inherit; 
+}
+.footnote-ref a.footnote-link, .footnote-ref a { 
+  text-decoration: none !important; 
+  color: inherit !important; 
+  padding: 0 !important; 
+}
+
+/* Discrétion hors focus */
+.writer-internal-header, .writer-footer-row, .writer-internal-notes { 
+  opacity: 0.5; 
+  transition: opacity .2s ease; 
+}
+.writer-internal-header:focus, .writer-footer-row:focus-within, .writer-internal-notes:focus-within { 
+  opacity: 1; 
+}
+@media print { 
+  .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 1; } 
+  }
+
