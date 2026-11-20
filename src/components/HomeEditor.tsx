@@ -997,7 +997,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", 
             ["--writer-zoom" as string]: String(Math.max(0.2, ((parseFloat(settings.zoom) || 100) / 100) * 0.58)) 
           } as React.CSSProperties} 
-          }
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} ${
             (parseFloat(settings.zoom) || 100) >= 100 ? "zoom-reading" : "zoom-margins"
           } ${
