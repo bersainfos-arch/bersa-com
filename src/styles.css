@@ -1028,22 +1028,23 @@ img, video, canvas, iframe, table { max-width: 100%; }
   overflow-wrap: break-word !important;
 }
 
-/* Appel de note ¹ sur texte : collé au mot, ne touche jamais la ligne du dessus */
-.footnote-ref { 
+/* Appel de note collé au mot (ex: Dieudonné¹) sans toucher la ligne du dessus */
+.footnote-ref, 
+.footnote-ref a, 
+.footnote-ref sup { 
+  display: inline !important;
   font-size: 0.72em !important; 
-  vertical-align: super !important; 
-  line-height: 1 !important; 
+  line-height: 0 !important; 
+  vertical-align: baseline !important; 
+  position: relative !important; 
+  top: -0.42em !important; 
   padding: 0 !important; 
+  margin: 0 !important; 
   margin-left: 0.5px !important; 
-  color: inherit; 
-  display: inline-block;
-  transform: translateY(-0.15em);
-}
-.footnote-ref a.footnote-link, .footnote-ref a { 
   text-decoration: none !important; 
   color: inherit !important; 
-  padding: 0 !important; 
 }
+
 
 /* Discrétion hors focus */
 .writer-internal-header, .writer-footer-row, .writer-internal-notes { 
