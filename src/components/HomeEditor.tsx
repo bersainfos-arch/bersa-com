@@ -16,7 +16,7 @@ import Superscript from "@tiptap/extension-superscript";
 import { ParagraphIndent } from "@/lib/writer-commands";
 import { WriterLayout, Bookmark, attachLayout, extractLayout } from "@/lib/writer-layout";
 import { WriterPaper } from "@/components/WriterPaper";
-import { writerTextFit } from "@/lib/writer-viewport";
+import { writerTextFit, scaleToDisplayZoom, displayZoomToScale } from "@/lib/writer-viewport";
 import { toast } from "sonner";
 import { ArrowUp, Share2,
   Send,
@@ -80,7 +80,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk) return;
     const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
     setFitText(true);
-    setSettings(s => ({ ...s, zoom: `${Math.round(fit.scale * 100)}%` }));
+    setSettings(s => ({ ...s, zoom: `${scaleToDisplayZoom(fit.scale)}%` }));
     requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
   };
   const [recording, setRecording] = useState(false);
