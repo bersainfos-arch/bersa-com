@@ -1011,12 +1011,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               : (parseFloat(settings.zoom) || 100) < 80
               ? "grid-cols-2"
               : "grid-cols-1"
-          }${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${
+                    }${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${
             settings.eyeCare ? " writer-eye-care" : ""
           }`}
-          
+          onClick={(e) => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
             if (anchor) {
+              
               const hash = anchor.getAttribute("href");
               if (hash && hash.startsWith("#")) {
                 e.preventDefault();
