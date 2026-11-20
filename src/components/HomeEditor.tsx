@@ -145,19 +145,20 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }
     window.addEventListener("scroll", updateOffset);
 
-    // Suivi dynamique pendant l'animation d'ouverture du clavier lors du toucher dans le texte
-        const onFocusIn = (e: FocusEvent) => {
+    // Approche WPS Word : accompagnement doux du focus sans saut brutal de la page
+    const onFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target?.closest(".home-ai-sheet, input, textarea, [contenteditable]")) {
-        // Défilement doux centré sur le curseur sans saut brusque de la page
-        target.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      if (target?.closest(".home-ai-sheet")) {
+        setTimeout(() => {
+          const selection = window.getSelection();
+          const anchor = selection?.anchorNode?.parentElement;
+          if (anchor && deskRef.current?.contains(anchor)) {
+            anchor.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        }, 60);
       }
     };
-
-    const onFocusOut = () => {
-      setTimeout(updateOffset, 150);
-    };
-
+    
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
 
@@ -990,16 +991,12 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             deskRef.current = el;
             setDeskEl(el);
           }}
-          style={
-            {
-              ["--writer-line" as string]: settings.lineSpacing || "1.15",
-              ["--writer-margin-scale" as string]:
-                settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1",
-              ["--writer-page-color" as string]: settings.pageColor || "var(--paper)",
-              ["--writer-zoom" as string]: String(
-                ((parseFloat(settings.zoom) || 100) / 100) * 0.58
-              ),
-            } as React.CSSProperties
+            style={{ 
+            ["--writer-line" as string]: settings.lineSpacing || "1.15", 
+            ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", 
+            ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", 
+            ["--writer-zoom" as string]: String(Math.max(0.2, ((parseFloat(settings.zoom) || 100) / 100) * 0.58)) 
+          } as React.CSSProperties} 
           }
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} ${
             (parseFloat(settings.zoom) || 100) >= 100 ? "zoom-reading" : "zoom-margins"
