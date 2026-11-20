@@ -1020,29 +1020,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           <WriterPaper editor={editor} settings={settings} setSettings={setSettings} footnotes={footnotes}>
             <EditorContent editor={editor} className="home-paper-content" />
           </WriterPaper>
-          
-              const hash = anchor.getAttribute("href");
-              if (hash && hash.startsWith("#")) {
-                e.preventDefault();
-                scrollToTarget(hash.slice(1));
-              }
-            }
-          }}
-        >
-          {/* Règle graduée A4 utile (0 à 16 cm de largeur d'écriture) */}
-          {settings.ruler && (
-            <div className="bersa-writer-ruler no-print mx-auto mb-2" aria-hidden="true">
-              {Array.from({ length: 16 }).map((_, i) => (
-                <div key={i} className="bersa-writer-ruler-tick">
-                  <span>{i + 1}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <WriterPaper editor={editor} settings={settings} setSettings={setSettings} footnotes={footnotes}>
-            <EditorContent editor={editor} className="home-paper-content" />
-          </WriterPaper>
           {versions && (
             <div className="no-print fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center" onClick={() => setVersions(null)}>
               <div className="w-full max-w-md rounded-xl bg-card p-4 shadow-xl" onClick={e => e.stopPropagation()}>
