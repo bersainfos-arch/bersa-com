@@ -985,35 +985,42 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             ))}
           </div>
         )}
+
         {/* Desk d'écriture A4 rigide */}
         <div
-          ref={(el) => {
-            deskRef.current = el;
-            setDeskEl(el);
-          }}
-            style={{ 
+          ref={el => { deskRef.current = el; setDeskEl(el); }}
+          style={{ 
             ["--writer-line" as string]: settings.lineSpacing || "1.15", 
             ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", 
             ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", 
-            ["--writer-zoom" as string]: String(Math.max(0.2, ((parseFloat(settings.zoom) || 100) / 100) * 0.58)) 
-          } as React.CSSProperties} 
-          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} ${
-            (parseFloat(settings.zoom) || 100) >= 100 ? "zoom-reading" : "zoom-margins"
-          } ${
-            (parseFloat(settings.zoom) || 100) < 40
-              ? "grid-cols-4"
-              : (parseFloat(settings.zoom) || 100) < 60
-              ? "grid-cols-3"
-              : (parseFloat(settings.zoom) || 100) < 80
-              ? "grid-cols-2"
-              : "grid-cols-1"
-                    }${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${
-            settings.eyeCare ? " writer-eye-care" : ""
-          }`}
-          onClick={(e) => {
+            ["--writer-zoom" as string]: String((parseFloat(settings.zoom) || 100) / 100) 
+          } as React.CSSProperties}
+          className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${settings.eyeCare ? " writer-eye-care" : ""}${settings.showComments === false ? " hide-comments" : ""}${settings.showRevisions === false ? " hide-revisions" : ""}${settings.showMarks ? " show-marks" : ""}`}
+          onClick={e => {
             const anchor = (e.target as HTMLElement).closest<HTMLAnchorElement>("a.footnote-link, a.a4-footnote-backlink");
             if (anchor) {
-              
+              const hash = anchor.getAttribute("href");
+              if (hash && hash.startsWith("#")) {
+                e.preventDefault();
+                scrollToTarget(hash.slice(1));
+              }
+            }
+          }}
+        >
+          {settings.ruler && (
+            <div className="bersa-writer-ruler no-print mx-auto mb-2" aria-hidden="true">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <div key={i} className="bersa-writer-ruler-tick">
+                  <span>{i + 1}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <WriterPaper editor={editor} settings={settings} setSettings={setSettings} footnotes={footnotes}>
+            <EditorContent editor={editor} className="home-paper-content" />
+          </WriterPaper>
+          
               const hash = anchor.getAttribute("href");
               if (hash && hash.startsWith("#")) {
                 e.preventDefault();
