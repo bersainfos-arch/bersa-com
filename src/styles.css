@@ -1002,3 +1002,54 @@ img, video, canvas, iframe, table { max-width: 100%; }
   margin-top: 6px;
   position: relative;
 }
+/* Positionnement indispensable à l'intérieur de la feuille A4 */
+.writer-margin-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.writer-page-margins {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+.writer-internal-header,
+.writer-footer-row textarea,
+.writer-note-row textarea {
+  display: block;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: var(--paper-ink, #0f172a);
+  font-family: 'Times New Roman', Times, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+  field-sizing: content;
+}
+.writer-internal-header {
+  position: absolute;
+  top: 3.6%;
+  left: 11.9%;
+  width: 76.2%;
+  min-height: 1.4em;
+  font-size: var(--margin-font, 11px);
+  line-height: 1.3;
+  text-align: center;
+}
+.writer-internal-bottom {
+  position: absolute;
+  bottom: 3%;
+  left: 11.9%;
+  right: 11.9%;
+}
+.home-editor .bersa-writer-workspace .home-paper-content .home-ai-sheet {
+  --pad-x: calc(var(--sheet-w) * 0.1189);
+  --pad-y: calc(var(--sheet-w) * 0.1189);
+  padding: var(--pad-y) var(--pad-x) !important;
+  }
