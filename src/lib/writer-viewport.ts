@@ -1,25 +1,20 @@
-/**
- * Calibrage du zoom BERSA Writer inspiré de WPS Office :
- * - 100 % affiché = échelle réelle 0.58 (lecture mobile pleine largeur).
- * - En dessous de 80 % (ancienne échelle 0.46) : mode multi-pages en colonnes.
- */
-export const ZOOM_BASE_SCALE = 0.58;
+/** Screen fit changes only presentation, never the saved page margins. */
+export const MOBILE_BASE_SCALE = 0.58;
 
-export function displayZoomToScale(displayZoomPercent: number): number {
-  return (displayZoomPercent / 100) * ZOOM_BASE_SCALE;
-}
-
+/** Convertit une échelle réelle en valeur de zoom affiché (ex: 0.58 -> 100 %). */
 export function scaleToDisplayZoom(scale: number): number {
-  return Math.round((scale / ZOOM_BASE_SCALE) * 100);
+  return Math.round((scale / MOBILE_BASE_SCALE) * 100);
 }
 
-export function getGridColumns(displayZoomPercent: number): number {
-  if (displayZoomPercent >= 80) return 1;
-  if (displayZoomPercent >= 60) return 2;
-  if (displayZoomPercent >= 40) return 3;
-  return 4;
+/** Convertit un pourcentage affiché en multiplicateur CSS. */
+export function displayZoomToScale(displayPercent: number): number {
+  return Math.max(0.2, (displayPercent / 100) * MOBILE_BASE_SCALE);
 }
 
+/**
+ * Calcul d'adaptation de la feuille à l'écran.
+ * Conserve la compatibilité exacte avec les tests et l'architecture A4.
+ */
 export function writerTextFit(
   width: number,
   orientation: "Portrait" | "Paysage",
@@ -30,15 +25,9 @@ export function writerTextFit(
   const padding = 794 * 0.1189 * multiplier;
   const availableWidth = Math.max(280, width - 16);
 
-  // Sur mobile, ajustement pleine largeur à 100 % affiché (échelle 0.58)
+  // Échelle adaptée à l'écran : 55 % à 58 % sur téléphone, plafonnée à 100 % sur grand écran
   const fit = availableWidth / pageWidth;
-  const scale = availableWidth < 640 ? Math.min(ZOOM_BASE_SCALE, fit) : Math.min(1, fit);
+  const scale = availableWidth < 640 ? Math.min(0.55, fit) : Math.min(1, fit);
 
-  return {
-    scale,
-    displayZoom: scaleToDisplayZoom(scale),
-    scrollLeft: 0,
-    pageWidth,
-    padding,
-  };
+  return { scale, scrollLeft: 0, pageWidth, padding };
 }
