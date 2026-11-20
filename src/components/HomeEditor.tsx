@@ -145,19 +145,20 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     }
     window.addEventListener("scroll", updateOffset);
 
-    // Approche WPS Word : accompagnement doux du focus sans saut brutal de la page
+   // Approche WPS Word : accompagnement doux du focus centré sur le curseur
     const onFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest(".home-ai-sheet")) {
         setTimeout(() => {
           const selection = window.getSelection();
-          const anchor = selection?.anchorNode?.parentElement;
-          if (anchor && deskRef.current?.contains(anchor)) {
-            anchor.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          const node = selection?.anchorNode;
+          const element = (node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement) as HTMLElement | null;
+          if (element && deskRef.current?.contains(element)) {
+            element.scrollIntoView({ block: "center", behavior: "smooth" });
           }
-        }, 60);
+        }, 100);
       }
-    };
+    };    
 
     const onFocusOut = () => {
       setTimeout(updateOffset, 150);
