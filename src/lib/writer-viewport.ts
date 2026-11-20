@@ -16,8 +16,7 @@ export function displayZoomToScale(displayPercent: number): number {
  * Conserve la compatibilité avec l'architecture A4 et les tests.
  */
 export function writerTextFit(
-  scaleToDisplayZoom, displayZoomToScale
-  width: number,
+  width: number, scaleToDisplayZoom, displayZoomToScale
   orientation: "Portrait" | "Paysage",
   margin: "Normales" | "Étroites" | "Larges"
 ) {
