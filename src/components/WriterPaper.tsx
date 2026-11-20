@@ -55,25 +55,102 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
   const align = settings.pageNumberAlign || "center";
   return <div ref={host} className="writer-paper-host">
     {children}
-    <div className="writer-margin-layer" style={{ width:"100%", maxWidth: layout.width, left: layout.left, top: layout.top, ["--margin-font" as string]: `${Math.max(6, 11 * scale)}px`, ["--note-font" as string]: `${Math.max(6, 10.5 * scale)}px` } as React.CSSProperties}>
+    <div
+      className="writer-margin-layer"
+      style={{
+        width: "100%",
+        maxWidth: layout.width,
+        left: layout.left,
+        top: layout.top,
+        ["--margin-font" as string]: `${Math.max(7, 10 * scale)}px`,
+        ["--note-font" as string]: "10pt",
+      } as React.CSSProperties}
+    >
       {Array.from({ length: layout.pages }, (_, index) => {
-        const notes = footnotes.filter(fn => pageOf(fn.number) === index);
+        const notes = footnotes.filter((fn) => pageOf(fn.number) === index);
         const hidden = index === 0 && settings.differentFirstPage;
-        const number = settings.pageNumbers ? <span className={`writer-page-number align-${align}`}>{formatPageNumber(index + 1, settings.pageNumberFormat)}</span> : null;
-        return <div key={index} className="writer-page-margins" style={{ top: index * (layout.height + 16), height: layout.height }}>
-          {!hidden && <textarea ref={autoGrow} rows={1} className="writer-internal-header" aria-label={`En-tête de la page ${index + 1}`} value={settings.headerText} onChange={e => { autoGrow(e.currentTarget); setSettings(s => ({ ...s, headerText: e.target.value })); }} />}
-          <div className="writer-internal-bottom">
-            {notes.length > 0 && <section className="writer-internal-notes" aria-label={`Notes de bas de page de la page ${index + 1}`}><hr />{notes.map(fn => <div key={fn.number} id={`fn-${fn.number}`} className="writer-note-row">
-              <a href={`#fnref-${fn.number}`} onClick={e => { e.preventDefault(); editor?.view.dom.querySelector(`#fnref-${fn.number}`)?.scrollIntoView({ block: "center" }); }} aria-label={`Retour à la note ${fn.number}`}><sup>{fn.number}</sup></a>
-              <textarea ref={autoGrow} rows={1} data-fn-input={fn.number} aria-label={`Note de bas de page ${fn.number}`} value={fn.note} onChange={e => { autoGrow(e.currentTarget); if (editor) updateFootnote(editor, fn.pos, e.target.value); }} />
-            </div>)}</section>}
-            {!hidden && <div className="writer-footer-row">
-              {align === "left" && number}
-              <textarea ref={autoGrow} rows={1} aria-label={`Pied de la page ${index + 1}`} value={settings.footerText} onChange={e => { autoGrow(e.currentTarget); setSettings(s => ({ ...s, footerText: e.target.value })); }} />
-              {align !== "left" && number}
-            </div>}
+        const number = settings.pageNumbers ? (
+          <span className={`writer-page-number align-${align}`}>
+            {formatPageNumber(index + 1, settings.pageNumberFormat)}
+          </span>
+        ) : null;
+
+        return (
+          <div
+            key={index}
+            className="writer-page-margins"
+            style={{ top: index * (layout.height + 12), height: layout.height }}
+          >
+            {/* En-tête : texte avec ligne séparatrice sous le texte */}
+            {!hidden && (
+              <textarea
+                ref={autoGrow}
+                rows={1}
+                className="writer-internal-header"
+                aria-label={`En-tête de la page ${index + 1}`}
+                placeholder="En-tête..."
+                value={settings.headerText}
+                onChange={(e) => {
+                  autoGrow(e.currentTarget);
+                  setSettings((s) => ({ ...s, headerText: e.target.value }));
+                }}
+              />
+            )}
+
+            <div className="writer-internal-bottom">
+              {/* Notes de bas de page : 10 pt, simple (1.0), justifié */}
+              {notes.length > 0 && (
+                <section className="writer-internal-notes" aria-label={`Notes de bas de page de la page ${index + 1}`}>
+                  <hr />
+                  {notes.map((fn) => (
+                    <div key={fn.number} id={`fn-${fn.number}`} className="writer-note-row">
+                      <a
+                        href={`#fnref-${fn.number}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          editor?.view.dom.querySelector(`#fnref-${fn.number}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+                        }}
+                        aria-label={`Retour à la note ${fn.number}`}
+                      >
+                        <sup>{fn.number}</sup>
+                      </a>
+                      <textarea
+                        ref={autoGrow}
+                        rows={1}
+                        data-fn-input={fn.number}
+                        aria-label={`Note de bas de page ${fn.number}`}
+                        value={fn.note}
+                        onChange={(e) => {
+                          autoGrow(e.currentTarget);
+                          if (editor) updateFootnote(editor, fn.pos, e.target.value);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {/* Pied de page : texte sous la ligne séparatrice */}
+              {!hidden && (
+                <div className="writer-footer-row">
+                  {align === "left" && number}
+                  <textarea
+                    ref={autoGrow}
+                    rows={1}
+                    aria-label={`Pied de la page ${index + 1}`}
+                    placeholder="Pied de page..."
+                    value={settings.footerText}
+                    onChange={(e) => {
+                      autoGrow(e.currentTarget);
+                      setSettings((s) => ({ ...s, footerText: e.target.value }));
+                    }}
+                  />
+                  {align !== "left" && number}
+                </div>
+              )}
+            </div>
           </div>
-        </div>;
+        );
       })}
     </div>
   </div>;
