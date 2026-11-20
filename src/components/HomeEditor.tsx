@@ -146,15 +146,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     window.addEventListener("scroll", updateOffset);
 
     // Suivi dynamique pendant l'animation d'ouverture du clavier lors du toucher dans le texte
-    const onFocusIn = (e: FocusEvent) => {
+        const onFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest(".home-ai-sheet, input, textarea, [contenteditable]")) {
-        let attempts = 0;
-        const interval = setInterval(() => {
-          updateOffset();
-          attempts++;
-          if (attempts > 10) clearInterval(interval);
-        }, 40);
+        // Défilement doux centré sur le curseur sans saut brusque de la page
+        target.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     };
 
