@@ -12,7 +12,6 @@ import {
   Settings,
   ShieldAlert,
   Menu,
-  ArrowLeft,
   Save, 
   Download, 
   FilePlus, 
@@ -41,6 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { BackGlyph } from "@/components/BackGlyph";
 interface MenuItem {
   to: string;
   label: string;
@@ -130,7 +130,7 @@ export function AppShell({
                   else void navigate({ to: "/", replace: true });
                 }}
               >
-                <ArrowLeft className="h-5 w-5" />
+                <BackGlyph className="h-5 w-5" />
               </Button>
 
               {minimal ? (

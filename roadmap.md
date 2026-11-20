@@ -86,3 +86,8 @@
 - [x] Open real recent documents and import device Word/PDF content
 - [x] Automatic page separators and mobile workspace sizing
 - [ ] Verify signed-in home → editor → import and back, and template publication
+## Demande actuelle : Assistant, Word, CV, bouton retour
+- [x] Assistant : plus de recherche web forcée (quota 429), essai de plusieurs modèles gratuits — vérifié avec la clé gratuite
+- [x] Atelier Word remis comme avant le changement de pagination d'hier
+- [x] CV : écran d'enregistrement avec choix du format puis du dossier — vérifié à 360px (téléchargement Word)
+- [x] Bouton retour « ❮ » partout où il y a un retour

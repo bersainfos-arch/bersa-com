@@ -2,8 +2,8 @@
 export type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } };
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
-const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.8-flash"];
-const SEARCH_MODELS = ["gemini-3.5-flash-lite", "gemini-3.5-flash"];
+// Free-tier models each have their own quota; trying several avoids a single 429 blocking the assistant.
+const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.5-flash"];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export class GeminiError extends Error {
@@ -25,54 +25,51 @@ function apiKey() {
 async function failure(res: Response) {
   let message = `Assistant indisponible (${res.status}).`;
   // Provider errors can contain credentials; never forward their raw bodies.
-  if (res.status === 429) message = "Limite gratuite de l’IA atteinte, réessayez dans un instant.";
+  if (res.status === 429) message = "L’assistant est très sollicité, réessayez dans une minute.";
   return new GeminiError(message, res.status);
 }
 
-function body(contents: GeminiContent[], system?: string, withSearch = false) {
+function body(contents: GeminiContent[], system?: string) {
+  // Google Search grounding is not sent: on free keys it has a tiny separate quota and returned 429 for every request.
   return JSON.stringify({
     contents,
     ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
-    ...(withSearch ? { tools: [{ google_search: {} }] } : {}),
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 65536,
-    },
+    generationConfig: { temperature: 0.7, maxOutputTokens: 65536 },
   });
 }
 
-async function searchStream(contents: GeminiContent[], system?: string, signal?: AbortSignal) {
-  // Google Search grounding only exists on the native endpoint; fall back silently when quota/entitlement refuses it.
-  const key = process.env["GEMINI_API_KEY"];
-  if (!key) return null;
-  for (const model of SEARCH_MODELS) {
-    try {
-      const res = await fetch(`${BASE}/${model}:streamGenerateContent?alt=sse`, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key }, body(contents, system, true), ...(signal ? { signal } : {}) });
-      if (res.ok && res.body) return res;
-      await res.body?.cancel();
-    } catch (e) { if (signal?.aborted) throw e; }
-  }
-  return null;
-}
+const RETRYABLE = new Set([400, 404, 429, 500, 502, 503, 504]);
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function* geminiStream(contents: GeminiContent[], system?: string, signal?: AbortSignal) {
-  const searched = await searchStream(contents, system, signal);
-  const connection = searched ? { base: BASE, gateway: false, headers: {} } : apiKey();
-  let res: Response | null = searched;
+  const connection = apiKey();
+  let res: Response | null = null;
   let lastError: GeminiError | null = null;
-  for (const model of searched ? [] : MODELS) {
-    res = await fetch(connection.gateway ? `${connection.base}/chat/completions` : `${connection.base}/${model}:streamGenerateContent?alt=sse`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...connection.headers },
-      body: connection.gateway ? JSON.stringify({ model, stream: true, temperature: 0.7, max_tokens: 65536,
-        messages: [ ...(system ? [{ role: "system", content: system }] : []), ...contents.map(c => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map(p => "text" in p ? { type: "text", text: p.text } : { type: "image_url", image_url: { url: `data:${p.inline_data.mime_type};base64,${p.inline_data.data}` } }) })) ],
-      }) : body(contents, system),
-      ...(signal ? { signal } : {}),
-    });
-    if (res.ok && res.body) break;
-    lastError = await failure(res);
-    res = null;
-   if (lastError.status !== 503 && lastError.status !== 429 && lastError.status !== 400 && lastError.status !== 404) throw lastError;
+  // Two passes: per-minute free limits usually clear after a short pause.
+  outer: for (let pass = 0; pass < 2; pass++) {
+    if (pass > 0) { if (lastError?.status !== 429) break; await wait(2500); }
+    for (const model of MODELS) {
+      try {
+        res = await fetch(connection.gateway ? `${connection.base}/chat/completions` : `${connection.base}/${model}:streamGenerateContent?alt=sse`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...connection.headers },
+          body: connection.gateway ? JSON.stringify({ model, stream: true, temperature: 0.7, max_tokens: 65536,
+            messages: [ ...(system ? [{ role: "system", content: system }] : []), ...contents.map(c => ({ role: c.role === "model" ? "assistant" : "user", content: c.parts.map(p => "text" in p ? { type: "text", text: p.text } : { type: "image_url", image_url: { url: `data:${p.inline_data.mime_type};base64,${p.inline_data.data}` } }) })) ],
+          }) : body(contents, system),
+          ...(signal ? { signal } : {}),
+        });
+      } catch (e) {
+        if (signal?.aborted) throw e;
+        lastError = new GeminiError("Assistant momentanément injoignable.", 503);
+        res = null;
+        continue;
+      }
+      if (res.ok && res.body) break outer;
+      lastError = await failure(res);
+      await res.body?.cancel().catch(() => {});
+      res = null;
+      if (!RETRYABLE.has(lastError.status)) throw lastError;
+    }
   }
   if (!res || !res.body) throw lastError ?? new GeminiError("Assistant indisponible.", 503);
   const reader = res.body.getReader();

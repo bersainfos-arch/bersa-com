@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import {
-  ArrowDown, ArrowLeft, ArrowUp, CheckCircle, ChevronLeft, ChevronRight,
+  ArrowDown, ArrowUp, CheckCircle, ChevronLeft, ChevronRight,
   Download, FileText, ImagePlus, Plus, RefreshCw, Save, Sparkles, Trash2,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -13,6 +13,7 @@ import {
   CV_TEMPLATES, EMPTY_CV, sampleCvFor, renderCvHtml,
   type CvData, type CvEducation, type CvExperience, type CvTemplate,
 } from "@/lib/cv-templates";
+import { BackGlyph } from "@/components/BackGlyph";
 
 export const Route = createFileRoute("/cv-studio")({
   head: () => ({
@@ -336,39 +337,6 @@ function CvStudio() {
     }
   };
 
-  const prepareAndDownload = async (kind: "pdf" | "docx" | "png") => {
-    if (busy || !previewRef.current) return;
-    const paper = previewRef.current.querySelector<HTMLElement>("[data-cv-paper]");
-    if (!paper) {
-      toast.error("Aperçu du CV non disponible.");
-      return;
-    }
-    setBusy(true);
-    const toastId = toast.loading(`Génération de votre CV (${kind.toUpperCase()})...`);
-    try {
-      const { renderCvPage, cvPdfBlob, cvDocxBlob, cvPngBlob } = await import("@/lib/cv-export");
-      const page = await renderCvPage(paper, 3);
-      const blob =
-        kind === "pdf"
-          ? await cvPdfBlob(page)
-          : kind === "docx"
-          ? await cvDocxBlob(page)
-          : await cvPngBlob(page);
-
-      const fullName = `${fileName}.${kind}`;
-      directDownloadBlob(blob, fullName);
-      toast.dismiss(toastId);
-    } catch (err) {
-      toast.dismiss(toastId);
-      toast.error("Impossible de préparer le fichier. Réessayez.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const exportWord = () => prepareAndDownload("docx");
-  const exportPdf = () => prepareAndDownload("pdf");
-  const exportImage = () => prepareAndDownload("png");
   const importCv = async (file?: File) => {
     if (!file) return;
     try {
@@ -387,28 +355,107 @@ function CvStudio() {
     } catch { toast.error("Impossible d'importer ce fichier."); }
   };
       
-    const actionsBar = (
+  type SaveKind = "pdf" | "docx" | "png";
+  const SAVE_FORMATS: { kind: SaveKind; label: string; hint: string; mime: string; description: string }[] = [
+    { kind: "pdf", label: "PDF", hint: "Une seule page A4, idéal pour postuler", mime: "application/pdf", description: "Document PDF" },
+    { kind: "docx", label: "Word (.docx)", hint: "S’ouvre dans Word et WPS", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", description: "Document Word" },
+    { kind: "png", label: "Photo (PNG)", hint: "Image haute qualité à partager", mime: "image/png", description: "Image PNG" },
+  ];
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [saveKind, setSaveKind] = useState<SaveKind>("pdf");
+  const [savedFile, setSavedFile] = useState<{ kind: SaveKind; blob: Blob } | null>(null);
+
+  // Prepare the file as soon as a format is chosen, so the folder picker opens instantly on the next tap
+  // (browsers only allow the picker/share sheet directly inside a tap).
+  const prepareFormat = async (kind: SaveKind) => {
+    setSaveKind(kind);
+    setSavedFile(null);
+    const paper = previewRef.current?.querySelector<HTMLElement>("[data-cv-paper]");
+    if (!paper) { toast.error("Aperçu du CV non disponible."); return; }
+    setBusy(true);
+    try {
+      const { renderCvPage, cvPdfBlob, cvDocxBlob, cvPngBlob } = await import("@/lib/cv-export");
+      const page = await renderCvPage(paper, 3);
+      const blob = kind === "pdf" ? await cvPdfBlob(page) : kind === "docx" ? await cvDocxBlob(page) : await cvPngBlob(page);
+      setSavedFile({ kind, blob });
+    } catch {
+      toast.error("Impossible de préparer le fichier. Réessayez.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const openSaveDialog = () => {
+    save();
+    setSaveOpen(true);
+    void prepareFormat(saveKind);
+  };
+
+  const saveToFolder = async () => {
+    if (!savedFile) return;
+    const f = SAVE_FORMATS.find((x) => x.kind === savedFile.kind)!;
+    await saveBlob(savedFile.blob, `${fileName}.${savedFile.kind}`, savedFile.kind, f.description);
+    setSaveOpen(false);
+  };
+  const saveDirect = () => {
+    if (!savedFile) return;
+    directDownloadBlob(savedFile.blob, `${fileName}.${savedFile.kind}`);
+    setSaveOpen(false);
+  };
+
+  const actionsBar = (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-card p-2 shadow-xs">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Button size="sm" variant="outline" onClick={save}>
-          <Save className="h-4 w-4" /> Enregistrer
-        </Button>
-        <Button size="sm" variant="outline" disabled={busy} onClick={exportWord}>
-          <Download className="h-4 w-4" /> Word (.docx)
-        </Button>
-        <Button size="sm" className="bg-primary text-primary-foreground font-semibold" disabled={busy} onClick={exportPdf}>
-          <Download className="h-4 w-4" /> {busy ? "Création..." : "Télécharger PDF"}
-        </Button>
-        <Button size="sm" variant="secondary" disabled={busy} onClick={exportImage}>
-          <ImagePlus className="h-4 w-4" /> Photo (PNG)
-        </Button>
-      </div>
+      <Button size="sm" className="bg-primary text-primary-foreground font-semibold" disabled={busy && !saveOpen} onClick={openSaveDialog}>
+        <Save className="h-4 w-4" /> Enregistrer le CV
+      </Button>
       <div className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
         <CheckCircle className="h-3.5 w-3.5 text-primary" /> Score qualité : <span className="text-foreground">{qualityScore}%</span>
       </div>
     </div>
   );
-      
+
+  const saveDialog = (
+    <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md overflow-hidden p-4 sm:p-6">
+        <DialogHeader>
+          <DialogTitle>Enregistrer votre CV</DialogTitle>
+          <DialogDescription>1. Choisissez le format. 2. Choisissez le dossier de votre téléphone ou ordinateur.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2" role="radiogroup" aria-label="Format du fichier">
+          {SAVE_FORMATS.map((f) => (
+            <button
+              key={f.kind}
+              type="button"
+              role="radio"
+              aria-checked={saveKind === f.kind}
+              disabled={busy}
+              onClick={() => void prepareFormat(f.kind)}
+              className={`flex w-full min-w-0 items-center gap-3 rounded-lg border p-3 text-left transition ${saveKind === f.kind ? "border-primary bg-primary/10" : "hover:bg-muted"}`}
+            >
+              {f.kind === "png" ? <ImagePlus className="h-5 w-5 text-primary" /> : <FileText className="h-5 w-5 text-primary" />}
+              <span className="flex-1">
+                <span className="block text-sm font-semibold">{f.label}</span>
+                <span className="block text-xs text-muted-foreground">{f.hint}</span>
+              </span>
+              <span className={`h-4 w-4 shrink-0 rounded-full border-2 ${saveKind === f.kind ? "border-primary bg-primary" : "border-muted-foreground"}`} />
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground" aria-live="polite">
+          {busy ? "Préparation du fichier…" : savedFile ? `Fichier prêt : ${fileName}.${savedFile.kind}` : ""}
+        </p>
+        <div className="grid gap-2">
+          <Button disabled={!savedFile || busy} onClick={() => void saveToFolder()}>
+            <Download className="h-4 w-4" /> Choisir le dossier et enregistrer
+          </Button>
+          <Button variant="outline" disabled={!savedFile || busy} onClick={saveDirect}>
+            Téléchargement direct
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const selectModel = (t: CvTemplate) => {
     setSel(t);
     const demo = sampleCvFor(t);
@@ -433,7 +480,7 @@ function CvStudio() {
         <div className="mx-auto max-w-6xl p-3 pb-24">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <Button variant="outline" size="sm" onClick={() => setSel(null)}>
-              <ArrowLeft className="h-4 w-4" /> Retour aux modèles
+              <BackGlyph className="h-4 w-4" /> Retour aux modèles
             </Button>
             <div className="flex items-center gap-2">
               <span className="font-serif text-lg font-bold">BERSA Writer</span>
@@ -1182,6 +1229,7 @@ function CvStudio() {
               </div>
 
              {actionsBar}
+             {saveDialog}
             </div>
           </div>
         </div>

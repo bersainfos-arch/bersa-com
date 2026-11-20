@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, FileDown, FileText, ImageDown, Loader2, PenLine, Sparkles, Wand2 } from "lucide-react";
+import { FileDown, FileText, ImageDown, Loader2, PenLine, Sparkles, Wand2 } from "lucide-react";
 import { createParser } from "eventsource-parser";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { CvPreview } from "@/components/CvPreview";
 import { LETTER_TEMPLATES, emptyData, letterSheet, sampleData, improvePrompt, parseImproved, wordReadyHtml, type LetterTemplate } from "@/lib/letter-templates";
+import { BackGlyph } from "@/components/BackGlyph";
 
 export const Route = createFileRoute("/lettres")({
   head: () => ({ meta: [
@@ -112,7 +113,7 @@ function Lettres() {
             ))}
           </div>
         </>) : (<>
-          <button onClick={() => setTpl(null)} className="flex items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft className="size-4" />Tous les modèles</button>
+          <button onClick={() => setTpl(null)} className="flex items-center gap-1 text-sm font-semibold text-primary"><BackGlyph className="size-4" />Tous les modèles</button>
           <h1 className="mt-2 font-serif text-xl font-bold text-foreground">{tpl.label}</h1>
           <div className="mt-3 space-y-2 rounded-lg border bg-card p-3">
             {tpl.fields.map(f => (

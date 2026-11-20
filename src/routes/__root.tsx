@@ -13,7 +13,6 @@ import {
 
 import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
-import writerPagesCss from "../styles-writer-pages.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { I18nProvider } from "../lib/i18n";
 import { Toaster } from "../components/ui/sonner";
@@ -96,10 +95,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
-      },
-      {
-        rel: "stylesheet",
-        href: writerPagesCss,
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/icon-512.png" },

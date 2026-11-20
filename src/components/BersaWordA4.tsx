@@ -8,14 +8,14 @@ import TextAlign from "@tiptap/extension-text-align";
 import { buildDocx } from "@/lib/docx-export";
 import { askAssistant } from "@/lib/assistant.functions";
 import mammoth from "mammoth";
-import {
-  ArrowLeft, Cloud, MoreVertical, Undo2, Redo2, Bold, Italic,
+import { Cloud, MoreVertical, Undo2, Redo2, Bold, Italic,
   Underline as UnderlineIcon, AlignLeft, AlignCenter, AlignRight,
   AlignJustify, List, ListOrdered, FileText, Keyboard, Mic,
   Sparkles, RefreshCw, Minus, Plus, Download, Printer, Save,
   FileUp, Search, X, Check, Copy, Share2
 } from "lucide-react";
 import "./BersaWordA4.css";
+import { BackGlyph } from "@/components/BackGlyph";
 
 export type BersaWordA4Props = {
   initialTitle?: string;
@@ -277,7 +277,7 @@ export function BersaWordA4({
       {/* 1. BANDEAU BLEU ROI */}
       <header className="bw-top-header">
         <button type="button" className="bw-btn-icon" aria-label="Accueil" onClick={onBack || (() => { window.location.href = "/accueil"; })}>
-          <ArrowLeft size={18} />
+          <BackGlyph size={18} />
         </button>
         <div className="bw-brand-block">
           <span className="bw-brand-badge">B</span>

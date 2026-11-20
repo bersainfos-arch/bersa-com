@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthGate } from "@/components/AuthGate";
 import { Button } from "@/components/ui/button";
 import { MOBILE_MONEY } from "@/lib/catalog";
+import { BackGlyph } from "@/components/BackGlyph";
 
 export const Route = createFileRoute("/facture/$id")({
   head: () => ({
@@ -39,7 +40,7 @@ function Invoice() {
   return (
     <div className="min-h-screen bg-muted px-4 py-8 print:bg-card print:p-0">
       <div className="mx-auto mb-4 flex max-w-2xl justify-between print:hidden">
-        <Button variant="outline" asChild><Link to="/profil"><ArrowLeft className="mr-1 h-4 w-4" />Retour</Link></Button>
+        <Button variant="outline" asChild><Link to="/profil"><BackGlyph className="mr-1 h-4 w-4" />Retour</Link></Button>
         <Button onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" />Imprimer / PDF</Button>
       </div>
       <div className="mx-auto max-w-2xl rounded-2xl bg-card p-8 shadow-soft print:shadow-none">

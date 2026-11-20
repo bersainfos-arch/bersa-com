@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import {} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { CvPreview } from "@/components/CvPreview";
 import { DOC_TEMPLATES } from "@/lib/doc-templates";
 import { letterSheet } from "@/lib/letter-templates";
+import { BackGlyph } from "@/components/BackGlyph";
 
 const TITLES = { business: "Modèles de Business Plan", juridique: "Modèles de documents juridiques" } as const;
 export const Route = createFileRoute("/modeles-pro")({
@@ -27,7 +28,7 @@ function ModelesPro() {
   return (
     <AppShell>
       <div className="mx-auto max-w-3xl px-4 py-4">
-        <Link to="/" className="flex items-center gap-1 text-sm font-semibold text-primary"><ArrowLeft className="size-4" />Accueil</Link>
+        <Link to="/" className="flex items-center gap-1 text-sm font-semibold text-primary"><BackGlyph className="size-4" />Accueil</Link>
         <h1 className="mt-2 font-serif text-2xl font-bold text-foreground">{TITLES[cat]}</h1>
         <p className="mt-1 text-sm text-muted-foreground">Touchez un modèle pour l’ouvrir et le modifier dans l’Atelier.</p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">

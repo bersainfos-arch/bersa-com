@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { ArrowLeft, CalendarDays, Volume2, Save, Share2, MoreHorizontal, Pencil, ScanLine, Search, Wrench, Monitor, Minus, Plus, Download, X } from "lucide-react";
+import { CalendarDays, Volume2, Save, Share2, MoreHorizontal, Pencil, ScanLine, Search, Wrench, Monitor, Minus, Plus, Download, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Page } from "./document-viewer/Page";
 import { BODY_LINE, PAGE_GAP, PAGE_MARGIN, PAGE_WIDTH, paginateBlocks, type DocumentBlock, type PageBlock, type MeasureText } from "./document-viewer/layout";
 import { useDocumentGestures } from "./document-viewer/useDocumentGestures";
 import "./document-viewer/DocumentViewer.css";
+import { BackGlyph } from "@/components/BackGlyph";
 
 export type DocumentViewerProps = {
   blocks: readonly DocumentBlock[];
@@ -89,7 +90,7 @@ export default function DocumentViewer({ blocks, title = "Document BERSA", heade
   const iconClass = "dv-button shrink-0";
   return <section className="document-viewer" aria-label={title} style={{ "--dv-margin": `${PAGE_MARGIN}px`, "--dv-line": `${BODY_LINE}px` } as CSSProperties}>
     <header className="dv-toolbar dv-top flex items-center justify-between border-b px-1" aria-label="Commandes du document">
-      <Button variant="ghost" size="icon" className={iconClass} aria-label="Retour" title="Retour" onClick={() => onBack ? onBack() : window.history.back()}><ArrowLeft /></Button>
+      <Button variant="ghost" size="icon" className={iconClass} aria-label="Retour" title="Retour" onClick={() => onBack ? onBack() : window.history.back()}><BackGlyph /></Button>
       <Button variant="ghost" size="icon" className={iconClass} aria-label="Calendrier" title="Calendrier" onClick={() => togglePanel("calendar")}><CalendarDays /></Button>
       <Button variant="ghost" size="icon" className={iconClass} aria-label={speaking ? "Arrêter la lecture" : "Lecture vocale"} title={audioAvailable ? "Lecture vocale" : "Lecture vocale indisponible"} disabled={!audioAvailable} onClick={audio}><Volume2 /></Button>
       <Button variant="ghost" size="icon" className={iconClass} aria-label="Sauvegarder" title="Sauvegarder" disabled={saving} onClick={() => void save()}><Save /></Button>

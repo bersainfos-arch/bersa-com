@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Bold, Italic, Underline, Strikethrough, List, ListOrdered, AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Quote, Link2, Image, Table, Undo2, Redo2, Indent, Outdent, Printer, Download, ArrowLeft, Sparkles, SeparatorHorizontal, ListTree, Star,
+  Quote, Link2, Image, Table, Undo2, Redo2, Indent, Outdent, Printer, Download, Sparkles, SeparatorHorizontal, ListTree, Star,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { runWriter } from "@/lib/writer.functions";
 import { CATEGORIES, MAX_CHARS, countWords, exportHtml } from "@/lib/docs";
+import { BackGlyph } from "@/components/BackGlyph";
 
 export const Route = createFileRoute("/editeur/$id")({
   head: () => ({
@@ -142,7 +143,7 @@ function Page() {
     <AppShell>
       <div className="no-print sticky top-16 z-20 border-b bg-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-3 py-2">
-          <Link to="/documents" className="rounded p-1.5 hover:bg-muted" aria-label="Retour"><ArrowLeft className="h-4 w-4" /></Link>
+          <Link to="/documents" className="rounded p-1.5 hover:bg-muted" aria-label="Retour"><BackGlyph className="h-4 w-4" /></Link>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Titre du document" className="h-8 w-48 flex-1 font-semibold" maxLength={200} />
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-8 rounded-md border bg-card px-2 text-sm">
             {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}

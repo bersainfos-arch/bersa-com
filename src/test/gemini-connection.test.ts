@@ -18,15 +18,15 @@ it("does not expose provider error bodies to callers", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response('{"error":{"message":"private-provider-diagnostic"}}', { status: 401 })));
   await expect(geminiText([{ role: "user", parts: [{ text: "Bonjour" }] }])).rejects.toThrow("Assistant indisponible (401).");
 });
-it("uses Google Search grounding first and falls back when refused", async () => {
+it("tries the next free model when one is over quota, without search grounding", async () => {
+  vi.stubEnv("UDC_GEMINI_BERSA_API_KEY", "");
   vi.stubEnv("GEMINI_API_KEY", "test-provider");
-  vi.stubEnv("UDC_GEMINI_BERSA_API_KEY", "test-connection");
-  vi.stubEnv("LOVABLE_API_KEY", "test-gateway");
   const fetcher = vi.fn()
     .mockResolvedValueOnce(new Response("{}", { status: 429 }))
-    .mockResolvedValueOnce(new Response("{}", { status: 429 }))
-    .mockResolvedValue(new Response('data: {"choices":[{"delta":{"content":"Repli"}}]}\n\n'));
+    .mockResolvedValueOnce(new Response("{}", { status: 404 }))
+    .mockResolvedValue(new Response('data: {"candidates":[{"content":{"parts":[{"text":"Repli"}]}}]}\n\n'));
   vi.stubGlobal("fetch", fetcher);
   expect(await geminiText([{ role: "user", parts: [{ text: "Bonjour" }] }])).toBe("Repli");
-  expect(JSON.parse(fetcher.mock.calls[0]?.[1].body).tools).toEqual([{ google_search: {} }]);
+  expect(fetcher).toHaveBeenCalledTimes(3);
+  expect(JSON.parse(fetcher.mock.calls[0]?.[1].body).tools).toBeUndefined();
 });
