@@ -1,19 +1,19 @@
 /** Screen fit changes only presentation, never the saved page margins. */
-export const MOBILE_BASE_SCALE = 0.58;
+export const MOBILE_BASE_SCALE = 0.57;
 
-/** Convertit une échelle réelle en valeur de zoom affiché (ex: 0.58 -> 100 %). */
+/** 57 % d'échelle réelle vaut 100 % affiché à l'écran. */
 export function scaleToDisplayZoom(scale: number): number {
   return Math.round((scale / MOBILE_BASE_SCALE) * 100);
 }
 
-/** Convertit un pourcentage affiché en multiplicateur CSS. */
+/** Convertit le pourcentage affiché en multiplicateur réel. */
 export function displayZoomToScale(displayPercent: number): number {
   return Math.max(0.2, (displayPercent / 100) * MOBILE_BASE_SCALE);
 }
 
 /**
  * Calcul d'adaptation de la feuille à l'écran.
- * Conserve la compatibilité exacte avec les tests et l'architecture A4.
+ * Conserve la compatibilité avec l'architecture A4 et les tests.
  */
 export function writerTextFit(
   width: number,
@@ -25,7 +25,7 @@ export function writerTextFit(
   const padding = 794 * 0.1189 * multiplier;
   const availableWidth = Math.max(280, width - 16);
 
-  // Échelle adaptée à l'écran : 55 % à 58 % sur téléphone, plafonnée à 100 % sur grand écran
+  // 55 % à 57 % par défaut sur mobile, ajusté à la largeur sans déborder
   const fit = availableWidth / pageWidth;
   const scale = availableWidth < 640 ? Math.min(0.55, fit) : Math.min(1, fit);
 
