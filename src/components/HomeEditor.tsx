@@ -146,7 +146,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     window.addEventListener("scroll", updateOffset);
 
     // Approche WPS Word : accompagnement doux du focus sans saut brutal de la page
-      const onFocusIn = (e: FocusEvent) => {
+    const onFocusIn = (e: FocusEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest(".home-ai-sheet")) {
         setTimeout(() => {
@@ -165,7 +165,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     
     document.addEventListener("focusin", onFocusIn);
     document.addEventListener("focusout", onFocusOut);
-    
+
     return () => {
       if (vv) {
         vv.removeEventListener("resize", updateOffset);
