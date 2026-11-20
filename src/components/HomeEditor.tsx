@@ -199,7 +199,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk || !editor || !fitText) return;
       const applyFit = () => {
       const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
-      const nextZoom = `${Math.round(fit.scale * 100)}%`;
+      const nextZoom = `${scaleToDisplayZoom(fit.scale)}%`;
       setSettings(s => s.zoom === nextZoom ? s : { ...s, zoom: nextZoom });
       requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
     };
@@ -997,7 +997,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             ["--writer-line" as string]: settings.lineSpacing || "1.15", 
             ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", 
             ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", 
-            ["--writer-zoom" as string]: String((parseFloat(settings.zoom) || 100) / 100) 
+            ["--writer-zoom" as string]: String(displayZoomToScale(parseFloat(settings.zoom) || 100))
           } as React.CSSProperties}
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${settings.eyeCare ? " writer-eye-care" : ""}${settings.showComments === false ? " hide-comments" : ""}${settings.showRevisions === false ? " hide-revisions" : ""}${settings.showMarks ? " show-marks" : ""}`}
           onClick={e => {
