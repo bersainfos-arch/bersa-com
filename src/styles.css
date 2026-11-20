@@ -868,7 +868,6 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-ai-sheet { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 .home-ai-sheet p { hyphens: none !important; word-break: normal; overflow-wrap: break-word; }
 
-/* Taille réelle Word/WPS : A4 = 794 × 1123 px à 100 %, rigide et sans déformation.
 /* Papier réel A4 rigide : vraie proportion, zoom à deux doigts, marges Word/WPS */
 .home-editor .home-paper-desk { 
   overflow-x: auto; 
