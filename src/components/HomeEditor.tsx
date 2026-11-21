@@ -842,7 +842,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 title="Afficher ou masquer les outils"
               >
                 <span aria-hidden="true" className="h-5 w-5 bg-primary" style={{ WebkitMaskImage: `url(${outilsIcon.url})`, maskImage: `url(${outilsIcon.url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
-                  pan>Outils</span>
+                <span>Outils</span>
                 {ribbonOpen ? (
                   <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
                 ) : (
