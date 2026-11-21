@@ -1062,3 +1062,14 @@ img, video, canvas, iframe, table { max-width: 100%; }
   .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 1; } 
   }
                  
+
+/* Notes de bas de page rigides : même largeur et mêmes retours à la ligne à tous les zooms */
+.writer-internal-notes, .writer-note-row { min-width: 0; }
+.writer-note-row textarea {
+  white-space: pre-wrap !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  letter-spacing: 0.012em;
+  word-spacing: 0.04em;
+}

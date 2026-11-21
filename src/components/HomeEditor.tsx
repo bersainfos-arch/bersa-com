@@ -18,6 +18,7 @@ import { WriterLayout, Bookmark, attachLayout, extractLayout } from "@/lib/write
 import { WriterPaper } from "@/components/WriterPaper";
 import { writerTextFit, scaleToDisplayZoom, displayZoomToScale } from "@/lib/writer-viewport";
 import { toast } from "sonner";
+import outilsIcon from "@/assets/outils-icon.png.asset.json";
 import { ArrowUp, Share2,
   Send,
   Loader2,
@@ -333,7 +334,19 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         setSettings(s => ({ ...s, zoom: `${v}%` })); 
       } 
     };
-              
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const rect = desk.getBoundingClientRect();
+      const mode = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? desk.clientHeight : 1;
+      const next = apply(read() * Math.exp(-e.deltaY * mode * 0.0015), e.clientX - rect.left, e.clientY - rect.top) / 100;
+      setFitText(false);
+      setSettings(s => ({ ...s, zoom: `${scaleToDisplayZoom(next)}%` }));
+    };
+    desk.addEventListener("touchstart", onStart, { passive: true });
+    desk.addEventListener("touchmove", onMove, { passive: false });
+    desk.addEventListener("touchend", onEnd);
+    desk.addEventListener("touchcancel", onEnd);
     desk.addEventListener("wheel", onWheel, { passive: false });
     return () => { desk.removeEventListener("touchstart", onStart); desk.removeEventListener("touchmove", onMove); desk.removeEventListener("touchend", onEnd); desk.removeEventListener("touchcancel", onEnd); desk.removeEventListener("wheel", onWheel); };
   }, [editor, deskEl]);
@@ -826,10 +839,10 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 type="button"
                 onClick={() => setRibbonOpen(!ribbonOpen)}
                 className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
-                title="Afficher ou masquer la mise en forme Word"
+                title="Afficher ou masquer les outils"
               >
-                <PenTool className="h-4 w-4 text-primary" />
-                <span>Mise en forme</span>
+                <span aria-hidden="true" className="h-4 w-4 bg-primary" style={{ WebkitMaskImage: `url(${outilsIcon.url})`, maskImage: `url(${outilsIcon.url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                <span>Outils</span>
                 {ribbonOpen ? (
                   <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
                 ) : (
