@@ -72,7 +72,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [files, setFiles] = useState<Attachment[]>([]);
   const fileInput = useRef<HTMLInputElement>(null);
   const openFileInput = useRef<HTMLInputElement>(null);
-  const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "", lineSpacing: "1.15" });
+  const [settings, setSettings] = useState<PageSettings>({ margin: "Normales", orientation: "Portrait", format: "A4", zoom: "100%", ruler: false, watermark: "", lineNumbers: false, viewMode: "page", headerText: "", footerText: "", lineSpacing: "1.2" });
   const deskRef = useRef<HTMLDivElement | null>(null);
   const [deskEl, setDeskEl] = useState<HTMLDivElement | null>(null);
   const [fitText, setFitText] = useState(true);
@@ -81,7 +81,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk) return;
     const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
     setFitText(true);
-    setSettings(s => ({ ...s, zoom: `${scaleToDisplayZoom(fit.scale)}%` }));
+    setSettings(s => ({ ...s, zoom: "100%" }));
     requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
   };
   const [recording, setRecording] = useState(false);
