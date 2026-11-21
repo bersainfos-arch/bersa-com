@@ -302,24 +302,38 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk) return;
     let start = 0, base = 1;
     const read = () => Number(desk.style.getPropertyValue("--writer-zoom")) || 1;
-    const apply = (z: number, x: number, y: number) => {
+      const apply = (z: number, x: number, y: number) => {
       const old = read(), next = Math.min(4, Math.max(0.2, z));
       const horizontal = (desk.scrollLeft + x) * next / old - x;
       const vertical = (desk.scrollTop + y) * next / old - y;
-      setFitText(false);
       desk.style.setProperty("--writer-zoom", String(next));
       desk.scrollLeft = horizontal; desk.scrollTop = vertical;
       return next * 100;
     };
     const dist = (t: TouchList) => { const a = t.item(0), b = t.item(1); return a && b ? Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) : 0; };
-    const onStart = (e: TouchEvent) => { if (e.touches.length === 2) { start = dist(e.touches); base = read(); } };
-    const onMove = (e: TouchEvent) => { const a = e.touches.item(0), b = e.touches.item(1); if (a && b && start) { e.preventDefault(); const rect = desk.getBoundingClientRect(); apply(base * dist(e.touches) / start, (a.clientX + b.clientX) / 2 - rect.left, (a.clientY + b.clientY) / 2 - rect.top); } };
-    const onEnd = (e: TouchEvent) => { if (start && e.touches.length < 2) { start = 0; const v = Math.round(read() * 100); setSettings(s => ({ ...s, zoom: `${v}%` })); } };
-    const onWheel = (e: WheelEvent) => { if (!e.ctrlKey) return; e.preventDefault(); const rect = desk.getBoundingClientRect(); const mode = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? desk.clientHeight : 1; const v = apply(read() * Math.exp(-e.deltaY * mode * 0.0015), e.clientX - rect.left, e.clientY - rect.top); setSettings(s => ({ ...s, zoom: `${v}%` })); };
-    desk.addEventListener("touchstart", onStart, { passive: true });
-    desk.addEventListener("touchmove", onMove, { passive: false });
-    desk.addEventListener("touchend", onEnd);
-    desk.addEventListener("touchcancel", onEnd);
+    const onStart = (e: TouchEvent) => { 
+      if (e.touches.length === 2) { 
+        setFitText(false);
+        start = dist(e.touches); 
+        base = read(); 
+      } 
+    };
+    const onMove = (e: TouchEvent) => { 
+      const a = e.touches.item(0), b = e.touches.item(1); 
+      if (a && b && start) { 
+        e.preventDefault(); 
+        const rect = desk.getBoundingClientRect(); 
+        apply(base * dist(e.touches) / start, (a.clientX + b.clientX) / 2 - rect.left, (a.clientY + b.clientY) / 2 - rect.top); 
+      } 
+    };
+    const onEnd = (e: TouchEvent) => { 
+      if (start && e.touches.length < 2) { 
+        start = 0; 
+        const v = scaleToDisplayZoom(read()); 
+        setSettings(s => ({ ...s, zoom: `${v}%` })); 
+      } 
+    };
+              
     desk.addEventListener("wheel", onWheel, { passive: false });
     return () => { desk.removeEventListener("touchstart", onStart); desk.removeEventListener("touchmove", onMove); desk.removeEventListener("touchend", onEnd); desk.removeEventListener("touchcancel", onEnd); desk.removeEventListener("wheel", onWheel); };
   }, [editor, deskEl]);
