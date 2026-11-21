@@ -4,195 +4,257 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
-import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { authIdentifier } from "@/lib/auth-identifier";
-import { LanguageSelector } from "@/components/LanguageSelector";
 
+// Cadre épuré : aucun logo, aucun titre BERSA, aucun slogan, aucun sélecteur de langue
 function Frame({ children }: { children: ReactNode }) {
-  const { t } = useI18n();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-4 py-10">
-      <div className="w-full max-w-sm space-y-4 rounded-2xl bg-card p-6 shadow-soft">
-        <div className="flex flex-col items-center text-center">
-          <img src="/logo.png" alt="Logo BERSA" className="h-20 w-20 rounded-2xl shadow-md" />
-          <h1 className="mt-3 text-3xl font-bold">BERSA</h1>
-          <p className="font-display text-lg text-primary">Berceau du Savoir</p>
-          <p className="font-display italic text-muted-foreground">« {t("slogan")} »</p>
-        </div>
-        <LanguageSelector />
+    <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-4 py-8">
+      <div className="w-full max-w-md space-y-4 rounded-2xl bg-card p-6 shadow-soft">
         {children}
       </div>
     </div>
   );
 }
 
-function normalizeBirthDate(raw: string): string | null {
-  const clean = raw.trim();
-  if (!clean) return null;
-  // Format ISO : AAAA-MM-JJ
-  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
-  // Format francophone : JJ/MM/AAAA ou JJ-MM-AAAA
-  const match = clean.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-  if (match) {
-    const day = (match[1] ?? "").padStart(2, "0");
-    const month = (match[2] ?? "").padStart(2, "0");
-    const year = match[3] ?? "";
-    return `${year}-${month}-${day}`;
+// Convertit un e-mail ou numéro de téléphone (RDC ou international) sans nécessiter de SMS bloquant
+function resolveAuthIdentifier(value: string) {
+  const text = value.trim();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+    return { email: text.toLowerCase(), isPhone: false, display: text };
   }
-  return clean;
+  const digits = text.replace(/\D/g, "");
+  if (digits.length >= 8) {
+    const normalized = digits.startsWith("0") ? `243${digits.slice(1)}` : digits;
+    return { email: `tel_${normalized}@bersa.cd`, isPhone: true, display: `+${normalized}` };
+  }
+  return null;
 }
 
 function SignForm() {
-  const { t } = useI18n();
   const [mode, setMode] = useState<"in" | "up">("up");
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
-  const [passwordInput, setPasswordInput] = useState("");
-  const [pendingPhone, setPendingPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [gender, setGender] = useState<"Femme" | "Homme">("Femme");
+  const [welcomeInfo, setWelcomeInfo] = useState<{ pass: string } | null>(null);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const identifier = authIdentifier(String(f.get("email")));
-    if (!identifier) {
-      toast.error("Saisissez un e-mail valide ou votre numéro de téléphone.");
+    const rawIdentifier = String(f.get("identifier") ?? "").trim();
+    const resolved = resolveAuthIdentifier(rawIdentifier);
+
+    if (!resolved) {
+      toast.error("Veuillez saisir une adresse e-mail valide ou votre numéro de téléphone.");
       return;
     }
-    const password = String(f.get("password"));
+
+    const password = String(f.get("password") ?? "");
     if (password.length < 4) {
-      toast.error("Le mot de passe doit comporter au moins 4 caractères.");
+      toast.error("Le mot de passe doit comporter au moins 4 lettres ou chiffres.");
       return;
     }
 
     setBusy(true);
+
+    // MODE SE CONNECTER
     if (mode === "in") {
-      const { error } = await supabase.auth.signInWithPassword({ ...identifier, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: resolved.email,
+        password,
+      });
       setBusy(false);
-      if (error) toast.error("Identifiant ou mot de passe incorrect.");
+      if (error) {
+        toast.error("Identifiant ou mot de passe incorrect.");
+      }
       return;
     }
 
-    if (password !== String(f.get("confirm"))) {
+    // MODE CRÉER VOTRE COMPTE
+    const confirm = String(f.get("confirm") ?? "");
+    if (password !== confirm) {
       setBusy(false);
-      toast.error("Les mots de passe ne correspondent pas.");
+      toast.error("Les deux mots de passe ne correspondent pas.");
       return;
     }
 
-    const d = Number(f.get("bd_day")), mo = Number(f.get("bd_month")), y = Number(f.get("bd_year"));
-    const dt = new Date(Date.UTC(y, mo - 1, d));
-    if (!y || dt.getUTCDate() !== d || dt.getUTCMonth() !== mo - 1 || y < 1900 || dt > new Date()) {
+    const firstName = String(f.get("first_name") ?? "").trim().slice(0, 80);
+    const lastName = String(f.get("last_name") ?? "").trim().slice(0, 80);
+    const birthDate = String(f.get("birth_date") ?? "").trim();
+
+    if (!firstName || !lastName || !birthDate) {
       setBusy(false);
-      toast.error("Date de naissance invalide.");
+      toast.error("Tous les champs sont à remplir.");
       return;
     }
-    const birthDateParsed = normalizeBirthDate(`${d}/${mo}/${y}`);
-    if (mode === "up" && password.length < 6) {
-      setBusy(false);
-      toast.error("Le mot de passe doit comporter au moins 6 caractères.");
-      return;
-    }
+
     const meta = {
-      first_name: String(f.get("first_name")).trim().slice(0, 80),
-      last_name: String(f.get("last_name")).trim().slice(0, 80),
-      birth_date: birthDateParsed,
-      phone_private: String(f.get("phone") ?? "").replace(/[^\d+]/g, "").slice(0, 20) || null,
+      first_name: firstName,
+      last_name: lastName,
+      birth_date: birthDate,
+      gender,
+      phone_private: resolved.isPhone ? resolved.display : null,
     };
 
-    const { error } = await supabase.auth.signUp({
-      ...identifier,
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: resolved.email,
       password,
       options: { data: meta, emailRedirectTo: window.location.origin },
     });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-    } else if ("phone" in identifier) {
-      setPendingPhone(identifier.phone);
-      toast.success("Confirmez le code reçu par SMS.");
-    } else {
-      toast.success("Compte créé ! Vérifiez votre e-mail pour confirmer, puis connectez-vous.");
-      setMode("in");
+
+    if (signUpError) {
+      // Si le compte existe déjà, tenter directement la connexion
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: resolved.email,
+        password,
+      });
+      setBusy(false);
+      if (signInErr) {
+        toast.error(signUpError.message);
+      }
+      return;
     }
+
+    // Mise à jour immédiate du profil utilisateur
+    if (signUpData.user) {
+      await supabase.from("profiles").upsert({
+        id: signUpData.user.id,
+        first_name: firstName,
+        last_name: lastName,
+        email: resolved.isPhone ? null : resolved.email,
+        birth_date: birthDate,
+      });
+    }
+
+    // Connexion immédiate pour entrer dans l'application sans blocage
+    await supabase.auth.signInWithPassword({
+      email: resolved.email,
+      password,
+    });
+
+    setBusy(false);
+    setWelcomeInfo({ pass: password });
   }
 
   async function forgot() {
-    const email = window.prompt("Votre adresse e-mail pour réinitialiser votre mot de passe :")?.trim();
-    if (!email) return;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const raw = window.prompt("Votre adresse e-mail ou numéro de téléphone :")?.trim();
+    if (!raw) return;
+    const resolved = resolveAuthIdentifier(raw);
+    if (!resolved || resolved.isPhone) {
+      toast.info("Veuillez nous contacter à bersainfos@gmail.com pour récupérer l'accès.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(resolved.email, {
       redirectTo: window.location.origin + "/reset-password",
     });
     if (error) toast.error(error.message);
-    else toast.success("Un lien de réinitialisation sécurisé vous a été envoyé par e-mail.");
+    else toast.success("Un lien de réinitialisation vous a été envoyé par e-mail.");
   }
 
   async function google() {
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (r.error) toast.error("Connexion Google indisponible.");
   }
-
-  async function verify(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    const { error } = await supabase.auth.verifyOtp({ phone: pendingPhone, token: code, type: "sms" });
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else setPendingPhone("");
-  }
-
-  if (pendingPhone) {
+    // Message d'information reçu dès la création du compte
+  if (welcomeInfo) {
     return (
-      <form onSubmit={verify} className="space-y-3">
-        <Input aria-label="Code SMS" placeholder="Code SMS" value={code} onChange={(e) => setCode(e.target.value)} required />
-        <Button type="submit" disabled={busy} className="w-full">Vérifier</Button>
-        <Button variant="ghost" onClick={() => setPendingPhone("")} className="w-full">Retour</Button>
-      </form>
+      <div className="space-y-4 text-center">
+        <h3 className="text-lg font-bold text-primary">Compte BERSA créé avec succès</h3>
+        <div className="rounded-xl border bg-muted/30 p-4 text-left text-sm space-y-2">
+          <p className="font-medium">Votre compte BERSA vient d'être créé avec succès.</p>
+          <p className="text-primary font-semibold">Voici votre mot de passe : {welcomeInfo.pass}</p>
+          <p className="text-muted-foreground text-xs italic">Gardez le jalousement.</p>
+          <hr className="my-2" />
+          <p className="text-xs text-muted-foreground">
+            Pour plus d'informations, contactez-nous à travers notre adresse mail :{" "}
+            <a href="mailto:bersainfos@gmail.com" className="font-semibold text-primary underline">
+              bersainfos@gmail.com
+            </a>
+          </p>
+          <p className="text-xs font-medium">Cordialement !</p>
+        </div>
+        <Button className="w-full" onClick={() => window.location.reload()}>
+          Accéder directement à l'application
+        </Button>
+      </div>
     );
   }
 
   return (
     <>
+      <div className="text-center mb-2">
+        <h2 className="text-base font-semibold text-foreground">
+          {mode === "up"
+            ? "Veuillez remplir ces informations pour créer votre compte"
+            : "Veuillez vous connecter à votre compte"}
+        </h2>
+      </div>
+
       <form onSubmit={submit} className="space-y-3">
         {mode === "up" && (
           <>
-            <div className="grid grid-cols-2 gap-2">
-              <Input name="first_name" aria-label="Prénom" placeholder="Prénom" required maxLength={80} autoComplete="given-name" />
-              <Input name="last_name" aria-label="Nom" placeholder="Nom" required maxLength={80} autoComplete="family-name" />
+            <Input
+              name="first_name"
+              placeholder="Prénom"
+              required
+              maxLength={80}
+              autoComplete="given-name"
+            />
+            <Input
+              name="last_name"
+              placeholder="Nom de famille"
+              required
+              maxLength={80}
+              autoComplete="family-name"
+            />
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Date de naissance</label>
+              <Input
+                name="birth_date"
+                type="date"
+                placeholder="Date de naissance"
+                required
+              />
             </div>
-            <fieldset className="space-y-1">
-              <legend className="text-xs text-muted-foreground">Date de naissance</legend>
-              <div className="grid grid-cols-[1fr_1fr_1.5fr] gap-2">
-                <Input name="bd_day" aria-label="Jour" placeholder="JJ" inputMode="numeric" maxLength={2} required pattern="[0-9]{1,2}" />
-                <Input name="bd_month" aria-label="Mois" placeholder="MM" inputMode="numeric" maxLength={2} required pattern="[0-9]{1,2}" />
-                <Input name="bd_year" aria-label="Année" placeholder="AAAA" inputMode="numeric" maxLength={4} required pattern="[0-9]{4}" />
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Genre</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={gender === "Femme" ? "default" : "outline"}
+                  onClick={() => setGender("Femme")}
+                  className="w-full"
+                >
+                  Femme
+                </Button>
+                <Button
+                  type="button"
+                  variant={gender === "Homme" ? "default" : "outline"}
+                  onClick={() => setGender("Homme")}
+                  className="w-full"
+                >
+                  Homme
+                </Button>
               </div>
-            </fieldset>
+            </div>
           </>
         )}
 
         <Input
-          name="email"
-          type={mode === "up" ? "email" : "text"}
-          autoComplete={mode === "up" ? "email" : "username"}
-          aria-label={mode === "up" ? "Adresse e-mail" : "E-mail ou numéro de téléphone"}
-          placeholder={mode === "up" ? "Adresse e-mail" : "E-mail ou numéro de téléphone"}
+          name="identifier"
+          type="text"
+          placeholder="Numéro de téléphone ou adresse e-mail"
           required
         />
-        {mode === "up" && (
-          <Input name="phone" type="tel" inputMode="tel" autoComplete="tel" aria-label="Numéro de téléphone" placeholder="Numéro de téléphone (privé)" maxLength={20} />
-        )}
 
         <div className="relative">
           <Input
             name="password"
             type={show ? "text" : "password"}
-            placeholder={t("password")}
+            placeholder="Mot de passe"
             required
             minLength={4}
-            value={passwordInput}
-            onChange={(e) => setPasswordInput(e.target.value)}
           />
           <Button
             type="button"
@@ -206,24 +268,22 @@ function SignForm() {
         </div>
 
         {mode === "up" && (
-          <>
-            <Input
-              name="confirm"
-              type={show ? "text" : "password"}
-              placeholder="Confirmer le mot de passe"
-              required
-              minLength={6}
-            />
-          </>
+          <Input
+            name="confirm"
+            type={show ? "text" : "password"}
+            placeholder="Confirmer le mot de passe"
+            required
+            minLength={4}
+          />
         )}
 
         <Button type="submit" className="w-full" disabled={busy}>
-          {mode === "in" ? t("signIn") : t("signUp")}
+          {mode === "in" ? "Se connecter" : "Créer votre compte"}
         </Button>
       </form>
 
       <Button variant="outline" className="w-full" onClick={google}>
-        {t("google")}
+        {mode === "in" ? "Se connecter avec Google" : "S'inscrire avec Google"}
       </Button>
 
       {mode === "in" && (
@@ -243,76 +303,13 @@ function SignForm() {
   );
 }
 
-function CompleteProfile({ user, onDone }: { user: User; onDone: () => void }) {
-  const [busy, setBusy] = useState(false);
-  const m = user.user_metadata ?? {};
-
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    setBusy(true);
-    const { error } = await supabase.from("profiles").upsert({
-      id: user.id,
-      first_name: String(f.get("first_name")).trim().slice(0, 80),
-      last_name: String(f.get("last_name")).trim().slice(0, 80),
-      email: user.email ?? null,
-      birth_date: m["birth_date"] || null,
-    });
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else onDone();
-  }
-
-  const [first, ...rest] = String(m["full_name"] ?? m["name"] ?? "").split(" ");
-
-  return (
-    <form onSubmit={submit} className="space-y-3">
-      <p className="text-center text-sm text-muted-foreground">Complétez votre profil pour continuer.</p>
-      <div className="grid grid-cols-2 gap-2">
-        <Input name="first_name" placeholder="Prénom" required defaultValue={m["first_name"] ?? first} />
-        <Input name="last_name" placeholder="Nom" required defaultValue={m["last_name"] ?? rest.join(" ")} />
-      </div>
-      <Button type="submit" className="w-full" disabled={busy}>Continuer</Button>
-    </form>
-  );
-}
-
 export function AuthGate({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      setHasProfile(null);
-      return;
-    }
-    (async () => {
-      const { data } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
-      if (data) {
-        setHasProfile(true);
-        return;
-      }
-      const m = user.user_metadata ?? {};
-      if (m["first_name"] && m["last_name"]) {
-        const { error } = await supabase.from("profiles").insert({
-          id: user.id,
-          first_name: m["first_name"],
-          last_name: m["last_name"],
-          email: user.email ?? null,
-          birth_date: m["birth_date"] || null,
-        });
-        setHasProfile(!error);
-        return;
-      }
-      setHasProfile(false);
-    })();
-  }, [user]);
-
-  // Chargement uniquement si non connecté et en phase d'init
   if (loading && !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-royal-gradient">
-        <img src= "/logo.png" alt="BERSA" className="h-16 w-16 animate-pulse rounded-xl" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -325,14 +322,6 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (hasProfile === false) {
-    return (
-      <Frame>
-        <CompleteProfile user={user} onDone={() => setHasProfile(true)} />
-      </Frame>
-    );
-  }
-
-  // Aucun écran intermédiaire avec logo lors des transitions entre onglets
   return <>{children}</>;
-}
+                  }
+  
