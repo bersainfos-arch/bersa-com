@@ -95,8 +95,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [history, setHistory] = useState<Array<{ id: string; prompt: string; action: string; time: string }>>([]);
   // Décalage pour remonter la capsule au-dessus du clavier virtuel mobile
   const [keyboardOffset, setKeyboardOffset] = useState(0);
-    // Affichage aéré et épuré (sans encombrement)
-    const [ribbonOpen, setRibbonOpen] = useState(true);
+  // Affichage aéré et épuré (sans encombrement)
+  const [ribbonOpen, setRibbonOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(true);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -152,7 +152,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         setTimeout(() => {
           const selection = window.getSelection();
           const node = selection?.anchorNode;
-          const element = (node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement) as HTMLElement | null;
+          const element = (node?.nodeType === 1 ? node : node?.parentElement) as HTMLElement | null;
           if (element && deskRef.current?.contains(element)) {
             element.scrollIntoView({ block: "center", behavior: "smooth" });
           }
