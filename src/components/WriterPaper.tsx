@@ -63,7 +63,7 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
 
   return <div ref={host} className="writer-paper-host">
     {children}
-    <div className="writer-margin-layer" style={{ width: layout.width, maxWidth: layout.width, left: layout.left, top: layout.top, ["--margin-font" as string]: `${11 * scale}px`, ["--note-font" as string]: `${(40 / 3) * scale}px` } as React.CSSProperties}>
+    <div className="writer-margin-layer" style={{ width: "100%", maxWidth: "100%", left: 0, top: 0, ["--margin-font" as string]: `calc(11px * var(--writer-zoom, 1))`, ["--note-font" as string]: `calc(13.33px * var(--writer-zoom, 1))` } as React.CSSProperties}>
       {Array.from({ length: layout.pages }, (_, index) => {
         const notes = footnotes.filter(fn => pageOf(fn.number) === index);
         const hidden = index === 0 && settings.differentFirstPage;
