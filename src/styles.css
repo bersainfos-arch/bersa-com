@@ -1045,15 +1045,19 @@ img, video, canvas, iframe, table { max-width: 100%; }
   color: inherit !important; 
 }
 
-
-/* Discrétion hors focus */
-.writer-internal-header, .writer-footer-row, .writer-internal-notes { 
+/* En-tête et pied discrets hors focus, mais notes de bas de page 100 % claires et lisibles */
+.writer-internal-header, .writer-footer-row { 
   opacity: 0.5; 
   transition: opacity .2s ease; 
 }
-.writer-internal-header:focus, .writer-footer-row:focus-within, .writer-internal-notes:focus-within { 
+.writer-internal-header:focus, .writer-footer-row:focus-within { 
   opacity: 1; 
 }
+.writer-internal-notes { 
+  opacity: 1 !important; 
+  color: var(--paper-ink) !important; 
+}
+
 @media print { 
   .writer-internal-header, .writer-footer-row, .writer-internal-notes { opacity: 1; } 
   }
