@@ -155,7 +155,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           const node = selection?.anchorNode;
           const element = (node?.nodeType === 1 ? node : node?.parentElement) as HTMLElement | null;
           if (element && deskRef.current?.contains(element)) {
-            element.scrollIntoView({ block: "center", behavior: "smooth" });
+            element.scrollIntoView({ block: "nearest", behavior: "smooth" }); 
           }
         }, 100);
       }
@@ -841,8 +841,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
                 title="Afficher ou masquer les outils"
               >
-                <span aria-hidden="true" className="h-4 w-4 bg-primary" style={{ WebkitMaskImage: `url(${outilsIcon.url})`, maskImage: `url(${outilsIcon.url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
-                <span>Outils</span>
+                <span aria-hidden="true" className="h-5 w-5 bg-primary" style={{ WebkitMaskImage: `url(${outilsIcon.url})`, maskImage: `url(${outilsIcon.url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                  pan>Outils</span>
                 {ribbonOpen ? (
                   <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
                 ) : (
