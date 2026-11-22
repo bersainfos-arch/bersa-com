@@ -123,11 +123,14 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-  useEffect(()=>{if("serviceWorker" in navigator)void navigator.serviceWorker.register("/sw.js").catch(()=>{});},[]);
+function NotFoundComponent() {
+const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname === "/index" || pathname === "/index/" || pathname.startsWith("/auth")) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <I18nProvider>
@@ -137,8 +140,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname === "/index" || pathname === "/index/" || pathname.startsWith("/auth")) {
-    return <Navigate to="/" replace />;
-  }
 
