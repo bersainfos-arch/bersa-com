@@ -55,7 +55,7 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
       sheet.dataset["noteReserve"] = String(Math.round(reserve));
       sheet.dispatchEvent(new CustomEvent("writer-layout-change"));
     }
-  });
+  }, [editor, footnotes, layout.height, layout.pages]);
 
   const scale = layout.width / 794;
   const align = settings.pageNumberAlign || "center";

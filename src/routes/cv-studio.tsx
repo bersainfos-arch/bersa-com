@@ -461,7 +461,8 @@ function CvStudio() {
     const demo = sampleCvFor(t);
     setData((curr) => {
       // Si l'utilisateur n'a pas encore saisi de prénom, on remplit avec le profil dense démo
-      if (!curr.firstName.trim()) return { ...demo, photo: curr.photo || "" };
+      // Profil vide ou profil de démonstration : on charge les données propres à ce modèle
+      if (!curr.firstName.trim() || DEMO_VALUES.has(curr.firstName.trim())) return { ...demo, photo: "" };
       return curr;
     });
     setStep(1);

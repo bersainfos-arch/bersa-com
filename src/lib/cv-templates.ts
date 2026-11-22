@@ -653,7 +653,9 @@ const SAMPLE_PROFILES: Record<string, Omit<CvData, "photo" | "showPhoto">> = {
 };
 
 export function sampleCvFor(t: CvTemplate): CvData {
-  const photoKey = t.defaultPhoto || "/cv-photos/photo-1.png";
+  const keys = Object.keys(SAMPLE_PROFILES);
+  const idx = Math.max(0, CV_TEMPLATES.findIndex((x) => x.id === t.id));
+  const photoKey = t.defaultPhoto || keys[idx % keys.length] || "/cv-photos/photo-1.png";
   const profile = SAMPLE_PROFILES[photoKey] || SAMPLE_PROFILES["/cv-photos/photo-1.png"]!;
   return {
     photo: "",
@@ -898,7 +900,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
 
           <!-- Coordonnées avec icônes -->
           <div style="font-size:8.5pt;color:#4b5563;margin-bottom:14px;line-height:1.65;background:#f9fafb;padding:10px 14px;border-radius:8px">
-            ${p.contacts.map((c) => `<div style="display:flex;align-items:center">${c.icon} <span><b>${c.label} :</b> ${esc(c.value)}</span></div>`).join("")}
+            ${p.contacts.map((c) => `<div style="display:flex;align-items:center">${c.icon} <span>${esc(c.value)}</span></div>`).join("")}
           </div>
 
           ${d.education.length ? `${mainHead("Formations")}${renderEducation(d, color)}` : ""}
