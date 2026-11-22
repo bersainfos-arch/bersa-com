@@ -19,28 +19,29 @@ import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname === "/index" || pathname === "/index/") {
+  if (pathname === "/index" || pathname === "/index/" || pathname.startsWith("/auth")) {
     return <Navigate to="/" replace />;
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+      <h1 className="text-7xl font-bold text-foreground">404</h1>
+      <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        The page you're looking for doesn't exist or has been moved.
+      </p>
+      <div className="mt-6">
+        <Link
+          to="/"
+          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          Go home
+        </Link>
       </div>
+    </div>
   );
 }
+
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
@@ -122,17 +123,14 @@ function RootShell({ children }: { children: ReactNode }) {
     </html>
   );
 }
-
-function NotFoundComponent() {
-const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname === "/index" || pathname === "/index/" || pathname.startsWith("/auth")) {
-    return <Navigate to="/" replace />;
-  }
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    if ("serviceWorker" in navigator) void navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <I18nProvider>
         <Outlet />
         <Toaster />
