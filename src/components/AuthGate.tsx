@@ -6,10 +6,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Logo authentique officiel Google aux 4 couleurs
+// Vrai logo officiel Google aux 4 couleurs
 function GoogleLogo() {
   return (
-    <svg className="w-5 h-5 shrink-0 mr-2.5" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="w-5 h-5 shrink-0 mr-3" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
@@ -30,23 +30,23 @@ function GoogleLogo() {
   );
 }
 
-// Panneau centré avec le logo officiel BERSA
+// Panneau centré avec l'en-tête officiel présent sur toutes les étapes
 function Frame({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-4 py-6">
-      <div className="w-full max-w-md rounded-2xl bg-card p-6 sm:p-7 shadow-soft border border-border/40 space-y-4">
-        {/* Logo à gauche, BERSA à droite et berceau du savoir en minuscules sans dépasser BERSA */}
+      <div className="w-full max-w-md rounded-3xl bg-card p-6 sm:p-8 shadow-soft border border-border/40 space-y-4">
+        {/* En-tête : logo à gauche, BERSA à droite et Berceau du savoir avec B majuscule */}
         <div className="flex items-center justify-center gap-2.5 pb-1">
           <img
             src="/logo.png"
             alt="Logo officiel BERSA"
-            className="w-11 h-11 object-contain rounded-lg shadow-xs"
+            className="w-12 h-12 object-contain rounded-xl shadow-xs"
           />
           <div className="flex flex-col leading-none">
-            <span className="text-foreground font-extrabold text-[21px] tracking-normal leading-none">
+            <span className="text-foreground font-extrabold text-[22px] tracking-normal leading-none">
               BERSA
             </span>
-            <span className="text-muted-foreground text-[8px] font-normal lowercase tracking-tight mt-1 leading-none">
+            <span className="text-muted-foreground text-[8px] font-semibold mt-1 leading-none tracking-tight">
               Berceau du savoir
             </span>
           </div>
@@ -64,57 +64,46 @@ function formatAuthPassword(pass: string): string {
   return `${pass}__bersa`;
 }
 
-// Détection universelle de l'identifiant (e-mail ou numéro de téléphone RDC / international)
-function resolveAuthIdentifier(value: string) {
-  const text = value.trim();
-  if (!text) return null;
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
-    return { email: text.toLowerCase(), isPhone: false, display: text };
+// Normalisation universelle du numéro de téléphone
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("0")) return "243" + digits.slice(1);
+  if (digits.length === 9 && (digits.startsWith("8") || digits.startsWith("9"))) {
+    return "243" + digits;
   }
-  const digits = text.replace(/\D/g, "");
-  if (digits.length >= 7) {
-    let normalized = digits;
-    if (normalized.startsWith("0")) {
-      normalized = "243" + normalized.slice(1);
-    } else if (normalized.length === 9 && (normalized.startsWith("8") || normalized.startsWith("9"))) {
-      normalized = "243" + normalized;
-    }
-    return {
-      email: `tel_${normalized}@bersa.cd`,
-      isPhone: true,
-      display: `+${normalized}`,
-    };
-  }
-  return null;
+  return digits;
 }
 
 function SignForm() {
-  const [mode, setMode] = useState<"in" | "up">("up");
-  const [step, setStep] = useState<1 | 2>(1);
+  // Navigation entre les vues : "menu" (Étape 1), "step2", "step3", "signin"
+  const [view, setView] = useState<"menu" | "step2" | "step3" | "signin">("menu");
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Aucun genre coché avant le clic
-  const [gender, setGender] = useState<"Femme" | "Homme" | "">("");
-
-  // Données Étape 1
+  // Étape 2 : Identité
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
+  const [gender, setGender] = useState<"Femme" | "Homme" | "">("");
 
-  // Données Étape 2
-  const [identifierInput, setIdentifierInput] = useState("");
+  // Étape 3 : Coordonnées et sécurité
+  const [phoneInput, setPhoneInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [confirmInput, setConfirmInput] = useState("");
 
-  // Validation Étape 1
-  function handleNext(e: React.FormEvent) {
+  // Mode connexion (anciens utilisateurs)
+  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  // Passage de l'Étape 2 à l'Étape 3
+  function handleStep2Next(e: React.FormEvent) {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) {
-      toast.error("Veuillez renseigner votre prénom et nom de famille.");
+      toast.error("Veuillez renseigner votre prénom et votre nom de famille.");
       return;
     }
     const d = Number(day), m = Number(month), y = Number(year);
@@ -126,16 +115,16 @@ function SignForm() {
       toast.error("Veuillez sélectionner votre genre (Femme ou Homme).");
       return;
     }
-    setStep(2);
+    setView("step3");
   }
 
-  // Connexion ou Enregistrement automatique sans blocage
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
+  // Enregistrement final (Étape 3) -> Accès direct à l'accueil
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
-    const resolved = resolveAuthIdentifier(identifierInput);
+    const phoneDigits = normalizePhone(phoneInput);
 
-    if (!resolved) {
-      toast.error("Veuillez saisir votre numéro de téléphone ou votre adresse e-mail.");
+    if (phoneDigits.length < 8) {
+      toast.error("Veuillez saisir un numéro de téléphone valide.");
       return;
     }
 
@@ -144,54 +133,17 @@ function SignForm() {
       return;
     }
 
-    setBusy(true);
-    const authPass = formatAuthPassword(passwordInput);
-
-    // CONNEXION DIRECTE
-    if (mode === "in") {
-      const { error: err1 } = await supabase.auth.signInWithPassword({
-        email: identifierInput.trim().toLowerCase(),
-        password: authPass,
-      });
-
-      if (!err1) {
-        setBusy(false);
-        window.location.href = "/";
-        return;
-      }
-
-      const { error: err2 } = await supabase.auth.signInWithPassword({
-        email: resolved.email,
-        password: authPass,
-      });
-
-      if (!err2) {
-        setBusy(false);
-        window.location.href = "/";
-        return;
-      }
-
-      // Repli mot de passe brut
-      const { error: err3 } = await supabase.auth.signInWithPassword({
-        email: resolved.email,
-        password: passwordInput,
-      });
-
-      setBusy(false);
-      if (err3) {
-        toast.error("Numéro/e-mail ou mot de passe incorrect.");
-      } else {
-        window.location.href = "/";
-      }
-      return;
-    }
-
-    // CRÉATION DE COMPTE DIRECTE
     if (passwordInput !== confirmInput) {
-      setBusy(false);
       toast.error("Les deux mots de passe ne correspondent pas.");
       return;
     }
+
+    setBusy(true);
+    const authPass = formatAuthPassword(passwordInput);
+
+    // E-mail facultatif : si fourni on l'utilise, sinon e-mail technique lié au numéro
+    const trimmedEmail = emailInput.trim().toLowerCase();
+    const primaryAuthEmail = trimmedEmail ? trimmedEmail : `tel_${phoneDigits}@bersa.cd`;
 
     const birthDateISO = `${year.padStart(4, "20")}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     const meta = {
@@ -199,18 +151,19 @@ function SignForm() {
       last_name: lastName.trim().slice(0, 80),
       birth_date: birthDateISO,
       gender,
-      phone_private: resolved.isPhone ? resolved.display : null,
+      phone_private: `+${phoneDigits}`,
     };
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: resolved.email,
+      email: primaryAuthEmail,
       password: authPass,
       options: { data: meta, emailRedirectTo: window.location.origin },
     });
 
     if (signUpError) {
+      // Si déjà inscrit, connexion automatique
       const { error: signInErr } = await supabase.auth.signInWithPassword({
-        email: resolved.email,
+        email: primaryAuthEmail,
         password: authPass,
       });
       setBusy(false);
@@ -227,14 +180,14 @@ function SignForm() {
         id: signUpData.user.id,
         first_name: firstName.trim().slice(0, 80),
         last_name: lastName.trim().slice(0, 80),
-        email: resolved.isPhone ? null : resolved.email,
+        email: trimmedEmail || null,
         birth_date: birthDateISO,
       });
     }
 
-    // Connexion immédiate et redirection automatique vers l'accueil
+    // Connexion immédiate sans confirmation bloquante
     await supabase.auth.signInWithPassword({
-      email: resolved.email,
+      email: primaryAuthEmail,
       password: authPass,
     });
 
@@ -242,7 +195,58 @@ function SignForm() {
     window.location.href = "/";
   }
 
-  // Connexion Google directe sans erreur 404 sur Cloudflare
+  // Connexion des anciens utilisateurs
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!loginIdentifier.trim() || !loginPassword) {
+      toast.error("Veuillez renseigner votre identifiant et mot de passe.");
+      return;
+    }
+
+    setBusy(true);
+    const authPass = formatAuthPassword(loginPassword);
+    const raw = loginIdentifier.trim().toLowerCase();
+
+    // 1. Essai direct (e-mail ou identifiant saisi)
+    const { error: err1 } = await supabase.auth.signInWithPassword({
+      email: raw,
+      password: authPass,
+    });
+
+    if (!err1) {
+      setBusy(false);
+      window.location.href = "/";
+      return;
+    }
+
+    // 2. Essai via numéro de téléphone normalisé
+    const phoneNorm = normalizePhone(raw);
+    const { error: err2 } = await supabase.auth.signInWithPassword({
+      email: `tel_${phoneNorm}@bersa.cd`,
+      password: authPass,
+    });
+
+    if (!err2) {
+      setBusy(false);
+      window.location.href = "/";
+      return;
+    }
+
+    // 3. Repli mot de passe d'origine
+    const { error: err3 } = await supabase.auth.signInWithPassword({
+      email: `tel_${phoneNorm}@bersa.cd`,
+      password: loginPassword,
+    });
+
+    setBusy(false);
+    if (err3) {
+      toast.error("Identifiant ou mot de passe incorrect.");
+    } else {
+      window.location.href = "/";
+    }
+  }
+
+  // Connexion Google directe adaptée à Cloudflare workers.dev sans erreur 404
   async function google() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -272,21 +276,63 @@ function SignForm() {
     });
     if (error) toast.error(error.message);
     else toast.success("Un lien de réinitialisation vous a été envoyé.");
-                   }
-        return (
+            }
+    return (
     <>
-      {/* Texte des orientations agrandi et lisible */}
-      <div className="text-center pt-1 pb-1">
-        <h2 className="text-base sm:text-lg font-bold text-foreground leading-snug">
-          {mode === "up"
-            ? "Veuillez remplir ces informations pour créer votre compte"
-            : "Veuillez vous connecter à votre compte"}
-        </h2>
-      </div>
+      {/* ========================================================
+          PREMIÈRE ÉTAPE : 3 GRANDS BOUTONS CLAIRS SANS SUIVANT
+          ======================================================== */}
+      {view === "menu" && (
+        <div className="space-y-4 pt-1 pb-1">
+          <div className="text-center pb-1">
+            <h2 className="text-base sm:text-lg font-bold text-foreground">
+              Bienvenue sur BERSA
+            </h2>
+          </div>
 
-      {/* PREMIÈRE ÉTAPE : IDENTITÉ, DATE ET GENRE */}
-      {mode === "up" && step === 1 && (
-        <form onSubmit={handleNext} className="space-y-3.5">
+          {/* 1. Grand bouton bleu principal : Créer votre compte */}
+          <Button
+            type="button"
+            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-4 sm:py-5 text-base sm:text-lg font-bold rounded-2xl shadow-md transition-all flex items-center justify-center"
+            onClick={() => setView("step2")}
+          >
+            Créer votre compte
+          </Button>
+
+          {/* 2. Grand bouton : S'inscrire avec Google */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full py-4 sm:py-5 text-base font-semibold rounded-2xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
+            onClick={google}
+          >
+            <GoogleLogo />
+            S'inscrire avec Google
+          </Button>
+
+          {/* 3. Grand bouton : Déjà inscrit ? Se connecter */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full py-4 sm:py-4.5 text-base font-semibold rounded-2xl border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary transition-all flex items-center justify-center"
+            onClick={() => setView("signin")}
+          >
+            Déjà inscrit ? Se connecter
+          </Button>
+        </div>
+      )}
+
+      {/* ========================================================
+          DEUXIÈME ÉTAPE : IDENTITÉ (SANS BOUTON GOOGLE NI DÉJÀ INSCRIT)
+          ======================================================== */}
+      {view === "step2" && (
+        <form onSubmit={handleStep2Next} className="space-y-3.5 pt-1">
+          <div className="text-center pb-0.5">
+            <h2 className="text-base sm:text-lg font-bold text-foreground leading-snug">
+              Veuillez remplir ces informations pour créer votre compte
+            </h2>
+          </div>
+
           <div className="space-y-1">
             <label className="text-sm font-semibold text-foreground">Prénom</label>
             <Input
@@ -317,7 +363,7 @@ function SignForm() {
             />
           </div>
 
-          {/* Date de naissance en toutes lettres : Jour / Mois / Année */}
+          {/* Date de naissance : Jour / Mois / Année */}
           <div className="space-y-1">
             <label className="text-sm font-semibold text-foreground">Date de naissance</label>
             <div className="grid grid-cols-[1fr_1fr_1.3fr] gap-2">
@@ -357,7 +403,7 @@ function SignForm() {
             </div>
           </div>
 
-          {/* Genre neutre au départ, devient bleu au clic */}
+          {/* Genre neutre avant le clic, devient bleu dès qu'on clique */}
           <div className="space-y-1">
             <label className="text-sm font-semibold text-foreground">Genre</label>
             <div className="grid grid-cols-2 gap-3">
@@ -388,7 +434,7 @@ function SignForm() {
             </div>
           </div>
 
-          {/* Bouton bleu Suivant */}
+          {/* Bouton Suivant bleu */}
           <Button
             type="submit"
             className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-4 text-base font-bold rounded-xl shadow-md transition-all mt-1"
@@ -396,43 +442,60 @@ function SignForm() {
             Suivant
           </Button>
 
-          {/* Déjà inscrit & Connexion Google */}
-          <div className="space-y-2 pt-1 text-center">
+          {/* Bouton Retour vers le menu */}
+          <div className="text-center pt-1">
             <button
               type="button"
-              className="text-sm font-semibold text-primary hover:underline"
-              onClick={() => { setMode("in"); setStep(1); }}
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 mx-auto"
+              onClick={() => setView("menu")}
             >
-              Déjà inscrit ?
+              ❮ Retour
             </button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full py-3.5 sm:py-4 text-sm font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
-              onClick={google}
-            >
-              <GoogleLogo />
-              Se connecter avec Google
-            </Button>
           </div>
         </form>
       )}
 
-      {/* DEUXIÈME ÉTAPE : TÉLÉPHONE/EMAIL + MOT DE PASSE AGRANDIS */}
-      {mode === "up" && step === 2 && (
-        <form onSubmit={submit} className="space-y-3.5">
+      {/* ========================================================
+          TROISIÈME ÉTAPE : COORDONNÉES ET ENREGISTREMENT DIRECT
+          ======================================================== */}
+      {view === "step3" && (
+        <form onSubmit={handleRegister} className="space-y-3.5 pt-1">
+          <div className="text-center pb-0.5">
+            <h2 className="text-base sm:text-lg font-bold text-foreground leading-snug">
+              Coordonnées et sécurité
+            </h2>
+          </div>
+
+          {/* Numéro de téléphone OBLIGATOIRE */}
           <div className="space-y-1">
             <label className="text-sm font-semibold text-foreground">
-              Numéro de téléphone ou adresse e-mail
+              Numéro de téléphone
             </label>
             <Input
-              value={identifierInput}
-              onChange={(e) => setIdentifierInput(e.target.value)}
-              placeholder={focusedField === "id" ? "" : "Numéro de téléphone ou adresse e-mail"}
-              onFocus={() => setFocusedField("id")}
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              placeholder={focusedField === "phone" ? "" : "Numéro de téléphone"}
+              onFocus={() => setFocusedField("phone")}
               onBlur={() => setFocusedField(null)}
+              type="tel"
               className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
+            />
+          </div>
+
+          {/* Adresse e-mail FACULTATIVE (sans mentionner facultatif) */}
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
+              Adresse e-mail
+            </label>
+            <Input
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder={focusedField === "email" ? "" : "Adresse e-mail"}
+              onFocus={() => setFocusedField("email")}
+              onBlur={() => setFocusedField(null)}
+              type="email"
+              className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
             />
           </div>
 
@@ -479,59 +542,48 @@ function SignForm() {
             />
           </div>
 
-          {/* Bouton Se connecter en fin de deuxième étape */}
+          {/* Bouton Enregistrer vos informations */}
           <Button
             type="submit"
             className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-4 text-base font-bold rounded-xl shadow-md transition-all mt-1"
             disabled={busy}
           >
-            {busy ? "Connexion..." : "Se connecter"}
+            {busy ? "Enregistrement..." : "Enregistrer vos informations"}
           </Button>
 
-          {/* Bas : Retour, Déjà inscrit et Google */}
-          <div className="space-y-2 pt-1 text-center">
-            <div className="flex items-center justify-between px-1">
-              <button
-                type="button"
-                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-                onClick={() => setStep(1)}
-              >
-                ❮ Retour
-              </button>
-              <button
-                type="button"
-                className="text-sm font-semibold text-primary hover:underline"
-                onClick={() => { setMode("in"); setStep(1); }}
-              >
-                Déjà inscrit ?
-              </button>
-            </div>
-
-            <Button
+          {/* Retour à l'étape 2 */}
+          <div className="text-center pt-1">
+            <button
               type="button"
-              variant="outline"
-              className="w-full py-3.5 sm:py-4 text-sm font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
-              onClick={google}
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 mx-auto"
+              onClick={() => setView("step2")}
             >
-              <GoogleLogo />
-              Se connecter avec Google
-            </Button>
+              ❮ Retour
+            </button>
           </div>
         </form>
       )}
 
-      {/* MODE CONNEXION (anciens et nouveaux comptes) */}
-      {mode === "in" && (
-        <form onSubmit={submit} className="space-y-3.5">
+      {/* ========================================================
+          MODE DÉJÀ INSCRIT : CONNEXION DES UTILISATEURS EXISTANTS
+          ======================================================== */}
+      {view === "signin" && (
+        <form onSubmit={handleLogin} className="space-y-3.5 pt-1">
+          <div className="text-center pb-0.5">
+            <h2 className="text-base sm:text-lg font-bold text-foreground leading-snug">
+              Veuillez vous connecter à votre compte
+            </h2>
+          </div>
+
           <div className="space-y-1">
             <label className="text-sm font-semibold text-foreground">
               Numéro de téléphone ou adresse e-mail
             </label>
             <Input
-              value={identifierInput}
-              onChange={(e) => setIdentifierInput(e.target.value)}
-              placeholder={focusedField === "inId" ? "" : "Numéro de téléphone ou adresse e-mail"}
-              onFocus={() => setFocusedField("inId")}
+              value={loginIdentifier}
+              onChange={(e) => setLoginIdentifier(e.target.value)}
+              placeholder={focusedField === "loginId" ? "" : "Numéro de téléphone ou adresse e-mail"}
+              onFocus={() => setFocusedField("loginId")}
               onBlur={() => setFocusedField(null)}
               className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
@@ -542,11 +594,11 @@ function SignForm() {
             <label className="text-sm font-semibold text-foreground">Mot de passe</label>
             <div className="relative">
               <Input
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
                 type={show ? "text" : "password"}
-                placeholder={focusedField === "inPass" ? "" : "Mot de passe"}
-                onFocus={() => setFocusedField("inPass")}
+                placeholder={focusedField === "loginPass" ? "" : "Mot de passe"}
+                onFocus={() => setFocusedField("loginPass")}
                 onBlur={() => setFocusedField(null)}
                 className="text-base py-3.5 sm:py-4 pr-20 rounded-xl bg-background"
                 required
@@ -571,33 +623,20 @@ function SignForm() {
             {busy ? "Connexion..." : "Se connecter"}
           </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full py-3.5 sm:py-4 text-sm font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
-            onClick={google}
-          >
-            <GoogleLogo />
-            Se connecter avec Google
-          </Button>
-
-          <div className="text-center pt-1">
+          <div className="flex items-center justify-between pt-1 px-1">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+              onClick={() => setView("menu")}
+            >
+              ❮ Retour
+            </button>
             <button
               type="button"
               className="text-xs text-muted-foreground hover:underline"
               onClick={forgot}
             >
               Mot de passe oublié ?
-            </button>
-          </div>
-
-          <div className="text-center pt-1">
-            <button
-              type="button"
-              className="text-sm font-semibold text-primary hover:underline"
-              onClick={() => { setMode("up"); setStep(1); }}
-            >
-              Pas encore de compte ? S'enregistrer
             </button>
           </div>
         </form>
@@ -626,5 +665,5 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>;
-      }
-        
+              }
+                  
