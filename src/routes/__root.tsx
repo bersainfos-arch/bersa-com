@@ -137,3 +137,8 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname === "/index" || pathname === "/index/" || pathname.startsWith("/auth")) {
+    return <Navigate to="/" replace />;
+  }
+
