@@ -273,8 +273,8 @@ function SignForm() {
         </Button>
       </div>
     );
-    }
-        return (
+        }
+          return (
     <>
       {/* Texte indicatif agrandi avec un peu d'espace */}
       <div className="text-center pt-1 pb-3">
@@ -607,4 +607,4 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>;
-                                               }                
+}
