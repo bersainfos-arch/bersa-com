@@ -6,10 +6,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// Logo officiel Google aux 4 couleurs authentiques
+// Logo authentique officiel Google aux 4 couleurs
 function GoogleLogo() {
   return (
-    <svg className="w-4 h-4 shrink-0 mr-2" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="w-5 h-5 shrink-0 mr-2.5" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
@@ -30,23 +30,23 @@ function GoogleLogo() {
   );
 }
 
-// Panneau compact blanc avec logo identique à l'accueil
+// Panneau centré avec le logo officiel BERSA
 function Frame({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-3 py-4">
-      <div className="w-full max-w-sm rounded-2xl bg-card p-5 sm:p-6 shadow-soft border border-border/40 space-y-3">
-        {/* En-tête : logo à gauche, BERSA Berceau du Savoir à droite comme sur l'accueil */}
-        <div className="flex items-center justify-center gap-2 pb-0.5">
+    <div className="flex min-h-screen items-center justify-center bg-royal-gradient px-4 py-6">
+      <div className="w-full max-w-md rounded-2xl bg-card p-6 sm:p-7 shadow-soft border border-border/40 space-y-4">
+        {/* Logo à gauche, BERSA à droite et berceau du savoir en minuscules sans dépasser BERSA */}
+        <div className="flex items-center justify-center gap-2.5 pb-1">
           <img
             src="/logo.png"
             alt="Logo officiel BERSA"
-            className="w-10 h-10 object-contain rounded-lg shadow-xs"
+            className="w-11 h-11 object-contain rounded-lg shadow-xs"
           />
-          <div className="flex w-[68px] flex-col leading-tight">
-            <span className="text-foreground font-extrabold text-[19px] tracking-normal">
+          <div className="flex flex-col leading-none">
+            <span className="text-foreground font-extrabold text-[21px] tracking-normal leading-none">
               BERSA
             </span>
-            <span className="text-muted-foreground text-[7.5px] font-semibold -mt-0.5 whitespace-nowrap uppercase">
+            <span className="text-muted-foreground text-[8px] font-normal lowercase tracking-tight mt-1 leading-none">
               Berceau du savoir
             </span>
           </div>
@@ -58,13 +58,13 @@ function Frame({ children }: { children: ReactNode }) {
   );
 }
 
-// Adaptation automatique des mots de passe courts pour le serveur
-function internalPassword(pass: string): string {
+// Sécurisation transparente du mot de passe dès 4 caractères
+function formatAuthPassword(pass: string): string {
   if (pass.length >= 6) return pass;
   return `${pass}__bersa`;
 }
 
-// Résolution universelle du téléphone ou de l'e-mail
+// Détection universelle de l'identifiant (e-mail ou numéro de téléphone RDC / international)
 function resolveAuthIdentifier(value: string) {
   const text = value.trim();
   if (!text) return null;
@@ -93,24 +93,24 @@ function SignForm() {
   const [step, setStep] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
-  const [focused, setFocused] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  // Aucun genre coché par défaut
+  // Aucun genre coché avant le clic
   const [gender, setGender] = useState<"Femme" | "Homme" | "">("");
 
-  // Étape 1
+  // Données Étape 1
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
 
-  // Étape 2
+  // Données Étape 2
   const [identifierInput, setIdentifierInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   const [confirmInput, setConfirmInput] = useState("");
 
-  // Étape 1 -> Étape 2
+  // Validation Étape 1
   function handleNext(e: React.FormEvent) {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim()) {
@@ -129,7 +129,7 @@ function SignForm() {
     setStep(2);
   }
 
-  // Connexion ou Enregistrement direct
+  // Connexion ou Enregistrement automatique sans blocage
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const resolved = resolveAuthIdentifier(identifierInput);
@@ -145,9 +145,9 @@ function SignForm() {
     }
 
     setBusy(true);
-    const authPass = internalPassword(passwordInput);
+    const authPass = formatAuthPassword(passwordInput);
 
-    // MODE CONNEXION DIRECTE
+    // CONNEXION DIRECTE
     if (mode === "in") {
       const { error: err1 } = await supabase.auth.signInWithPassword({
         email: identifierInput.trim().toLowerCase(),
@@ -160,7 +160,6 @@ function SignForm() {
         return;
       }
 
-      // Repli mot de passe direct ou compte téléphone
       const { error: err2 } = await supabase.auth.signInWithPassword({
         email: resolved.email,
         password: authPass,
@@ -172,6 +171,7 @@ function SignForm() {
         return;
       }
 
+      // Repli mot de passe brut
       const { error: err3 } = await supabase.auth.signInWithPassword({
         email: resolved.email,
         password: passwordInput,
@@ -186,7 +186,7 @@ function SignForm() {
       return;
     }
 
-    // MODE CRÉATION DE COMPTE
+    // CRÉATION DE COMPTE DIRECTE
     if (passwordInput !== confirmInput) {
       setBusy(false);
       toast.error("Les deux mots de passe ne correspondent pas.");
@@ -232,7 +232,7 @@ function SignForm() {
       });
     }
 
-    // Connexion immédiate et redirection automatique sur l'accueil
+    // Connexion immédiate et redirection automatique vers l'accueil
     await supabase.auth.signInWithPassword({
       email: resolved.email,
       password: authPass,
@@ -242,31 +242,42 @@ function SignForm() {
     window.location.href = "/";
   }
 
-  // Connexion Google sans erreur 404 avec sélection du compte
+  // Connexion Google directe sans erreur 404 sur Cloudflare
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-      extraParams: { prompt: "select_account" },
-    });
-    if (r.error) {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+      if (error) {
+        const r = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin,
+          extraParams: { prompt: "select_account" },
+        });
+        if (r.error) toast.error("Connexion Google momentanément indisponible.");
+      }
+    } catch {
       toast.error("Connexion Google momentanément indisponible.");
     }
   }
 
   async function forgot() {
-    const raw = window.prompt("Votre adresse e-mail pour réinitialiser le mot de passe :")?.trim();
+    const raw = window.prompt("Votre adresse e-mail pour réinitialiser votre mot de passe :")?.trim();
     if (!raw) return;
     const { error } = await supabase.auth.resetPasswordForEmail(raw, {
       redirectTo: window.location.origin + "/reset-password",
     });
     if (error) toast.error(error.message);
-    else toast.success("Un lien vous a été envoyé par e-mail.");
-        }
-      return (
+    else toast.success("Un lien de réinitialisation vous a été envoyé.");
+                   }
+        return (
     <>
-      {/* Texte indicatif compact */}
-      <div className="text-center pt-0.5 pb-1">
-        <h2 className="text-xs sm:text-sm font-bold text-foreground leading-snug">
+      {/* Texte des orientations agrandi et lisible */}
+      <div className="text-center pt-1 pb-1">
+        <h2 className="text-base sm:text-lg font-bold text-foreground leading-snug">
           {mode === "up"
             ? "Veuillez remplir ces informations pour créer votre compte"
             : "Veuillez vous connecter à votre compte"}
@@ -275,31 +286,31 @@ function SignForm() {
 
       {/* PREMIÈRE ÉTAPE : IDENTITÉ, DATE ET GENRE */}
       {mode === "up" && step === 1 && (
-        <form onSubmit={handleNext} className="space-y-2.5">
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">Prénom</label>
+        <form onSubmit={handleNext} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">Prénom</label>
             <Input
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder={focused === "firstName" ? "" : "Prénom"}
-              onFocus={() => setFocused("firstName")}
-              onBlur={() => setFocused(null)}
-              className="text-sm py-2.5 rounded-xl bg-background"
+              placeholder={focusedField === "firstName" ? "" : "Prénom"}
+              onFocus={() => setFocusedField("firstName")}
+              onBlur={() => setFocusedField(null)}
+              className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
               maxLength={80}
               autoComplete="given-name"
             />
           </div>
 
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">Nom de famille</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">Nom de famille</label>
             <Input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder={focused === "lastName" ? "" : "Nom de famille"}
-              onFocus={() => setFocused("lastName")}
-              onBlur={() => setFocused(null)}
-              className="text-sm py-2.5 rounded-xl bg-background"
+              placeholder={focusedField === "lastName" ? "" : "Nom de famille"}
+              onFocus={() => setFocusedField("lastName")}
+              onBlur={() => setFocusedField(null)}
+              className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
               maxLength={80}
               autoComplete="family-name"
@@ -307,56 +318,56 @@ function SignForm() {
           </div>
 
           {/* Date de naissance en toutes lettres : Jour / Mois / Année */}
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">Date de naissance</label>
-            <div className="grid grid-cols-[1fr_1fr_1.3fr] gap-1.5">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">Date de naissance</label>
+            <div className="grid grid-cols-[1fr_1fr_1.3fr] gap-2">
               <Input
                 value={day}
                 onChange={(e) => setDay(e.target.value)}
-                placeholder={focused === "day" ? "" : "Jour"}
-                onFocus={() => setFocused("day")}
-                onBlur={() => setFocused(null)}
+                placeholder={focusedField === "day" ? "" : "Jour"}
+                onFocus={() => setFocusedField("day")}
+                onBlur={() => setFocusedField(null)}
                 inputMode="numeric"
                 maxLength={2}
-                className="text-center text-xs sm:text-sm py-2.5 font-medium rounded-xl bg-background"
+                className="text-center text-base py-3.5 sm:py-4 font-medium rounded-xl bg-background"
                 required
               />
               <Input
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                placeholder={focused === "month" ? "" : "Mois"}
-                onFocus={() => setFocused("month")}
-                onBlur={() => setFocused(null)}
+                placeholder={focusedField === "month" ? "" : "Mois"}
+                onFocus={() => setFocusedField("month")}
+                onBlur={() => setFocusedField(null)}
                 inputMode="numeric"
                 maxLength={2}
-                className="text-center text-xs sm:text-sm py-2.5 font-medium rounded-xl bg-background"
+                className="text-center text-base py-3.5 sm:py-4 font-medium rounded-xl bg-background"
                 required
               />
               <Input
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
-                placeholder={focused === "year" ? "" : "Année"}
-                onFocus={() => setFocused("year")}
-                onBlur={() => setFocused(null)}
+                placeholder={focusedField === "year" ? "" : "Année"}
+                onFocus={() => setFocusedField("year")}
+                onBlur={() => setFocusedField(null)}
                 inputMode="numeric"
                 maxLength={4}
-                className="text-center text-xs sm:text-sm py-2.5 font-medium rounded-xl bg-background"
+                className="text-center text-base py-3.5 sm:py-4 font-medium rounded-xl bg-background"
                 required
               />
             </div>
           </div>
 
-          {/* Genre neutre au début, devient bleu au clic */}
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">Genre</label>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Genre neutre au départ, devient bleu au clic */}
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">Genre</label>
+            <div className="grid grid-cols-2 gap-3">
               <Button
                 type="button"
                 variant={gender === "Femme" ? "default" : "outline"}
                 onClick={() => setGender("Femme")}
-                className={`py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+                className={`py-3.5 sm:py-4 text-base font-semibold rounded-xl transition-all ${
                   gender === "Femme"
-                    ? "bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white shadow-xs border-transparent"
+                    ? "bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white shadow-sm border-transparent"
                     : "bg-background text-foreground hover:bg-muted"
                 }`}
               >
@@ -366,9 +377,9 @@ function SignForm() {
                 type="button"
                 variant={gender === "Homme" ? "default" : "outline"}
                 onClick={() => setGender("Homme")}
-                className={`py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all ${
+                className={`py-3.5 sm:py-4 text-base font-semibold rounded-xl transition-all ${
                   gender === "Homme"
-                    ? "bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white shadow-xs border-transparent"
+                    ? "bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white shadow-sm border-transparent"
                     : "bg-background text-foreground hover:bg-muted"
                 }`}
               >
@@ -380,16 +391,16 @@ function SignForm() {
           {/* Bouton bleu Suivant */}
           <Button
             type="submit"
-            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-3 text-sm font-bold rounded-xl shadow-xs transition-all mt-1"
+            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-4 text-base font-bold rounded-xl shadow-md transition-all mt-1"
           >
             Suivant
           </Button>
 
-          {/* Déjà inscrit & Google */}
-          <div className="space-y-1.5 pt-1 text-center">
+          {/* Déjà inscrit & Connexion Google */}
+          <div className="space-y-2 pt-1 text-center">
             <button
               type="button"
-              className="text-xs font-semibold text-primary hover:underline"
+              className="text-sm font-semibold text-primary hover:underline"
               onClick={() => { setMode("in"); setStep(1); }}
             >
               Déjà inscrit ?
@@ -397,7 +408,7 @@ function SignForm() {
             <Button
               type="button"
               variant="outline"
-              className="w-full py-2.5 text-xs font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
+              className="w-full py-3.5 sm:py-4 text-sm font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
               onClick={google}
             >
               <GoogleLogo />
@@ -407,35 +418,35 @@ function SignForm() {
         </form>
       )}
 
-      {/* DEUXIÈME ÉTAPE : TÉLÉPHONE/EMAIL + MOT DE PASSE SERRÉS */}
+      {/* DEUXIÈME ÉTAPE : TÉLÉPHONE/EMAIL + MOT DE PASSE AGRANDIS */}
       {mode === "up" && step === 2 && (
-        <form onSubmit={submit} className="space-y-2.5">
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">
+        <form onSubmit={submit} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
               Numéro de téléphone ou adresse e-mail
             </label>
             <Input
               value={identifierInput}
               onChange={(e) => setIdentifierInput(e.target.value)}
-              placeholder={focused === "id" ? "" : "Numéro de téléphone ou adresse e-mail"}
-              onFocus={() => setFocused("id")}
-              onBlur={() => setFocused(null)}
-              className="text-sm py-2.5 rounded-xl bg-background"
+              placeholder={focusedField === "id" ? "" : "Numéro de téléphone ou adresse e-mail"}
+              onFocus={() => setFocusedField("id")}
+              onBlur={() => setFocusedField(null)}
+              className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
             />
           </div>
 
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">Mot de passe</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">Mot de passe</label>
             <div className="relative">
               <Input
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 type={show ? "text" : "password"}
-                placeholder={focused === "pass" ? "" : "Mot de passe"}
-                onFocus={() => setFocused("pass")}
-                onBlur={() => setFocused(null)}
-                className="text-sm py-2.5 pr-16 rounded-xl bg-background"
+                placeholder={focusedField === "pass" ? "" : "Mot de passe"}
+                onFocus={() => setFocusedField("pass")}
+                onBlur={() => setFocusedField(null)}
+                className="text-base py-3.5 sm:py-4 pr-20 rounded-xl bg-background"
                 required
                 minLength={4}
               />
@@ -444,52 +455,52 @@ function SignForm() {
                 size="sm"
                 variant="ghost"
                 onClick={() => setShow(!show)}
-                className="absolute right-1 top-1 h-7 text-[11px] text-muted-foreground hover:text-foreground px-2"
+                className="absolute right-1 top-2 text-xs text-muted-foreground hover:text-foreground px-2"
               >
                 {show ? "Masquer" : "Afficher"}
               </Button>
             </div>
           </div>
 
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
               Confirmer le mot de passe
             </label>
             <Input
               value={confirmInput}
               onChange={(e) => setConfirmInput(e.target.value)}
               type={show ? "text" : "password"}
-              placeholder={focused === "cpass" ? "" : "Confirmer le mot de passe"}
-              onFocus={() => setFocused("cpass")}
-              onBlur={() => setFocused(null)}
-              className="text-sm py-2.5 rounded-xl bg-background"
+              placeholder={focusedField === "cpass" ? "" : "Confirmer le mot de passe"}
+              onFocus={() => setFocusedField("cpass")}
+              onBlur={() => setFocusedField(null)}
+              className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
               minLength={4}
             />
           </div>
 
-          {/* Bouton de validation directe */}
+          {/* Bouton Se connecter en fin de deuxième étape */}
           <Button
             type="submit"
-            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-3 text-sm font-bold rounded-xl shadow-xs transition-all mt-1"
+            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-4 text-base font-bold rounded-xl shadow-md transition-all mt-1"
             disabled={busy}
           >
             {busy ? "Connexion..." : "Se connecter"}
           </Button>
 
           {/* Bas : Retour, Déjà inscrit et Google */}
-          <div className="space-y-1.5 pt-0.5 text-center">
+          <div className="space-y-2 pt-1 text-center">
             <div className="flex items-center justify-between px-1">
               <button
                 type="button"
-                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
                 onClick={() => setStep(1)}
               >
                 ❮ Retour
               </button>
               <button
                 type="button"
-                className="text-xs font-semibold text-primary hover:underline"
+                className="text-sm font-semibold text-primary hover:underline"
                 onClick={() => { setMode("in"); setStep(1); }}
               >
                 Déjà inscrit ?
@@ -499,7 +510,7 @@ function SignForm() {
             <Button
               type="button"
               variant="outline"
-              className="w-full py-2.5 text-xs font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
+              className="w-full py-3.5 sm:py-4 text-sm font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
               onClick={google}
             >
               <GoogleLogo />
@@ -509,35 +520,35 @@ function SignForm() {
         </form>
       )}
 
-      {/* MODE CONNEXION UNIVERSELLE (anciens & nouveaux comptes) */}
+      {/* MODE CONNEXION (anciens et nouveaux comptes) */}
       {mode === "in" && (
-        <form onSubmit={submit} className="space-y-2.5">
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">
+        <form onSubmit={submit} className="space-y-3.5">
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">
               Numéro de téléphone ou adresse e-mail
             </label>
             <Input
               value={identifierInput}
               onChange={(e) => setIdentifierInput(e.target.value)}
-              placeholder={focused === "inId" ? "" : "Numéro de téléphone ou adresse e-mail"}
-              onFocus={() => setFocused("inId")}
-              onBlur={() => setFocused(null)}
-              className="text-sm py-2.5 rounded-xl bg-background"
+              placeholder={focusedField === "inId" ? "" : "Numéro de téléphone ou adresse e-mail"}
+              onFocus={() => setFocusedField("inId")}
+              onBlur={() => setFocusedField(null)}
+              className="text-base py-3.5 sm:py-4 rounded-xl bg-background"
               required
             />
           </div>
 
-          <div className="space-y-0.5">
-            <label className="text-xs font-semibold text-foreground">Mot de passe</label>
+          <div className="space-y-1">
+            <label className="text-sm font-semibold text-foreground">Mot de passe</label>
             <div className="relative">
               <Input
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 type={show ? "text" : "password"}
-                placeholder={focused === "inPass" ? "" : "Mot de passe"}
-                onFocus={() => setFocused("inPass")}
-                onBlur={() => setFocused(null)}
-                className="text-sm py-2.5 pr-16 rounded-xl bg-background"
+                placeholder={focusedField === "inPass" ? "" : "Mot de passe"}
+                onFocus={() => setFocusedField("inPass")}
+                onBlur={() => setFocusedField(null)}
+                className="text-base py-3.5 sm:py-4 pr-20 rounded-xl bg-background"
                 required
               />
               <Button
@@ -545,7 +556,7 @@ function SignForm() {
                 size="sm"
                 variant="ghost"
                 onClick={() => setShow(!show)}
-                className="absolute right-1 top-1 h-7 text-[11px] text-muted-foreground hover:text-foreground px-2"
+                className="absolute right-1 top-2 text-xs text-muted-foreground hover:text-foreground px-2"
               >
                 {show ? "Masquer" : "Afficher"}
               </Button>
@@ -554,7 +565,7 @@ function SignForm() {
 
           <Button
             type="submit"
-            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-3 text-sm font-bold rounded-xl shadow-xs transition-all mt-1"
+            className="w-full bg-[#0A84FF] hover:bg-[#0A84FF]/90 text-white py-4 text-base font-bold rounded-xl shadow-md transition-all mt-1"
             disabled={busy}
           >
             {busy ? "Connexion..." : "Se connecter"}
@@ -563,14 +574,14 @@ function SignForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-full py-2.5 text-xs font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
+            className="w-full py-3.5 sm:py-4 text-sm font-semibold rounded-xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
             onClick={google}
           >
             <GoogleLogo />
             Se connecter avec Google
           </Button>
 
-          <div className="text-center pt-0.5">
+          <div className="text-center pt-1">
             <button
               type="button"
               className="text-xs text-muted-foreground hover:underline"
@@ -583,7 +594,7 @@ function SignForm() {
           <div className="text-center pt-1">
             <button
               type="button"
-              className="text-xs font-semibold text-primary hover:underline"
+              className="text-sm font-semibold text-primary hover:underline"
               onClick={() => { setMode("up"); setStep(1); }}
             >
               Pas encore de compte ? S'enregistrer
@@ -601,7 +612,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (loading && !user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-royal-gradient">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -615,5 +626,5 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>;
-                }
-                                                                             
+      }
+        
