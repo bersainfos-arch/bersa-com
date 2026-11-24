@@ -1,5 +1,5 @@
 /** Screen fit changes only presentation, never the saved page margins. */
-export const MOBILE_BASE_SCALE = 0.57;
+export const MOBILE_BASE_SCALE = 0.435;
 
 /** 57 % d'échelle réelle vaut 100 % affiché à l'écran. */
 export function scaleToDisplayZoom(scale: number, baseScale = MOBILE_BASE_SCALE): number {
