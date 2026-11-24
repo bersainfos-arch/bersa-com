@@ -841,7 +841,12 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
                 title="Afficher ou masquer les outils"
               >
-                <span aria-hidden="true" className="h-5 w-5 bg-primary" style={{ WebkitMaskImage: `url(${outilsIcon.url})`, maskImage: `url(${outilsIcon.url})`, WebkitMaskSize: "contain", maskSize: "contain", WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", WebkitMaskPosition: "center", maskPosition: "center" }} />
+                  <img
+                  src={outilsIcon.url}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-5 w-5 object-contain pointer-events-none"
+                />
                 <span>Outils</span>
                 {ribbonOpen ? (
                   <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
@@ -850,26 +855,26 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 )}
               </button>
 
-                <div className="flex items-center gap-1 border-l border-border/60 pl-2 ml-1.5">
+              <div className="flex items-center gap-1 border-l border-border/60 pl-2 ml-1.5">
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().undo().run()}
                   disabled={!editor?.can().undo()}
-                  className="p-1.5 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
+                  className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
                   title="Annuler (Ctrl+Z)"
                   aria-label="Annuler"
                 >
-                  <Undo2 className="h-5 w-5 stroke-[2.2]" />
+                  <Undo2 className="h-4 w-4 stroke-[2.2]" />
                 </button>
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().redo().run()}
                   disabled={!editor?.can().redo()}
-                  className="p-1.5 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
+                  className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
                   title="Rétablir (Ctrl+Y)"
                   aria-label="Rétablir"
                 >
-                  <Redo2 className="h-5 w-5 stroke-[2.2]" />
+                  <Redo2 className="h-4 w-4 stroke-[2.2]" />
                 </button>
               </div>
             </div> 
