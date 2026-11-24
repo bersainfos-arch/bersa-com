@@ -914,11 +914,12 @@ function renderBase(t: CvTemplate, d: CvData): string {
       <!-- En-tête bandeau -->
       <div style="background:${color};color:#fff;padding:26px 36px;display:flex;align-items:center;gap:24px">
         ${!isNoPhoto ? `<img src="${p.photo}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:3px solid #fff;flex-shrink:0">` : ""}
-          <div style="flex:1;text-align:left">
+        <div style="flex:1;text-align:left">
           <div style="font-size:${Math.min(24, 650 / Math.max(1, p.name.length))}pt;font-weight:bold;line-height:1.2;text-align:left;white-space:nowrap">${p.name}</div>
           <div style="font-size:11pt;letter-spacing:1px;margin-top:4px;color:rgba(255,255,255,0.9);text-align:left">${esc(d.title)}</div>
         </div>
-        
+      </div>
+      
       <!-- Corps en deux colonnes -->
       <div style="display:flex;padding:22px 34px;gap:28px">
         <div style="width:230px;flex-shrink:0">
