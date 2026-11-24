@@ -17,6 +17,7 @@ import { ParagraphIndent } from "@/lib/writer-commands";
 import { WriterLayout, Bookmark, attachLayout, extractLayout } from "@/lib/writer-layout";
 import { WriterPaper } from "@/components/WriterPaper";
 import { writerTextFit, scaleToDisplayZoom, displayZoomToScale } from "@/lib/writer-viewport";
+import { saveDeviceFile } from "@/lib/device-save";
 import { toast } from "sonner";
 import outilsIcon from "@/assets/outils-icon.png.asset.json";
 import { ArrowUp, Share2,
@@ -487,7 +488,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       return false;
     }
   };
-   // Enregistrement au format choisi vers le dossier du téléphone
+   // Enregistrement au format choisi vers l'espace réel du téléphone
   const handleSaveDocument = async () => {
     if (!editor) return;
     const cleanName = (docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_");
@@ -504,34 +505,47 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         pageNumbers: !!settings.pageNumbers,
         differentFirstPage: !!settings.differentFirstPage,
       });
-      if (await pickAndWrite(blob, `${cleanName}.docx`, "Document Word", { "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"] })) { toast.success("Document Word enregistré."); return; }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${cleanName}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success(`Document Word enregistré pour votre dossier (${targetFolder}).`);
+      const res = await saveDeviceFile(blob, `${cleanName}.docx`);
+      if (res === "saved") toast.success("Document Word enregistré dans le dossier sélectionné.");
+      else if (res === "shared") toast.info("Document Word prêt dans les fichiers de votre téléphone.");
+      else toast.success("Document Word téléchargé.");
       return;
     }
 
-    if (exportFormat === "pdf") { await exportPdf(); return; }
+    if (exportFormat === "pdf") {
+      try {
+        toast.info("Création du PDF…");
+        const { buildPdf } = await import("@/lib/pdf-export");
+        const blob = await buildPdf(editor.getHTML(), {
+          marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94,
+          lineSpacing: Number(settings.lineSpacing) || 1.6,
+          headerText: settings.headerText,
+          footerText: settings.footerText,
+          differentFirstPage: settings.differentFirstPage,
+          pageNumbers: !!settings.pageNumbers,
+          pageNumberAlign: settings.pageNumberAlign,
+          pageNumberFormat: settings.pageNumberFormat,
+          columns: settings.columns,
+          landscape: settings.orientation === "Paysage",
+        });
+        const res = await saveDeviceFile(blob, `${cleanName}.pdf`);
+        if (res === "saved") toast.success("Document PDF enregistré dans le dossier sélectionné.");
+        else if (res === "shared") toast.info("Document PDF prêt dans les fichiers de votre téléphone.");
+        else toast.success("Document PDF téléchargé.");
+      } catch {
+        toast.error("Création du PDF impossible.");
+      }
+      return;
+    }
 
     // Format TXT
     const textBlob = new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" });
-    const textUrl = URL.createObjectURL(textBlob);
-    const link = document.createElement("a");
-    link.href = textUrl;
-    link.download = `${cleanName}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(textUrl), 1000);
-    toast.success(`Fichier texte enregistré pour votre dossier (${targetFolder}).`);
+    const res = await saveDeviceFile(textBlob, `${cleanName}.txt`);
+    if (res === "saved") toast.success("Fichier texte enregistré dans le dossier sélectionné.");
+    else if (res === "shared") toast.info("Fichier texte prêt dans les fichiers de votre téléphone.");
+    else toast.success("Fichier texte téléchargé.");
   };
-
+                              
   const shareGeneratedText = async () => {
     if (!generatedResponse) return;
     try {
