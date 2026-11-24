@@ -23,12 +23,12 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
   useEffect(() => {
     if (!editor || !host.current) return;
     const sheet = editor.view.dom;
-    sheet.dataset["noteReserve"] = String(footnotes.length ? Math.min(180, 25 + footnotes.length * 26) : 0);
     const measure = () => {
       if (!host.current) return;
       const rect = sheet.getBoundingClientRect(), parent = host.current.getBoundingClientRect();
+      const scale = rect.width / sheet.offsetWidth || 1;
       const geometry = pageGeometry(sheet.clientWidth, settings.orientation === "Paysage");
-      setLayout({ width: rect.width, height: geometry.height, left: rect.left - parent.left, top: rect.top - parent.top, pages: Number(sheet.dataset["pages"]) || 1 });
+      setLayout({ width: sheet.offsetWidth, height: geometry.height, left: (rect.left - parent.left) / scale, top: (rect.top - parent.top) / scale, pages: Number(sheet.dataset["pages"]) || 1 });
     };
     const resize = new ResizeObserver(measure);
     resize.observe(sheet);
@@ -43,27 +43,32 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
     const sheet = editor?.view.dom;
     const ref = sheet?.querySelector(`[data-fn-num="${number}"]`);
     if (!sheet || !ref) return 0;
-    return Math.min(layout.pages - 1, Math.max(0, Math.floor((ref.getBoundingClientRect().top - sheet.getBoundingClientRect().top) / (layout.height + 14))));
+    return Math.min(layout.pages - 1, Math.max(0, Math.floor((ref.getBoundingClientRect().top - sheet.getBoundingClientRect().top) / ((layout.height + 16) * (sheet.getBoundingClientRect().width / sheet.offsetWidth || 1)))));
   };
 
   useEffect(() => {
     const sheet = editor?.view.dom, root = host.current;
     if (!sheet || !root) return;
-    const heights = Array.from(root.querySelectorAll<HTMLElement>(".writer-internal-notes")).map(el => el.offsetHeight);
-    const reserve = heights.length ? Math.min(layout.height * 0.45, Math.max(...heights) + 10) : 0;
-    if (Math.abs((Number(sheet.dataset["noteReserve"]) || 0) - reserve) > 4) {
-      sheet.dataset["noteReserve"] = String(Math.round(reserve));
-      sheet.dispatchEvent(new CustomEvent("writer-layout-change"));
-    }
+    const measureNotes = () => {
+      const heights = Array.from(root.querySelectorAll<HTMLElement>(".writer-internal-notes")).map(el => el.offsetHeight);
+      const reserve = heights.length ? Math.min(layout.height * 0.45, Math.max(...heights) + 10) : 0;
+      if (Math.abs((Number(sheet.dataset["noteReserve"]) || 0) - reserve) > 1) {
+        sheet.dataset["noteReserve"] = String(Math.round(reserve));
+        sheet.dispatchEvent(new CustomEvent("writer-layout-change"));
+      }
+    };
+    const observer = new ResizeObserver(measureNotes);
+    root.querySelectorAll(".writer-internal-notes").forEach(el => observer.observe(el));
+    measureNotes();
+    return () => observer.disconnect();
   }, [editor, footnotes, layout.height, layout.pages]);
 
-  const scale = layout.width / 794;
   const align = settings.pageNumberAlign || "center";
-  const pageSpacing = 14; // Espace régulier et net entre les pages A4
+  const pageSpacing = 16; // Espace régulier et net entre les pages A4
 
   return <div ref={host} className="writer-paper-host">
     {children}
-    <div className="writer-margin-layer" style={{ width: "100%", maxWidth: "100%", left: 0, top: 0, ["--margin-font" as string]: `calc(11px * var(--writer-zoom, 1))`, ["--note-font" as string]: `calc(13.33px * var(--writer-zoom, 1))` } as React.CSSProperties}>
+    <div className="writer-margin-layer" style={{ width: layout.width, left: layout.left, top: layout.top, ["--margin-font" as string]: "11px", ["--note-font" as string]: "10pt" } as React.CSSProperties}>
       {Array.from({ length: layout.pages }, (_, index) => {
         const notes = footnotes.filter(fn => pageOf(fn.number) === index);
         const hidden = index === 0 && settings.differentFirstPage;

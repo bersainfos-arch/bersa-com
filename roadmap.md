@@ -1,4 +1,10 @@
 # BERSA roadmap (reconstruction)
+## Finalisation CV, atelier et Google
+- [ ] CV : étapes guidées, aperçu après finalisation, stages avec début/fin, typographie et couleurs compactes
+- [ ] Enregistrement local et exports réels CV / rédaction, avec sélecteur système si disponible
+- [ ] Atelier : zoom adapté = 100 %, notes ancrées, interligne et commandes cohérents
+- [ ] Google : activer et vérifier la connexion gérée ; adresse Cloudflare externe en attente
+- [ ] Tests ciblés, parcours mobile et sauvegarde GitHub
 ## Demande actuelle : BERSA Writer CV
 - [ ] Intégrer personnalisation, champs, rubriques et aperçu mobile sans modifier les modèles existants
 - [ ] Placer les commandes de sauvegarde et téléchargement au-dessus et en dessous de l’aperçu

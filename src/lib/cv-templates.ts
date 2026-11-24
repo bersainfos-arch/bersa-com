@@ -81,7 +81,7 @@ export interface CvData {
   extra?: Record<string, string>;
   signature?: string;
   signatureImage?: string;
-  sections?: { key: string; title: string; content: string }[];
+  sections?: { key: string; title: string; content: string; start?: string; end?: string }[];
   customColor?: string;
   customFont?: string;
   rightColor?: string;
@@ -656,11 +656,12 @@ export function sampleCvFor(t: CvTemplate): CvData {
   const keys = Object.keys(SAMPLE_PROFILES);
   const idx = Math.max(0, CV_TEMPLATES.findIndex((x) => x.id === t.id));
   const photoKey = t.defaultPhoto || keys[idx % keys.length] || "/cv-photos/photo-1.png";
-  const profile = SAMPLE_PROFILES[photoKey] || SAMPLE_PROFILES["/cv-photos/photo-1.png"]!;
+  const profile = SAMPLE_PROFILES[photoKey] || SAMPLE_PROFILES["/cv-photos/photo-1.png"];
+  if (!profile) return { ...EMPTY_CV };
   return {
     photo: "",
     showPhoto: t.id !== TEMPLATE_NO_PHOTO.id,
-    ...profile,
+    ...structuredClone(profile),
   };
 }
 
@@ -799,10 +800,9 @@ export function renderCvHtml(t0: CvTemplate, d: CvData): string {
   const safeRight = /^#[0-9a-f]{6}$/i.test(d.rightColor || "") ? d.rightColor : undefined;
   const t: CvTemplate = { ...t0, primary: safeColor || t0.primary, accent: safeRight || safeColor || t0.accent, font: safeFont || t0.font };
   let html = renderBase(t, d.titleAsHeading === false ? { ...d, title: "" } : d);
-  if (d.fontSize && d.fontSize !== "normal") {
-    const scale = d.fontSize === "compact" ? "0.92" : d.fontSize === "large" ? "1.12" : "1.22";
-    html = `<div style="font-size:${scale}em;line-height:1.42">${html}</div>`;
-    }
+  const bodySize = d.fontSize === "compact" ? 11 : d.fontSize === "large" ? 13 : d.fontSize === "xlarge" ? 14 : 12;
+  html = html.replace(/font-size:(\d+(?:\.\d+)?)pt/g, (match, value: string) => Number(value) < 12 ? `font-size:${bodySize}pt` : match);
+  html = html.replace(/letter-spacing:[^;"]+/g, "letter-spacing:0");
   if (d.photoShape) {
     html = html.replace(/(<img [^>]*?style="[^"]*?)border-radius:[^;]*;/g, (_, prefix: string) => `${prefix}border-radius:${SHAPE_RADIUS[d.photoShape ?? "circle"]};`);
   }
@@ -811,10 +811,10 @@ export function renderCvHtml(t0: CvTemplate, d: CvData): string {
   const blocks = (d.sections ?? []).filter((x) => x.content && x.content.trim());
   const hasSignature = Boolean(d.signature?.trim() || d.signatureImage?.trim());
 
-  if (!blocks.length && !hasSignature) return html;
+  if (!blocks.length && !hasSignature) return html.replace("<!-- cv-extras -->", "");
 
   const h = (s: string) => `<div style="font-size:11pt;font-weight:bold;text-transform:uppercase;color:${t.primary};border-bottom:1.5px solid ${t.primary};padding-bottom:3px;margin:14px 0 6px">${esc(s)}</div>`;
-  const extraHtml = blocks.map((b) => h(b.title) + rich(b.content, "8.5pt")).join("");
+  const extraHtml = blocks.map((b) => h(b.title) + (b.start || b.end ? `<div style="font-size:12pt">${esc(formatCvPeriod(b.start || "", b.end || ""))}</div>` : "") + rich(b.content, "12pt")).join("");
 
   const sigHtml = hasSignature ? `
     <div style="margin-top:18px;display:flex;justify-content:flex-end">
@@ -826,15 +826,8 @@ export function renderCvHtml(t0: CvTemplate, d: CvData): string {
     </div>
   ` : "";
 
-  return `
-    <div style="width:794px;background:#fff;margin:0 auto">
-      ${html}
-      <div style="font-family:'${t.font}',Arial,sans-serif;padding:6px 36px 28px;box-sizing:border-box">
-        ${extraHtml}
-        ${sigHtml}
-      </div>
-    </div>
-  `;
+  return html.replace("<!-- cv-extras -->", extraHtml + sigHtml);
+
 }
 
 function renderBase(t: CvTemplate, d: CvData): string {
@@ -862,7 +855,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
 
           ${d.summary.trim() ? `
             ${sideHead("Profil")}
-            <div style="font-size:9.5pt;line-height:1.5;text-align:justify;color:${isDark ? '#f9fafb' : '#374151'}">
+            <div style="font-size:9.5pt;line-height:1.5;text-align:left;color:${isDark ? '#f9fafb' : '#374151'}">
               ${rich(d.summary, "9.5pt")}
             </div>
           ` : ""}
@@ -870,7 +863,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
           ${d.skills.length ? `
             ${sideHead("Compétences")}
             <div style="font-size:9.5pt;line-height:1.6">
-              ${d.skills.map((s) => `<div style="margin:2px 0">• ${esc(s)}</div>`).join("")}
+              ${d.skills.map((s) => `<div style="margin:2px 0;text-align:left;word-spacing:normal;letter-spacing:0;overflow-wrap:break-word">• ${esc(s.replace(/\s+/g, " ").trim())}</div>`).join("")}
             </div>
           ` : ""}
 
@@ -890,7 +883,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
         <!-- Colonne principale droite -->
         <div style="flex:1;padding:32px 30px;box-sizing:border-box">
           <div style="margin-bottom:14px">
-            <div style="font-size:26pt;font-weight:900;color:${color};line-height:1.08;letter-spacing:-0.5px">
+            <div style="font-size:${Math.min(26, 450 / Math.max(1, p.name.length))}pt;font-weight:900;color:${color};line-height:1.2;letter-spacing:0;text-align:center;white-space:nowrap">
               ${p.name}
             </div>
             <div style="font-size:11pt;letter-spacing:2px;text-transform:uppercase;color:#4b5563;font-weight:600;margin-top:6px">
@@ -905,6 +898,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
 
           ${d.education.length ? `${mainHead("Formations")}${renderEducation(d, color)}` : ""}
           ${d.experiences.length ? `${mainHead("Expériences Professionnelles")}${renderExperiences(d, color)}` : ""}
+          <!-- cv-extras -->
         </div>
       </div>
     `;
@@ -920,7 +914,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
       <div style="background:${color};color:#fff;padding:26px 36px;display:flex;align-items:center;gap:24px">
         ${!isNoPhoto ? `<img src="${p.photo}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:3px solid #fff;flex-shrink:0">` : ""}
         <div style="flex:1">
-          <div style="font-size:24pt;font-weight:bold;line-height:1.1">${p.name}</div>
+          <div style="font-size:${Math.min(24, 650 / Math.max(1, p.name.length))}pt;font-weight:bold;line-height:1.2;text-align:center;white-space:nowrap">${p.name}</div>
           <div style="font-size:11pt;letter-spacing:1px;margin-top:4px;color:rgba(255,255,255,0.9)">${esc(d.title)}</div>
         </div>
       </div>
@@ -936,7 +930,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
           ` : ""}
           ${d.skills.length ? `
             ${hMain("Compétences")}
-            <div style="font-size:8pt;line-height:1.5">${d.skills.map((s) => `<div style="margin:2px 0">• ${esc(s)}</div>`).join("")}</div>
+            <div style="font-size:8pt;line-height:1.5">${d.skills.map((s) => `<div style="margin:2px 0;text-align:left;word-spacing:normal;letter-spacing:0;overflow-wrap:break-word">• ${esc(s.replace(/\s+/g, " ").trim())}</div>`).join("")}</div>
           ` : ""}
           ${(d.languages.length || (d.languageItems && d.languageItems.length)) ? `
             ${hMain("Langues")}
@@ -955,6 +949,7 @@ function renderBase(t: CvTemplate, d: CvData): string {
           ` : ""}
           ${d.experiences.length ? `${hMain("Expériences professionnelles")}${renderExperiences(d, color)}` : ""}
           ${d.education.length ? `${hMain("Formations")}${renderEducation(d, color)}` : ""}
+          <!-- cv-extras -->
         </div>
       </div>
     </div>

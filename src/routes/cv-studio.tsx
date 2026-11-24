@@ -13,6 +13,8 @@ import {
   CV_TEMPLATES, EMPTY_CV, sampleCvFor, renderCvHtml,
   type CvData, type CvEducation, type CvExperience, type CvTemplate,
 } from "@/lib/cv-templates";
+import { saveDeviceFile } from "@/lib/device-save";
+import { canFinalizeCv, cvStepError } from "@/lib/cv-wizard";
 import { BackGlyph } from "@/components/BackGlyph";
 
 export const Route = createFileRoute("/cv-studio")({
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/cv-studio")({
 
 const STORE = "bersa-cv-data-v3";
 const SIG_STORE = "bersa-user-signature";
-const inputCls = "mt-1 w-full rounded-md border bg-muted p-2.5 text-base text-foreground focus:ring-2 focus:ring-primary focus:outline-none";
+const inputCls = "mt-1 w-full rounded-md border bg-background px-3 py-3.5 text-base text-foreground focus:ring-2 focus:ring-primary focus:outline-none";
 
 const WIZARD_STEPS = [
   { id: 1, label: "Photo & Cadrage" },
@@ -65,7 +67,7 @@ function Field({ label, value, onChange, multi, placeholder }: { label: string; 
     if (isDemo) onChange("");
   };
   return (
-    <label className="block text-xs font-medium text-muted-foreground">
+    <label className="block text-base font-medium text-foreground">
       {label}
       {multi ? (
         <textarea
@@ -120,6 +122,21 @@ function CvStudio() {
   const [sel, setSel] = useState<CvTemplate | null>(null);
   const [data, setData] = useState<CvData>(EMPTY_CV);
   const [step, setStep] = useState<number>(1);
+  const [furthestStep, setFurthestStep] = useState(1);
+  const [finalized, setFinalized] = useState(false);
+  const nextStep = () => {
+    const error = cvStepError(data, step);
+    if (error) { toast.error(error); return; }
+    if (step === WIZARD_STEPS.length) {
+      if (!canFinalizeCv(data, furthestStep)) { toast.error("Complétez votre identité et vos coordonnées."); return; }
+      setFinalized(true);
+      save();
+      return;
+    }
+    setStep(step + 1);
+    setFurthestStep(previous => Math.max(previous, step + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const [cropZoom, setCropZoom] = useState<number>(1);
   const [cropX, setCropX] = useState<number>(50);
   const [cropY, setCropY] = useState<number>(50);
@@ -132,7 +149,7 @@ function CvStudio() {
     }
     const template = localStorage.getItem(STORE + "-template");
     if (template) {
-      setSel(CV_TEMPLATES.find((t) => t.id === template) || null);
+      /* Saved data remains available when its model is selected. */
     }
     const savedSig = localStorage.getItem(SIG_STORE);
     if (savedSig) {
@@ -167,50 +184,13 @@ function CvStudio() {
   const dragRef = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
   const [extraKey, setExtraKey] = useState("");
 
-  const saveBlob = async (blob: Blob, name: string, ext: string, description: string) => {
-    // 1. Sur ordinateur (Chrome, Edge, etc.) : ouvre l'explorateur de dossiers pour choisir l'emplacement réel
-    const w = window as unknown as {
-      showSaveFilePicker?: (o: unknown) => Promise<{
-        createWritable: () => Promise<{ write: (b: Blob) => Promise<void>; close: () => Promise<void> }>;
-      }>;
-    };
-    if (typeof w.showSaveFilePicker === "function") {
-      try {
-        const handle = await w.showSaveFilePicker({
-          suggestedName: name,
-          types: [{ description, accept: { [blob.type || "application/octet-stream"]: [`.${ext}`] } }],
-        });
-        const out = await handle.createWritable();
-        await out.write(blob);
-        await out.close();
-        toast.success("CV enregistré dans le dossier sélectionné.");
-        return;
-      } catch (e) {
-        if ((e as Error).name === "AbortError") return;
-      }
-    }
-
-    // 2. Sur téléphone (iPhone / Android) : ouvre le menu système pour choisir « Enregistrer dans Fichiers »
-    try {
-      const file = new File([blob], name, { type: blob.type || "application/octet-stream" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: name });
-        toast.success("CV prêt dans vos fichiers.");
-        return;
-      }
-    } catch (e) {
-      if ((e as Error).name === "AbortError") return;
-    }
-
-    // 3. Téléchargement direct si le navigateur ne supporte pas le sélecteur
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    toast.success("CV téléchargé sur votre appareil.");
+  const saveBlob = async (blob: Blob, name: string, _ext: string, _description: string) => {
+    const result = await saveDeviceFile(blob, name);
+    if (result === "saved") toast.success("CV enregistré dans le dossier choisi.");
+    if (result === "shared") toast.info("Fichier transmis au menu de votre appareil.");
+    if (result === "downloaded") toast.success("CV téléchargé.");
   };
-    
+
   const auditSteps = [
     { label: "Prénom et nom", ok: Boolean(data.firstName.trim() && data.lastName.trim()), step: 2 },
     { label: "Métier / poste visé", ok: Boolean(data.title.trim()), step: 2 },
@@ -393,7 +373,8 @@ function CvStudio() {
 
   const saveToFolder = async () => {
     if (!savedFile) return;
-    const f = SAVE_FORMATS.find((x) => x.kind === savedFile.kind)!;
+    const f = SAVE_FORMATS.find((x) => x.kind === savedFile.kind);
+    if (!f) return;
     await saveBlob(savedFile.blob, `${fileName}.${savedFile.kind}`, savedFile.kind, f.description);
     setSaveOpen(false);
   };
@@ -462,10 +443,12 @@ function CvStudio() {
     setData((curr) => {
       // Si l'utilisateur n'a pas encore saisi de prénom, on remplit avec le profil dense démo
       // Profil vide ou profil de démonstration : on charge les données propres à ce modèle
-      if (!curr.firstName.trim() || DEMO_VALUES.has(curr.firstName.trim())) return { ...demo, photo: "" };
+      if (!curr.firstName.trim() || DEMO_VALUES.has(curr.firstName.trim())) return { ...EMPTY_CV, photo: curr.photo, showPhoto: demo.showPhoto };
       return curr;
     });
     setStep(1);
+    setFurthestStep(1);
+    setFinalized(false);
     toast.success(`Modèle ${t.name} sélectionné.`);
   };
 
@@ -499,7 +482,8 @@ function CvStudio() {
               <button
                 key={s.id}
                 type="button"
-                onClick={() => setStep(s.id)}
+                disabled={s.id > furthestStep}
+                onClick={() => { setStep(s.id); setFinalized(false); }}
                 className={`flex-shrink-0 rounded-md px-2.5 py-1 font-medium transition ${
                   step === s.id ? "bg-primary text-primary-foreground shadow-xs" : "bg-muted text-muted-foreground hover:bg-muted/80"
                 }`}
@@ -509,17 +493,17 @@ function CvStudio() {
             ))}
           </div>
 
-          <div className="grid min-w-0 gap-4 lg:grid-cols-[400px_1fr]">
+          <div className={`grid min-w-0 gap-4 ${finalized ? "lg:grid-cols-[400px_1fr]" : "max-w-lg mx-auto"}`}>
             {/* Colonne Formulaire Rubrique par Rubrique */}
             <div className="min-w-0 space-y-3">
               <div className="rounded-xl border bg-card p-4 shadow-sm">
                 <div className="mb-3 flex items-center justify-between border-b pb-2">
-                  <h2 className="font-semibold text-sm">Étape {step} / {WIZARD_STEPS.length} : {WIZARD_STEPS[step - 1]?.label}</h2>
+                  <h2 className="font-semibold text-lg">{WIZARD_STEPS[step - 1]?.label}</h2>
                   <div className="flex gap-1">
                     <Button size="icon" variant="ghost" className="h-7 w-7" disabled={step <= 1} onClick={() => setStep((s) => s - 1)}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" disabled={step >= WIZARD_STEPS.length} onClick={() => setStep((s) => s + 1)}>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" disabled={step >= WIZARD_STEPS.length} onClick={nextStep}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -703,9 +687,9 @@ function CvStudio() {
                       </div>
                       <div className="mt-2 grid grid-cols-2 gap-2">
                         {data.birthPlace !== undefined && <Field label="Lieu de naissance" value={data.birthPlace} onChange={(v) => set("birthPlace", v)} placeholder="Ex : Kinshasa" />}
-                        {data.gender !== undefined && <label className="block text-xs font-medium text-muted-foreground">Sexe<select className={inputCls} value={data.gender} onChange={(e) => set("gender", e.target.value)}><option value="">—</option><option>Masculin</option><option>Féminin</option></select></label>}
+                        {data.gender !== undefined && <label className="block text-base font-medium text-foreground">Sexe<select className={inputCls} value={data.gender} onChange={(e) => set("gender", e.target.value)}><option value="">—</option><option>Masculin</option><option>Féminin</option></select></label>}
                         {data.nationality !== undefined && <Field label="Nationalité" value={data.nationality} onChange={(v) => set("nationality", v)} placeholder="Ex : Congolaise" />}
-                        {data.civilStatus !== undefined && <label className="block text-xs font-medium text-muted-foreground">État civil<select className={inputCls} value={data.civilStatus} onChange={(e) => set("civilStatus", e.target.value)}><option value="">—</option><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf / Veuve</option><option>Union libre</option></select></label>}
+                        {data.civilStatus !== undefined && <label className="block text-base font-medium text-foreground">État civil<select className={inputCls} value={data.civilStatus} onChange={(e) => set("civilStatus", e.target.value)}><option value="">—</option><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf / Veuve</option><option>Union libre</option></select></label>}
                         {Object.entries(data.extra || {}).map(([k, v]) => (
                           <div key={k} className="flex items-end gap-1">
                             <div className="flex-1"><Field label={k} value={v} onChange={(nv) => set("extra", { ...(data.extra || {}), [k]: nv })} /></div>
@@ -745,8 +729,8 @@ function CvStudio() {
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-2">
-                          <Field label="Début" value={e.start} onChange={(v) => updExp(i, { start: v })} placeholder="MM/AAAA" />
-                          <Field label="Fin ou en cours" value={e.end} onChange={(v) => updExp(i, { end: v })} placeholder="Actuel ou MM/AAAA" />
+                          <Field label="Année de début" value={e.start} onChange={(v) => updExp(i, { start: v })} placeholder="AAAA" />
+                          <Field label="Année de fin" value={e.end} onChange={(v) => updExp(i, { end: v })} placeholder="AAAA ou En cours" />
                         </div>
                         <Field label="Poste occupé" value={e.role} onChange={(v) => updExp(i, { role: v })} placeholder="Ex: Comptable Principal" />
                         <Field label="Entreprise ou organisation" value={e.company} onChange={(v) => updExp(i, { company: v })} placeholder="Ex: Société Générale" />
@@ -950,6 +934,10 @@ function CvStudio() {
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
+                        {sec.title.toLowerCase() === "stages" && <div className="grid grid-cols-2 gap-2">
+                          <Field label="Année de début" placeholder="AAAA" value={sec.start || ""} onChange={value => set("sections", (data.sections || []).map(item => item.key === sec.key ? { ...item, start: value } : item))} />
+                          <Field label="Année de fin" placeholder="AAAA ou En cours" value={sec.end || ""} onChange={value => set("sections", (data.sections || []).map(item => item.key === sec.key ? { ...item, end: value } : item))} />
+                        </div>}
                         <textarea
                           rows={2}
                           className={inputCls}
@@ -1078,16 +1066,16 @@ function CvStudio() {
                 )}
 
                 {/* Boutons Suivant / Précédent */}
-                <div className="mt-4 flex items-center justify-between border-t pt-3">
+                <div className="mt-4 flex items-center gap-3 border-t pt-3">
                   <Button size="sm" variant="outline" disabled={step <= 1} onClick={() => setStep((s) => s - 1)}>
                     <ChevronLeft className="h-4 w-4 mr-1" /> Précédent
                   </Button>
                   {step < WIZARD_STEPS.length ? (
-                    <Button size="sm" onClick={() => setStep((s) => s + 1)}>
+                    <Button className="h-12 flex-1 text-base font-semibold" onClick={nextStep}>
                       Suivant <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   ) : (
-                    <Button size="sm" className="bg-primary font-bold" onClick={() => toast.success("Toutes les rubriques sont remplies !")}>
+                    <Button className="h-12 flex-1 text-base font-semibold" onClick={nextStep}>
                       Finaliser le CV
                     </Button>
                   )}
@@ -1096,7 +1084,7 @@ function CvStudio() {
             </div>
 
             {/* Colonne Aperçu en direct & actions */}
-            <div className="min-w-0 space-y-3" ref={previewRef}>
+            {finalized && <div className="min-w-0 space-y-3" ref={previewRef}>
               {actionsBar}
 
               {/* Aperçu avec Zoom manuel à 2 doigts + défilement libre */}
@@ -1200,7 +1188,7 @@ function CvStudio() {
                       value={data.fontSize || "normal"}
                       onChange={(e) => set("fontSize" as any, e.target.value)}
                     >
-                      <option value="normal">Normale (Standard)</option>
+                      <option value="normal">12 pt</option>
                       <option value="large">Grande (Lecture facile)</option>
                       <option value="xlarge">Très grande (Confort)</option>
                       <option value="compact">Compacte (Économique)</option>
@@ -1211,7 +1199,7 @@ function CvStudio() {
                     Couleur gauche
                     <input
                       type="color"
-                      className="mt-1 block h-9 w-full cursor-pointer rounded-md border bg-muted"
+                      className="cv-color-input mt-1 block h-8 w-8 cursor-pointer rounded-full border bg-muted"
                       value={data.customColor || sel.primary}
                       onChange={(e) => set("customColor", e.target.value)}
                     />
@@ -1221,7 +1209,7 @@ function CvStudio() {
                     Couleur droite
                     <input
                       type="color"
-                      className="mt-1 block h-9 w-full cursor-pointer rounded-md border bg-muted"
+                      className="cv-color-input mt-1 block h-8 w-8 cursor-pointer rounded-full border bg-muted"
                       value={data.rightColor || sel.accent || sel.primary}
                       onChange={(e) => set("rightColor", e.target.value)}
                     />
@@ -1231,7 +1219,7 @@ function CvStudio() {
 
              {actionsBar}
              {saveDialog}
-            </div>
+            </div>}
           </div>
         </div>
       </AppShell>
@@ -1251,14 +1239,14 @@ function CvStudio() {
 
         {/* Modèle N°1 Sarah Garcia bordeaux mis en avant avec mention NOUVEAU */}
         {CV_TEMPLATES[0] && (
-          <div className="mb-8 rounded-xl border-2 border-primary/40 bg-card p-4 shadow-lg">
+          <div className="mb-3 rounded-lg border border-border bg-card p-2">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground uppercase">Nouveau</span>
                 <span className="font-bold text-sm">{CV_TEMPLATES[0].name}</span>
               </div>
-              <Button size="lg" className="gap-2 bg-primary px-6 font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0]!)}>
-                <Plus className="h-5 w-5" /> Créer ce CV
+              <Button size="icon" aria-label="Utiliser ce modèle" title="Utiliser ce modèle" className="shrink-0" onClick={() => selectModel(CV_TEMPLATES[0]!)}>
+                <Plus className="h-5 w-5" />
               </Button>
             </div>
 
@@ -1267,9 +1255,6 @@ function CvStudio() {
             </div>
 
                <div className="mt-4 flex flex-col items-center gap-2">
-              <Button size="lg" className="w-full max-w-md gap-2 text-base font-bold shadow-md" onClick={() => selectModel(CV_TEMPLATES[0]!)}>
-                <Plus className="h-6 w-6" /> Choisir ce modèle (+ Créer un nouveau CV)
-              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -1292,8 +1277,8 @@ function CvStudio() {
                   {t.isNew && <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-bold text-primary">Nouveau</span>}
                   <span className="font-medium text-sm">{t.name}</span>
                 </div>
-                <Button size="sm" onClick={() => selectModel(t)} className="gap-1">
-                  <Plus className="h-4 w-4" /> Utiliser ce modèle
+                <Button size="icon" onClick={() => selectModel(t)} aria-label={`Utiliser ${t.name}`} title={`Utiliser ${t.name}`} className="shrink-0">
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
               <div className="overflow-hidden rounded border bg-muted">

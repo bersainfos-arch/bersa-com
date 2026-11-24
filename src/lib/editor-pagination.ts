@@ -40,7 +40,7 @@ export const AutoPages = Extension.create({
               const element = view.nodeDOM(pos);
               if (!(element instanceof HTMLElement)) return;
               const height =
-                element.getBoundingClientRect().height +
+                element.offsetHeight +
                 parseFloat(getComputedStyle(element).marginBottom || "0");
 
               if (node.type.name === "pageBreak") {

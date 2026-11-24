@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 // Vrai logo officiel Google aux 4 couleurs
 function GoogleLogo() {
   return (
-    <svg className="w-5 h-5 shrink-0 mr-3" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
@@ -246,26 +246,20 @@ function SignForm() {
     }
   }
 
-  // Connexion Google directe adaptée à Cloudflare workers.dev sans erreur 404
+  // Managed Google flow also establishes the existing account session.
   async function google() {
+    if (busy) return;
+    setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
-      if (error) {
-        const r = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: window.location.origin,
-          extraParams: { prompt: "select_account" },
-        });
-        if (r.error) toast.error("Connexion Google momentanément indisponible.");
-      }
+      if (result.error) { toast.error("Connexion Google indisponible. Veuillez réessayer."); return; }
+      if (!result.redirected) window.location.assign("/");
     } catch {
-      toast.error("Connexion Google momentanément indisponible.");
-    }
+      toast.error("Connexion Google indisponible. Veuillez réessayer.");
+    } finally { setBusy(false); }
   }
 
   async function forgot() {
@@ -303,7 +297,8 @@ function SignForm() {
           <Button
             type="button"
             variant="outline"
-            className="w-full py-4 sm:py-5 text-base font-semibold rounded-2xl border-border/80 hover:bg-muted/60 transition-all flex items-center justify-center"
+            className="google-sign-in w-full h-12 px-3 gap-2.5 text-sm font-medium rounded-2xl flex items-center justify-center"
+            disabled={busy}
             onClick={google}
           >
             <GoogleLogo />

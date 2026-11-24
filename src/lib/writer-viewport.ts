@@ -2,13 +2,13 @@
 export const MOBILE_BASE_SCALE = 0.57;
 
 /** 57 % d'échelle réelle vaut 100 % affiché à l'écran. */
-export function scaleToDisplayZoom(scale: number): number {
-  return Math.round((scale / MOBILE_BASE_SCALE) * 100);
+export function scaleToDisplayZoom(scale: number, baseScale = MOBILE_BASE_SCALE): number {
+  return Math.round((scale / baseScale) * 100);
 }
 
 /** Convertit le pourcentage affiché en multiplicateur réel. */
-export function displayZoomToScale(displayPercent: number): number {
-  return Math.max(0.2, (displayPercent / 100) * MOBILE_BASE_SCALE);
+export function displayZoomToScale(displayPercent: number, baseScale = MOBILE_BASE_SCALE): number {
+  return Math.max(0.2, (displayPercent / 100) * baseScale);
 }
 
 /**
@@ -31,3 +31,6 @@ export function writerTextFit(
 
   return { scale, scrollLeft: 0, pageWidth, padding };
 }
+
+/** Displayed line spacing is calibrated to the requested reading reference. */
+export const writerLineSpacing = (display: number) => display * 1.5;

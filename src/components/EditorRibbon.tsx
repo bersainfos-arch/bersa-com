@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { writerLineSpacing } from "@/lib/writer-viewport";
 import { changeCase, setParagraphLayout } from "@/lib/writer-layout";
 import { changeIndent, replaceAllText } from "@/lib/writer-commands";
 import { insertFootnote, collectFootnotes } from "@/lib/footnotes";
@@ -349,7 +350,7 @@ export function EditorRibbon({
           {group("Surlignage", <div className="writer-tool-line">{iconOnly(<Eraser />, () => editor.chain().focus().unsetHighlight().run(), false, "Sans surlignage")}<label className="writer-color-control"><Highlighter /><input type="color" aria-label="Surlignage" onChange={e => editor.chain().focus().setHighlight({ color: e.target.value }).run()} /></label></div>)}
           {group("Paragraphes", <>
             <div className="writer-tool-line">{[["left", AlignLeft, "Aligner à gauche"], ["center", AlignCenter, "Centrer"], ["right", AlignRight, "Aligner à droite"], ["justify", AlignJustify, "Justifier"]].map(([align, Icon, label]) => { const I = Icon as typeof AlignLeft; return <Button key={String(align)} size="icon" variant={editor.isActive({ textAlign: align }) ? "secondary" : "ghost"} aria-label={String(label)} title={String(label)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().setTextAlign(String(align)).run()}><I /></Button>; })}{iconOnly(<Indent />, () => changeIndent(editor, 1), false, "Augmenter le retrait")}{iconOnly(<Outdent />, () => changeIndent(editor, -1), false, "Diminuer le retrait")}</div>
-            <label className="writer-select-row"><ArrowDownUp /><span>Espace</span><select aria-label="Interligne" value={editor.getAttributes("paragraph")["paragraphLine"] || "1.6"} onChange={e => setParagraphLayout(editor, { paragraphLine: e.target.value })}>{["1", "1.15", "1.5", "1.6", "2", "2.5", "3"].map(v => <option key={v} value={v}>{v}</option>)}</select></label>
+            <label className="writer-select-row"><ArrowDownUp /><span>Espace</span><select aria-label="Interligne" value={editor.getAttributes("paragraph")["paragraphLine"] || settings.lineSpacing || "1.5"} onChange={e => { setSettings(s => ({ ...s, lineSpacing: e.target.value })); setParagraphLayout(editor, { paragraphLine: e.target.value }); }}>{["1", "1.15", "1.5", "1.6", "2", "2.5", "3"].map(v => <option key={v} value={String(writerLineSpacing(Number(v)))}>{v}</option>)}</select></label>
             {row(<ArrowDownUp />, "Espacement avant / après", () => { const value = window.prompt("Espace après le paragraphe (pt) :", "8"); if (value !== null && Number(value) >= 0) setParagraphLayout(editor, { paragraphSpacing: `${Number(value)}pt` }); })}
             {row(<WrapText />, "Disposition des paragraphes", () => setParagraphLayout(editor, { keepTogether: !editor.getAttributes("paragraph")["keepTogether"] }))}
             {row(<Sliders />, "Format de paragraphe", () => setParagraphLayout(editor, { paragraphBorder: !editor.getAttributes("paragraph")["paragraphBorder"] }))}
