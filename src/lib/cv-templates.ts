@@ -882,14 +882,15 @@ function renderBase(t: CvTemplate, d: CvData): string {
         
         <!-- Colonne principale droite -->
         <div style="flex:1;padding:32px 30px;box-sizing:border-box">
-          <div style="margin-bottom:14px">
-            <div style="font-size:${Math.min(26, 450 / Math.max(1, p.name.length))}pt;font-weight:900;color:${color};line-height:1.2;letter-spacing:0;text-align:center;white-space:nowrap">
+            <div style="margin-bottom:14px;text-align:left">
+            <div style="font-size:${Math.min(26, 450 / Math.max(1, p.name.length))}pt;font-weight:900;color:${color};line-height:1.2;letter-spacing:0;text-align:left;white-space:nowrap">
               ${p.name}
             </div>
-            <div style="font-size:11pt;letter-spacing:2px;text-transform:uppercase;color:#4b5563;font-weight:600;margin-top:6px">
+            <div style="font-size:11pt;letter-spacing:1px;text-transform:uppercase;color:#4b5563;font-weight:600;margin-top:5px;text-align:left">
               ${esc(d.title)}
             </div>
           </div>
+          
 
           <!-- Coordonnées avec icônes -->
           <div style="font-size:8.5pt;color:#4b5563;margin-bottom:14px;line-height:1.65;background:#f9fafb;padding:10px 14px;border-radius:8px">
@@ -913,9 +914,9 @@ function renderBase(t: CvTemplate, d: CvData): string {
       <!-- En-tête bandeau -->
       <div style="background:${color};color:#fff;padding:26px 36px;display:flex;align-items:center;gap:24px">
         ${!isNoPhoto ? `<img src="${p.photo}" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:3px solid #fff;flex-shrink:0">` : ""}
-        <div style="flex:1">
-          <div style="font-size:${Math.min(24, 650 / Math.max(1, p.name.length))}pt;font-weight:bold;line-height:1.2;text-align:center;white-space:nowrap">${p.name}</div>
-          <div style="font-size:11pt;letter-spacing:1px;margin-top:4px;color:rgba(255,255,255,0.9)">${esc(d.title)}</div>
+            <div style="flex:1;text-align:left">
+          <div style="font-size:${Math.min(24, 650 / Math.max(1, p.name.length))}pt;font-weight:bold;line-height:1.2;text-align:left;white-space:nowrap">${p.name}</div>
+          <div style="font-size:11pt;letter-spacing:1px;margin-top:4px;color:rgba(255,255,255,0.9);text-align:left">${esc(d.title)}</div>
         </div>
       </div>
 
