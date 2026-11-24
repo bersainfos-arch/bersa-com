@@ -896,13 +896,13 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               <button
                 type="button"
                 onClick={() => setShowSaveModal(true)}
-                className="flex items-center gap-1 font-semibold text-primary hover:text-primary/80 text-xs bg-muted hover:bg-muted/80 rounded-full px-2 py-1 transition-colors"
+                className="flex items-center gap-1.5 font-semibold text-primary hover:text-primary/80 text-xs bg-muted hover:bg-muted/80 rounded-full px-2.5 py-1 transition-colors"
                 title="Enregistrer le document (Word, PDF, Texte)"
               >
                 <Save className="h-3.5 w-3.5 text-primary" />
-                <span className="hidden xs:inline">Enregistrer</span>
+                <span className="text-xs font-semibold">Enregistrer</span>
               </button>
-            </div>
+           </div>
           </div>
 
           {/* Fonctions sous Améliorer (défilement horizontal sans déborder l'écran) */}
