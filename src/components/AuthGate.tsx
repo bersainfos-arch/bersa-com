@@ -247,20 +247,30 @@ function SignForm() {
   }
 
   // Managed Google flow also establishes the existing account session.
-  async function google() {
+    async function google() {
     if (busy) return;
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: { prompt: "select_account" },
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: { prompt: "select_account" },
+        },
       });
-      if (result.error) { toast.error("Connexion Google indisponible. Veuillez réessayer."); return; }
-      if (!result.redirected) window.location.assign("/");
+      if (error) {
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin,
+          extraParams: { prompt: "select_account" },
+        });
+        if (result.error) toast.error("Connexion Google indisponible. Veuillez réessayer.");
+      }
     } catch {
       toast.error("Connexion Google indisponible. Veuillez réessayer.");
-    } finally { setBusy(false); }
-  }
+    } finally {
+      setBusy(false);
+    }
+    }
 
   async function forgot() {
     const raw = window.prompt("Votre adresse e-mail pour réinitialiser votre mot de passe :")?.trim();
