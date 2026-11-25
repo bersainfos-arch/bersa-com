@@ -583,17 +583,19 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setLastPrompt(text);
     setPromptInput("");
 
-        try {
-      let { data } = await supabase.auth.getSession();
-      let session = data.session;
-      // Rafraîchissement automatique si le jeton est expiré
-      if (session && session.expires_at && session.expires_at * 1000 < Date.now() + 60000) {
-        const { data: refData } = await supabase.auth.refreshSession();
-        if (refData.session) session = refData.session;
+    try {
+      // Quota local automatique (20 requêtes par jour)
+      const today = new Date().toISOString().slice(0, 10);
+      const localQuotaKey = `bersa_quota_${today}`;
+      const localUsed = Number(localStorage.getItem(localQuotaKey) || 0);
+      if (!quota && localUsed >= 20) {
+        throw new Error("QUOTA_EXHAUSTED: quota quotidien atteint (20/20). Renouvellement à 00:00 UTC.");
       }
-      if (!session) {
-        throw new Error("Veuillez vous connecter à votre compte BERSA pour utiliser l'Assistant.");
-      }
+
+      // Récupération souple du jeton (ne bloque jamais si absent ou expiré)
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token || "";
+
       setHistory(prev => [
         {
           id: String(Date.now()),
@@ -603,19 +605,25 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         },
         ...prev.slice(0, 9),
       ]);
+
+      const reqHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch("/api/writer", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        headers: reqHeaders,
         body: JSON.stringify({ action: chosen, text, attachments: files.filter(f => f.type !== "other") }),
       });
-           if (!response.ok) {
+
+      if (!response.ok) {
         const errText = await response.text();
-        if (response.status === 401) {
-          throw new Error("Session expirée. Veuillez vous reconnecter à votre compte BERSA.");
-        }
         throw new Error(errText);
       }
       if (!response.body) throw new Error("Réponse vide de l'Assistant.");
+
+      // Incrémentation du quota journalier
+      localStorage.setItem(localQuotaKey, String(localUsed + 1));
+      if (!quota) setQuota({ used: localUsed + 1, limit: 20 });
 
       let reply = "", failure = "";
       const parser = createParser({
