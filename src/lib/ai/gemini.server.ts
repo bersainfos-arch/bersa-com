@@ -4,12 +4,12 @@ export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
 // Modèles officiels actifs sur Google Gemini v1beta
 const MODELS = [
+  "gemini-3.5-flash-lite",
   "gemini-flash-lite-latest",
-  "gemini-2.5-flash",
   "gemini-flash-latest",
-  "gemini-2.5-flash-lite",
   "gemini-3-flash-preview",
 ];
+
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export class GeminiError extends Error {
