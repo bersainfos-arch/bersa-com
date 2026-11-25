@@ -583,9 +583,17 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setLastPrompt(text);
     setPromptInput("");
 
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) throw new Error("Connectez-vous pour rédiger.");
+        try {
+      let { data } = await supabase.auth.getSession();
+      let session = data.session;
+      // Rafraîchissement automatique si le jeton est expiré
+      if (session && session.expires_at && session.expires_at * 1000 < Date.now() + 60000) {
+        const { data: refData } = await supabase.auth.refreshSession();
+        if (refData.session) session = refData.session;
+      }
+      if (!session) {
+        throw new Error("Veuillez vous connecter à votre compte BERSA pour utiliser l'Assistant.");
+      }
       setHistory(prev => [
         {
           id: String(Date.now()),
@@ -597,11 +605,16 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       ]);
       const response = await fetch("/api/writer", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ action: chosen, text, attachments: files.filter(f => f.type !== "other") }),
       });
-      if (!response.ok) throw new Error(await response.text());
-      if (!response.body) throw new Error("Réponse vide.");
+      if (!response.ok) {
+        const errText = await response.text();
+        if (response.status === 401) {
+          throw new Error("Session expirée. Veuillez vous reconnecter à votre compte BERSA.");
+        }
+        throw new Error(errText);
+      }
 
       let reply = "", failure = "";
       const parser = createParser({
@@ -833,34 +846,34 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         <div className="no-print mx-auto mb-1.5 flex w-full max-w-[794px] flex-col gap-1.5 px-1 sm:px-0 min-w-0">
           <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/90 px-2.5 py-1.5 text-xs backdrop-blur-sm">
             
-            {/* 1. Outils Word « Mise en forme » avec boutons Annuler et Rétablir */}
-            <div className="flex items-center gap-1">
+            {/* 1. Outils Word avec boutons Annuler et Rétablir agrandis et resserrés */}
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
                 onClick={() => setRibbonOpen(!ribbonOpen)}
-                className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
+                className="flex items-center gap-1 font-bold text-primary hover:text-primary/80 transition-colors text-xs"
                 title="Afficher ou masquer les outils"
               >
-                              <img
+                <img
                   src="/outils-icon.png"
                   alt=""
                   aria-hidden="true"
                   className="h-5 w-5 object-contain pointer-events-none"
                 />
-                <span>Outils</span>
+                <span className="hidden xs:inline">Outils</span>
                 {ribbonOpen ? (
-                  <ChevronUp className="h-5 w-5 text-primary stroke-[2.5]" />
+                  <ChevronUp className="h-4 w-4 text-primary stroke-[2.5]" />
                 ) : (
-                  <ChevronDown className="h-5 w-5 text-primary stroke-[2.5]" />
+                  <ChevronDown className="h-4 w-4 text-primary stroke-[2.5]" />
                 )}
               </button>
 
-              <div className="flex items-center gap-1 border-l border-border/60 pl-2 ml-1.5">
+              <div className="flex items-center gap-0.5 border-l border-border/60 pl-1 ml-1">
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().undo().run()}
                   disabled={!editor?.can().undo()}
-                  className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition shrink-0"
                   title="Annuler (Ctrl+Z)"
                   aria-label="Annuler"
                 >
@@ -870,7 +883,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   type="button"
                   onClick={() => editor?.chain().focus().redo().run()}
                   disabled={!editor?.can().redo()}
-                  className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition"
+                  className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition shrink-0"
                   title="Rétablir (Ctrl+Y)"
                   aria-label="Rétablir"
                 >
@@ -879,36 +892,36 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
               </div>
             </div> 
 
-            {/* Droite : Améliorer + Enregistrer */}
-            <div className="flex items-center gap-1.5">
-              {/* 2. Bouton « Améliorer » avec flèche plus grande */}
+            {/* Droite : Améliorer + Enregistrer (100 % visible sur tout écran sans déborder) */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* 2. Bouton « Améliorer » */}
               <button
                 type="button"
                 onClick={() => setShowAssistantBar(!showAssistantBar)}
-                className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 text-xs bg-primary/10 rounded-full px-2.5 py-1 transition-colors"
-                title="Fonctionnalités d'amélioration (Plan, développer, humaniser, résumer...)"
+                className="flex items-center gap-1 font-bold text-primary hover:text-primary/80 text-xs bg-primary/10 rounded-full px-2 py-1 transition-colors shrink-0"
+                title="Fonctionnalités d'amélioration"
               >
                 <Sparkles className="h-3.5 w-3.5 text-amber-500" />
                 <span>Améliorer</span>
                 {showAssistantBar ? (
-                  <ChevronUp className="h-4.5 w-4.5 text-primary stroke-[2.5]" />
+                  <ChevronUp className="h-4 w-4 text-primary stroke-[2.5]" />
                 ) : (
-                  <ChevronDown className="h-4.5 w-4.5 text-primary stroke-[2.5]" />
+                  <ChevronDown className="h-4 w-4 text-primary stroke-[2.5]" />
                 )}
               </button>
 
-              {/* 3. Bouton Enregistrer officiel BERSA en bleu nuit, toujours visible */}
+              {/* 3. Bouton Enregistrer BERSA entièrement visible et sans débordement */}
               <button
                 type="button"
                 onClick={() => setShowSaveModal(true)}
-                className="flex items-center gap-1.5 font-semibold text-white text-xs bg-[#0a192f] hover:bg-[#0a192f]/90 rounded-full px-3 py-1.5 transition-colors shadow-sm"
+                className="flex items-center gap-1 font-semibold text-white text-xs bg-[#0a192f] hover:bg-[#0a192f]/90 rounded-full px-2.5 py-1.5 transition-colors shadow-sm shrink-0 whitespace-nowrap"
                 title="Enregistrer le document (Word, PDF, Texte)"
               >
                 <Save className="h-3.5 w-3.5 text-white" />
-                <span className="inline text-xs font-semibold">Enregistrer</span>
+                <span className="text-xs font-semibold">Enregistrer</span>
               </button>
-              </div>
-              </div>
+            </div>
+            </div>
 
           {/* Fonctions sous Améliorer (défilement horizontal sans déborder l'écran) */}
           {showAssistantBar && (
