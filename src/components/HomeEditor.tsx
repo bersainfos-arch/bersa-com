@@ -608,13 +608,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ action: chosen, text, attachments: files.filter(f => f.type !== "other") }),
       });
-      if (!response.ok) {
+           if (!response.ok) {
         const errText = await response.text();
         if (response.status === 401) {
           throw new Error("Session expirée. Veuillez vous reconnecter à votre compte BERSA.");
         }
         throw new Error(errText);
       }
+      if (!response.body) throw new Error("Réponse vide de l'Assistant.");
 
       let reply = "", failure = "";
       const parser = createParser({
@@ -860,7 +861,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   aria-hidden="true"
                   className="h-5 w-5 object-contain pointer-events-none"
                 />
-                <span className="hidden xs:inline">Outils</span>
+                <span className="inline">Outils</span>
                 {ribbonOpen ? (
                   <ChevronUp className="h-4 w-4 text-primary stroke-[2.5]" />
                 ) : (
