@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import {
   ArrowDown, ArrowUp, CheckCircle, ChevronLeft, ChevronRight,
-  Download, FileText, ImagePlus, Plus, RefreshCw, Save, Sparkles, Trash2,
+  Download, FileText, ImagePlus, Lock, Plus, RefreshCw, Save, Sparkles, Trash2,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -441,6 +441,36 @@ function CvStudio() {
           </Button>
           <Button variant="outline" disabled={!savedFile || busy} onClick={saveDirect}>
             Téléchargement direct
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  const paywallDialog = (
+    <Dialog open={payWall} onOpenChange={setPayWall}>
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-md overflow-hidden p-5 sm:p-6 text-center">
+        <DialogHeader className="space-y-2">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Lock className="h-6 w-6" />
+          </div>
+          <DialogTitle className="text-xl font-bold">Abonnement Standard requis</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground pt-1">
+            L'enregistrement de votre premier CV est 100 % gratuit. Pour enrichir et enregistrer un autre CV dans plusieurs formats, veuillez souscrire à l'<strong>Abonnement Standard</strong>.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-4 flex flex-col gap-2">
+          <Button
+            className="w-full bg-primary text-primary-foreground font-semibold"
+            onClick={() => {
+              setPayWall(false);
+              window.location.href = "/abonnements";
+            }}
+          >
+            Découvrir l'Abonnement Standard
+          </Button>
+          <Button variant="outline" className="w-full" onClick={() => setPayWall(false)}>
+            Continuer l'édition
           </Button>
         </div>
       </DialogContent>
@@ -1227,8 +1257,9 @@ function CvStudio() {
                 </div>
               </div>
 
-             {actionsBar}
+              {actionsBar}
              {saveDialog}
+             {paywallDialog}
             </div>}
           </div>
         </div>
