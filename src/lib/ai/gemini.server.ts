@@ -2,8 +2,14 @@
 export type GeminiPart = { text: string } | { inline_data: { mime_type: string; data: string } };
 export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
-// Free-tier models each have their own quota; trying several avoids a single 429 blocking the assistant.
-const MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.5-flash"];
+// Modèles officiels actifs sur Google Gemini v1beta
+const MODELS = [
+  "gemini-flash-lite-latest",
+  "gemini-2.5-flash",
+  "gemini-flash-latest",
+  "gemini-2.5-flash-lite",
+  "gemini-3-flash-preview",
+];
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export class GeminiError extends Error {
@@ -12,9 +18,8 @@ export class GeminiError extends Error {
 
 function apiKey() {
   const connection = process.env["UDC_GEMINI_BERSA_API_KEY"];
-  if (connection) {
-    const gateway = process.env["LOVABLE_API_KEY"];
-    if (!gateway) throw new GeminiError("Connexion de l’assistant non configurée.", 503);
+  const gateway = process.env["LOVABLE_API_KEY"];
+  if (connection && gateway) {
     return { base: "https://connector-gateway.lovable.dev/udc_gemini_bersa/v1beta/openai", gateway: true, headers: { Authorization: `Bearer ${gateway}`, "X-Connection-Api-Key": connection } };
   }
   const key = process.env["GEMINI_API_KEY"];
