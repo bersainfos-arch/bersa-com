@@ -841,8 +841,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 className="flex items-center gap-1.5 font-bold text-primary hover:text-primary/80 transition-colors"
                 title="Afficher ou masquer les outils"
               >
-                  <img
-                  src={outilsIcon.url}
+                              <img
+                  src="/outils-icon.png"
                   alt=""
                   aria-hidden="true"
                   className="h-5 w-5 object-contain pointer-events-none"
@@ -897,18 +897,18 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 )}
               </button>
 
-              {/* 3. Bouton Enregistrer avec choix Word, PDF, dossier */}
+              {/* 3. Bouton Enregistrer officiel BERSA en bleu nuit, toujours visible */}
               <button
                 type="button"
                 onClick={() => setShowSaveModal(true)}
-                className="flex items-center gap-1.5 font-semibold text-primary hover:text-primary/80 text-xs bg-muted hover:bg-muted/80 rounded-full px-2.5 py-1 transition-colors"
+                className="flex items-center gap-1.5 font-semibold text-white text-xs bg-[#0a192f] hover:bg-[#0a192f]/90 rounded-full px-3 py-1.5 transition-colors shadow-sm"
                 title="Enregistrer le document (Word, PDF, Texte)"
               >
-                <Save className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold">Enregistrer</span>
+                <Save className="h-3.5 w-3.5 text-white" />
+                <span className="inline text-xs font-semibold">Enregistrer</span>
               </button>
-           </div>
-          </div>
+              </div>
+              </div>
 
           {/* Fonctions sous Améliorer (défilement horizontal sans déborder l'écran) */}
           {showAssistantBar && (
