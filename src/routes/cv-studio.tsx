@@ -16,6 +16,8 @@ import {
 import { saveDeviceFile } from "@/lib/device-save";
 import { canFinalizeCv, cvStepError } from "@/lib/cv-wizard";
 import { BackGlyph } from "@/components/BackGlyph";
+import { cvSaveAllowed, CV_FREE_KEY } from "@/lib/cv-quota";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/cv-studio")({
   head: () => ({
@@ -184,7 +186,15 @@ function CvStudio() {
   const dragRef = useRef<{ x: number; y: number; cx: number; cy: number } | null>(null);
   const [extraKey, setExtraKey] = useState("");
 
+  const [payWall, setPayWall] = useState(false);
   const saveBlob = async (blob: Blob, name: string, _ext: string, _description: string) => {
+    const cvId = `${data.firstName}|${data.lastName}`.trim().toLowerCase();
+    const owner = localStorage.getItem(CV_FREE_KEY);
+    if (!cvSaveAllowed(owner, cvId, false)) {
+      const { data: sub } = await supabase.from("subscriptions").select("id").eq("status", "active").gt("expires_at", new Date().toISOString()).limit(1);
+      if (!sub?.length) { setPayWall(true); return; }
+    }
+    if (!owner) localStorage.setItem(CV_FREE_KEY, cvId);
     const result = await saveDeviceFile(blob, name);
     if (result === "saved") toast.success("CV enregistré dans le dossier choisi.");
     if (result === "shared") toast.info("Fichier transmis au menu de votre appareil.");
