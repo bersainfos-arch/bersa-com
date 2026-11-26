@@ -161,39 +161,51 @@ function SignForm() {
     });
 
     if (signUpError) {
-      // Si déjà inscrit, connexion automatique
+      // Si le compte existe déjà, tenter la connexion directe
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: primaryAuthEmail,
         password: authPass,
       });
       setBusy(false);
       if (signInErr) {
-        toast.error(signUpError.message);
+        toast.error(signUpError.message || "Erreur lors de l’inscription.");
       } else {
-        window.location.href = "/";
+        window.location.href = "/redaction";
       }
       return;
     }
 
-    if (signUpData.user) {
+    // Tentative de connexion immédiate
+    const { data: sessionData, error: signInErr } = await supabase.auth.signInWithPassword({
+      email: primaryAuthEmail,
+      password: authPass,
+    });
+
+    if (sessionData?.user) {
+      // Enregistrement du profil une fois authentifié
       await supabase.from("profiles").upsert({
-        id: signUpData.user.id,
+        id: sessionData.user.id,
         first_name: firstName.trim().slice(0, 80),
         last_name: lastName.trim().slice(0, 80),
         email: trimmedEmail || null,
         birth_date: birthDateISO,
       });
+      setBusy(false);
+      window.location.href = "/redaction";
+      return;
     }
 
-    // Connexion immédiate sans confirmation bloquante
-    await supabase.auth.signInWithPassword({
-      email: primaryAuthEmail,
-      password: authPass,
-    });
-
     setBusy(false);
-    window.location.href = "/";
-  }
+    if (signInErr) {
+      if (signInErr.message.toLowerCase().includes("confirm")) {
+        toast.info("Compte créé avec succès ! Si un e-mail vous a été envoyé, activez-le puis connectez-vous.");
+        setView("signin");
+      } else {
+        toast.error(signInErr.message);
+      }
+    } else {
+      window.location.href = "/redaction";
+    }
 
   // Connexion des anciens utilisateurs
   async function handleLogin(e: React.FormEvent) {
