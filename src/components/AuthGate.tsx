@@ -206,6 +206,7 @@ function SignForm() {
     } else {
       window.location.href = "/redaction";
     }
+  }
 
   // Connexion des anciens utilisateurs
   async function handleLogin(e: React.FormEvent) {
