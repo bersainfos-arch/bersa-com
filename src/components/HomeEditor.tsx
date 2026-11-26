@@ -681,20 +681,35 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   async function transcribeAudio(recorded = audio) {
     if (!recorded || !editor) return;
     setTranscribing(true);
-    try {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) throw new Error("Connectez-vous pour transcrire.");
+      try {
+      let { data } = await supabase.auth.getSession();
+      let session = data.session;
+      if (!session || (session.expires_at && session.expires_at * 1000 < Date.now() + 300000)) {
+        const refreshed = await supabase.auth.refreshSession();
+        if (refreshed.data.session) session = refreshed.data.session;
+      }
+      if (!session?.access_token) throw new Error("Connectez-vous pour transcrire.");
       const form = new FormData();
       form.append("file", recorded);
-      const response = await fetch("/api/transcribe", {
+      let response = await fetch("/api/transcribe", {
         method: "POST",
-        headers: { Authorization: `Bearer ${data.session.access_token}` },
+        headers: { Authorization: `Bearer ${session.access_token}` },
         body: form,
       });
+      if (response.status === 401) {
+        const refreshed = await supabase.auth.refreshSession();
+        if (refreshed.data.session?.access_token) {
+          response = await fetch("/api/transcribe", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${refreshed.data.session.access_token}` },
+            body: form,
+          });
+        }
+      }
       if (!response.ok) {
         const problem = await response.text();
         throw new Error(problem || "Transcription indisponible.");
-      }
+      }    
       if (!response.body) throw new Error("Transcription vide.");
       let transcript = "";
       let failure = "";
