@@ -19,14 +19,14 @@ jobs:
       - name: Installer Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Installer les dépendances
-        run: bun install --frozen-lockfile
+      - name: Installer les dépendances et synchroniser le lockfile
+        run: bun install
 
       - name: Vérification TypeScript
-        run: bunx tsc --noEmit
+        run: bun run typecheck
 
       - name: Tests automatisés
-        run: bunx vitest run
+        run: bun run test
 
       - name: Build de production
         run: bun run build
