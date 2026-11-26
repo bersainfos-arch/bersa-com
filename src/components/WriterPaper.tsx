@@ -39,17 +39,20 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
     return () => { resize.disconnect(); mutation.disconnect(); };
   }, [editor, footnotes.length, settings.margin, settings.orientation, settings.format]);
 
-  const pageOf = (number: number) => {
+    const pageOf = (number: number) => {
     const sheet = editor?.view.dom;
     const ref = sheet?.querySelector<HTMLElement>(`[data-fn-num="${number}"]`);
     if (!sheet || !ref) return 0;
-    // Reference coordinates are local to the paper: zoom cannot move a note to another page.
+    // Les coordonnées de référence restent strictement locales au papier A4 : le zoom ne déplace pas la note
     let top = ref.offsetTop;
     let parent = ref.offsetParent as HTMLElement | null;
-    while (parent && parent !== sheet && sheet.contains(parent)) { top += parent.offsetTop; parent = parent.offsetParent as HTMLElement | null; }
+    while (parent && parent !== sheet && sheet.contains(parent)) {
+      top += parent.offsetTop;
+      parent = parent.offsetParent as HTMLElement | null;
+    }
     return Math.min(layout.pages - 1, Math.max(0, Math.floor(top / (layout.height + 16))));
   };
-
+  
   useEffect(() => {
     const sheet = editor?.view.dom, root = host.current;
     if (!sheet || !root) return;
