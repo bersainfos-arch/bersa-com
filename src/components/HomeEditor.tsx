@@ -839,7 +839,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
        {/* Barre au-dessus du papier : Mise en forme, Améliorer & Enregistrer */}
         <div className="no-print mx-auto mb-1.5 flex w-full max-w-[794px] flex-col gap-1.5 px-1 sm:px-0 min-w-0">
-          <div className="writer-main-toolbar flex min-w-0 flex-wrap items-center justify-between gap-1 rounded-lg border border-border/60 bg-card/90 px-1.5 py-1.5 text-xs backdrop-blur-sm">
+        <div className="writer-main-toolbar flex min-w-0 flex-wrap items-center justify-between gap-1 rounded-lg border border-border/60 bg-card/90 px-1.5 py-1.5 text-xs backdrop-blur-sm">
             
             {/* 1. Outils Word avec boutons Annuler et Rétablir agrandis et resserrés */}
             <div className="flex items-center gap-1 shrink-0">
@@ -916,8 +916,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 <span className="text-xs font-semibold">Enregistrer</span>
               </Button>
             </div>
-            </div>
-
+          </div>
+    
           {/* Fonctions sous Améliorer (défilement horizontal sans déborder l'écran) */}
           {showAssistantBar && (
             <div className="flex w-full items-center gap-1.5 overflow-x-auto rounded-lg border border-border/50 bg-card/95 p-1.5 text-xs scrollbar-none touch-pan-x min-w-0">
