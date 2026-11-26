@@ -46,9 +46,22 @@ function Lettres() {
   const improve = async () => {
     if (!tpl) return; setBusy("improve");
     try {
-      const d = filledData();
-      const { data: s } = await supabase.auth.getSession(); if (!s.session) throw new Error("Connectez-vous pour améliorer la lettre.");
-      const res = await fetch("/api/writer", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${s.session.access_token}` }, body: JSON.stringify({ action: "improve", text: improvePrompt(tpl, d) }) });
+     const d = filledData();
+      let { data: s } = await supabase.auth.getSession();
+      if (!s.session || (s.session.expires_at && s.session.expires_at * 1000 < Date.now() + 300000)) {
+        const ref = await supabase.auth.refreshSession();
+        if (ref.data.session) s = ref.data;
+      }
+      if (!s.session) throw new Error("Connectez-vous pour améliorer la lettre.");
+      let token = s.session.access_token;
+      let res = await fetch("/api/writer", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: "improve", text: improvePrompt(tpl, d) }) });
+      if (res.status === 401) {
+        const ref = await supabase.auth.refreshSession();
+        if (ref.data.session?.access_token) {
+          token = ref.data.session.access_token;
+          res = await fetch("/api/writer", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ action: "improve", text: improvePrompt(tpl, d) }) });
+        }
+      }
       if (!res.ok || !res.body) throw new Error((await res.text()) || "Assistant indisponible.");
       let reply = "", fail = "";
       const parser = createParser({ onEvent(e) { try { const it = JSON.parse(e.data); if (it.type === "delta") reply += it.text; if (it.type === "error") fail = it.message; } catch {} } });
