@@ -2,7 +2,11 @@ name: CI — TypeScript, tests et build
 
 on:
   push:
-    branches: [main, master]
+    branches:
+      - Main
+      - main
+      - master
+      - fix/atelier-assistant-startup
   pull_request:
 
 jobs:
@@ -18,8 +22,8 @@ jobs:
       - name: Installer les dépendances
         run: bun install --frozen-lockfile
 
-      - name: Vérification TypeScript (tsgo)
-        run: bunx tsgo
+      - name: Vérification TypeScript
+        run: bunx tsc --noEmit
 
       - name: Tests automatisés
         run: bunx vitest run
