@@ -598,14 +598,18 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setLastPrompt(text);
     setPromptInput("");
       try {
-      let { data } = await supabase.auth.getSession();
-      let session = data.session;
-      if (!session || (session.expires_at && session.expires_at * 1000 < Date.now() + 300000)) {
-        const refreshed = await supabase.auth.refreshSession();
-        if (refreshed.data.session) session = refreshed.data.session;
+      let token = "";
+      try {
+        const { data } = await supabase.auth.getSession();
+        let session = data.session;
+        if (session && session.expires_at && session.expires_at * 1000 < Date.now() + 300000) {
+          const refreshed = await supabase.auth.refreshSession();
+          if (refreshed.data.session) session = refreshed.data.session;
+        }
+        token = session?.access_token || "";
+      } catch {
+        // En cas de coupure de session, continue avec l'accès direct
       }
-      let token = session?.access_token;
-      if (!token) throw new Error("Connectez-vous à votre compte BERSA pour utiliser l’Assistant.");
 
       setHistory(prev => [
         {
@@ -619,9 +623,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
 
       const reqHeaders: Record<string, string> = {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       };
-
+      if (token) {
+        reqHeaders["Authorization"] = `Bearer ${token}`;
+      }
+      
       let response = await fetch("/api/writer", {
         method: "POST",
         headers: reqHeaders,
