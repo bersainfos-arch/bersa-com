@@ -1,4 +1,10 @@
 # BERSA roadmap (reconstruction)
+## Finalisation demandée maintenant
+- [ ] Corriger sauvegarde Writer réelle, bouton mobile visible et notes/zoom stables
+- [ ] Vérifier CV guidé, formats rapides et barrière du deuxième CV sans contournement direct
+- [ ] Restaurer authentification et quota serveur de l’Assistant ; vérifier une réponse réelle
+- [ ] Réparer Google géré et relais Cloudflare ; retour externe dépend de l’adresse autorisée
+- [ ] Tests, vérification mobile et sauvegarde du code
 ## Finalisation CV, atelier et Google
 - [ ] CV : étapes guidées, aperçu après finalisation, stages avec début/fin, typographie et couleurs compactes
 - [ ] Enregistrement local et exports réels CV / rédaction, avec sélecteur système si disponible

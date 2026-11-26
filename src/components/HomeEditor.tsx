@@ -18,7 +18,7 @@ import { WriterLayout, Bookmark, attachLayout, extractLayout } from "@/lib/write
 import { WriterPaper } from "@/components/WriterPaper";
 import { writerTextFit, scaleToDisplayZoom, displayZoomToScale } from "@/lib/writer-viewport";
 import { toast } from "sonner";
-import outilsIcon from "@/assets/outils-icon.png.asset.json";
+import { saveDeviceFile } from "@/lib/device-save";
 import { ArrowUp, Share2,
   Send,
   Loader2,
@@ -76,6 +76,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const deskRef = useRef<HTMLDivElement | null>(null);
   const [deskEl, setDeskEl] = useState<HTMLDivElement | null>(null);
   const [fitText, setFitText] = useState(true);
+  const [baseScale, setBaseScale] = useState(0.435);
+  const baseScaleRef = useRef(baseScale);
+  baseScaleRef.current = baseScale;
   const fitPaper = () => {
     const desk = deskRef.current;
     if (!desk) return;
@@ -110,7 +113,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [docFileName, setDocFileName] = useState("Mon_Document_BERSA");
   const [exportFormat, setExportFormat] = useState<"docx" | "pdf" | "txt">("docx");
-  const [targetFolder, setTargetFolder] = useState("downloads");
+  const [preparedDocument, setPreparedDocument] = useState<{ blob: Blob; name: string } | null>(null);
+  const [preparingDocument, setPreparingDocument] = useState(false);
+  const [documentRevision, setDocumentRevision] = useState(0);
   const [cloudId, setCloudId] = useState<string | null>(null);
   const [cloudState, setCloudState] = useState("");
   const [versions, setVersions] = useState<Array<{ id: string; title: string; created_at: string }> | null>(null);
@@ -155,7 +160,11 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
           const node = selection?.anchorNode;
           const element = (node?.nodeType === 1 ? node : node?.parentElement) as HTMLElement | null;
           if (element && deskRef.current?.contains(element)) {
-            element.scrollIntoView({ block: "nearest", behavior: "smooth" }); 
+            const rect = element.getBoundingClientRect();
+            const visibleBottom = (window.visualViewport?.height || window.innerHeight) - 90;
+            if (rect.top < 75 || rect.bottom > visibleBottom) {
+              element.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            } 
           }
         }, 100);
       }
@@ -185,6 +194,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     onUpdate: ({ editor: e }) => {
       renumberFootnotes(e);
       setFootnotes(collectFootnotes(e));
+      setDocumentRevision(n => n + 1);
     },
     editorProps: {
       attributes: {
@@ -201,7 +211,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     if (!desk || !editor || !fitText) return;
       const applyFit = () => {
       const fit = writerTextFit(desk.clientWidth, settings.orientation, settings.margin);
-      const nextZoom = `${scaleToDisplayZoom(fit.scale)}%`;
+      setBaseScale(fit.scale);
+      const nextZoom = "100%";
       setSettings(s => s.zoom === nextZoom ? s : { ...s, zoom: nextZoom });
       requestAnimationFrame(() => { desk.scrollLeft = fit.scrollLeft; });
     };
@@ -330,7 +341,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     const onEnd = (e: TouchEvent) => { 
       if (start && e.touches.length < 2) { 
         start = 0; 
-        const v = scaleToDisplayZoom(read()); 
+        const v = scaleToDisplayZoom(read(), baseScaleRef.current); 
         setSettings(s => ({ ...s, zoom: `${v}%` })); 
       } 
     };
@@ -341,7 +352,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       const mode = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? desk.clientHeight : 1;
       const next = apply(read() * Math.exp(-e.deltaY * mode * 0.0015), e.clientX - rect.left, e.clientY - rect.top) / 100;
       setFitText(false);
-      setSettings(s => ({ ...s, zoom: `${scaleToDisplayZoom(next)}%` }));
+      setSettings(s => ({ ...s, zoom: `${scaleToDisplayZoom(next, baseScaleRef.current)}%` }));
     };
     desk.addEventListener("touchstart", onStart, { passive: true });
     desk.addEventListener("touchmove", onMove, { passive: false });
@@ -403,9 +414,8 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       const { buildPdf } = await import("@/lib/pdf-export");
       const blob = await buildPdf(editor.getHTML(), { marginPx: settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94, lineSpacing: Number(settings.lineSpacing) || 1.6, headerText: settings.headerText, footerText: settings.footerText, differentFirstPage: settings.differentFirstPage, pageNumbers: !!settings.pageNumbers, pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat, columns: settings.columns, landscape: settings.orientation === "Paysage" });
       const name = `${(docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_")}.pdf`;
-      if (await pickAndWrite(blob, name, "Document PDF", { "application/pdf": [".pdf"] })) { toast.success("PDF enregistré."); return; }
-      const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success("PDF téléchargé.");
+      const result = await saveDeviceFile(blob, name);
+      if (result !== "cancelled") toast.success(result === "saved" ? "PDF enregistré." : result === "shared" ? "PDF transmis à votre appareil." : "PDF téléchargé.");
     } catch { toast.error("Création du PDF impossible."); }
   };
 
@@ -472,64 +482,49 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setShowResultCard(false);
     setGeneratedResponse("");
   };
-  // Choix du dossier (ordinateur / Android Chrome) ; repli sur téléchargement direct
-  const pickAndWrite = async (blob: Blob, name: string, description: string, accept: Record<string, string[]>) => {
-    const picker = (window as any).showSaveFilePicker;
-    if (!picker) return false;
-    try {
-      const handle = await picker({ suggestedName: name, types: [{ description, accept }] });
-      const w = await handle.createWritable();
-      await w.write(blob);
-      await w.close();
-      return true;
-    } catch (e) {
-      if ((e as Error)?.name === "AbortError") return true;
-      return false;
-    }
-  };
-   // Enregistrement au format choisi vers le dossier du téléphone
-  const handleSaveDocument = async () => {
-    if (!editor) return;
-    const cleanName = (docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_");
-
+  const prepareDocument = async () => {
+    if (!editor) return null;
+    const name = (docFileName.trim() || "Document_BERSA").replace(/[^a-zA-Z0-9_\-]/g, "_");
+    const marginPx = settings.margin === "Étroites" ? 48 : settings.margin === "Larges" ? 132 : 94;
+    let blob: Blob;
     if (exportFormat === "docx") {
       const { buildDocx } = await import("@/lib/docx-export");
-      const marginCm = settings.margin === "Étroites" ? 1.27 : settings.margin === "Larges" ? 3.5 : 2.5;
-      const blob = await buildDocx(editor.getJSON() as any, {
-        marginCm,
-        lineSpacing: Number(settings.lineSpacing) || 1.6,
-        landscape: settings.orientation === "Paysage",
-        headerText: settings.headerText,
-        footerText: settings.footerText,
-        pageNumbers: !!settings.pageNumbers,
-        differentFirstPage: !!settings.differentFirstPage,
-      });
-      if (await pickAndWrite(blob, `${cleanName}.docx`, "Document Word", { "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"] })) { toast.success("Document Word enregistré."); return; }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${cleanName}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success(`Document Word enregistré pour votre dossier (${targetFolder}).`);
-      return;
+      blob = await buildDocx(editor.getJSON(), { marginCm: marginPx / 37.8, lineSpacing: Number(settings.lineSpacing) || 1.6,
+        landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText,
+        pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage,
+        pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat });
+    } else if (exportFormat === "pdf") {
+      const { buildPdf } = await import("@/lib/pdf-export");
+      blob = await buildPdf(editor.getHTML(), { marginPx, lineSpacing: Number(settings.lineSpacing) || 1.6,
+        landscape: settings.orientation === "Paysage", headerText: settings.headerText, footerText: settings.footerText,
+        pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage,
+        pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat, columns: settings.columns });
+    } else {
+      blob = new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" });
     }
+    return { blob, name: `${name}.${exportFormat}` };
+  };
 
-    if (exportFormat === "pdf") { await exportPdf(); return; }
+  useEffect(() => {
+    if (!showSaveModal || !editor) return;
+    let active = true;
+    setPreparedDocument(null);
+    setPreparingDocument(true);
+    void prepareDocument().then(file => { if (active) setPreparedDocument(file); })
+      .catch(() => { if (active) toast.error("Préparation du document impossible."); })
+      .finally(() => { if (active) setPreparingDocument(false); });
+    return () => { active = false; };
+  }, [showSaveModal, exportFormat, docFileName, editor, documentRevision, settings]);
 
-    // Format TXT
-    const textBlob = new Blob([editor.getText({ blockSeparator: "\n\n" })], { type: "text/plain;charset=utf-8" });
-    const textUrl = URL.createObjectURL(textBlob);
-    const link = document.createElement("a");
-    link.href = textUrl;
-    link.download = `${cleanName}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(textUrl), 1000);
-    toast.success(`Fichier texte enregistré pour votre dossier (${targetFolder}).`);
+  const handleSaveDocument = async () => {
+    try {
+      const file = preparedDocument || await prepareDocument();
+      if (!file) return;
+      const result = await saveDeviceFile(file.blob, file.name);
+      if (result === "cancelled") return;
+      toast.success(result === "saved" ? "Document enregistré dans le dossier choisi." : result === "shared" ? "Document transmis à votre appareil." : "Document téléchargé.");
+      setShowSaveModal(false);
+    } catch { toast.error("Enregistrement impossible. Réessayez."); }
   };
 
   const shareGeneratedText = async () => {
@@ -584,17 +579,12 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setPromptInput("");
 
     try {
-      // Quota local automatique (20 requêtes par jour)
-      const today = new Date().toISOString().slice(0, 10);
-      const localQuotaKey = `bersa_quota_${today}`;
-      const localUsed = Number(localStorage.getItem(localQuotaKey) || 0);
-      if (!quota && localUsed >= 20) {
-        throw new Error("QUOTA_EXHAUSTED: quota quotidien atteint (20/20). Renouvellement à 00:00 UTC.");
+      let { data } = await supabase.auth.getSession();
+      if (data.session?.expires_at && data.session.expires_at * 1000 < Date.now() + 60000) {
+        data = (await supabase.auth.refreshSession()).data;
       }
-
-      // Récupération souple du jeton (ne bloque jamais si absent ou expiré)
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token || "";
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Connectez-vous à votre compte BERSA pour utiliser l’Assistant.");
 
       setHistory(prev => [
         {
@@ -621,10 +611,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       }
       if (!response.body) throw new Error("Réponse vide de l'Assistant.");
 
-      // Incrémentation du quota journalier
-      localStorage.setItem(localQuotaKey, String(localUsed + 1));
-      if (!quota) setQuota({ used: localUsed + 1, limit: 20 });
-
       let reply = "", failure = "";
       const parser = createParser({
         onEvent(event) {
@@ -648,7 +634,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       if (failure) throw new Error(failure);
       if (!reply.trim()) throw new Error("L’Assistant n’a pas produit de texte.");
       if (isRegenerate) {
-        const t = reply.trim().split("\n")[0]!.replace(/^[#*\s]+/, "").slice(0, 90) || "Texte régénéré";
+        const t = (reply.trim().split("\n")[0] || "").replace(/^[#*\s]+/, "").slice(0, 90) || "Texte régénéré";
         void supabase.from("user_docs").insert({ title: `${t} (version régénérée)`, category: "general", content: paragraphs(reply).map((n: any) => `<p>${String(n.content?.[0]?.text ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</p>`).join(""), word_count: reply.split(/\s+/).filter(Boolean).length });
       }
     } catch (e) {
@@ -853,14 +839,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       <section aria-label="Assistant — éditeur Word" className={`home-editor mx-auto max-w-6xl sm:px-3 ${embedded ? "home-editor-embedded" : ""}`}>
        {/* Barre au-dessus du papier : Mise en forme, Améliorer & Enregistrer */}
         <div className="no-print mx-auto mb-1.5 flex w-full max-w-[794px] flex-col gap-1.5 px-1 sm:px-0 min-w-0">
-          <div className="flex items-center justify-between rounded-lg border border-border/60 bg-card/90 px-2.5 py-1.5 text-xs backdrop-blur-sm">
+          <div className="writer-main-toolbar flex min-w-0 flex-wrap items-center justify-between gap-1 rounded-lg border border-border/60 bg-card/90 px-1.5 py-1.5 text-xs backdrop-blur-sm">
             
             {/* 1. Outils Word avec boutons Annuler et Rétablir agrandis et resserrés */}
             <div className="flex items-center gap-1 shrink-0">
-              <button
-                type="button"
+              <Button
+                type="button" variant="ghost" size="sm"
                 onClick={() => setRibbonOpen(!ribbonOpen)}
-                className="flex items-center gap-1 font-bold text-primary hover:text-primary/80 transition-colors text-xs"
+                className="h-8 px-1 flex items-center gap-1 font-bold text-primary hover:text-primary/80 transition-colors text-xs"
                 title="Afficher ou masquer les outils"
               >
                 <img
@@ -875,60 +861,60 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                 ) : (
                   <ChevronDown className="h-4 w-4 text-primary stroke-[2.5]" />
                 )}
-              </button>
+              </Button>
 
               <div className="flex items-center gap-0.5 border-l border-border/60 pl-1 ml-1">
-                <button
-                  type="button"
+                <Button
+                  type="button" variant="ghost" size="sm"
                   onClick={() => editor?.chain().focus().undo().run()}
                   disabled={!editor?.can().undo()}
-                  className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition shrink-0"
+                  className="inline-flex items-center justify-center h-9 w-9 p-0 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition shrink-0"
                   title="Annuler (Ctrl+Z)"
                   aria-label="Annuler"
                 >
-                  <Undo2 className="h-4 w-4 stroke-[2.2]" />
-                </button>
-                <button
-                  type="button"
+                  <Undo2 className="h-5 w-5 stroke-[2.2]" />
+                </Button>
+                <Button
+                  type="button" variant="ghost" size="sm"
                   onClick={() => editor?.chain().focus().redo().run()}
                   disabled={!editor?.can().redo()}
-                  className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition shrink-0"
+                  className="inline-flex items-center justify-center h-9 w-9 p-0 rounded-md hover:bg-muted text-foreground hover:text-primary disabled:opacity-30 transition shrink-0"
                   title="Rétablir (Ctrl+Y)"
                   aria-label="Rétablir"
                 >
-                  <Redo2 className="h-4 w-4 stroke-[2.2]" />
-                </button>
+                  <Redo2 className="h-5 w-5 stroke-[2.2]" />
+                </Button>
               </div>
             </div> 
 
             {/* Droite : Améliorer + Enregistrer (100 % visible sur tout écran sans déborder) */}
             <div className="flex items-center gap-1 shrink-0">
               {/* 2. Bouton « Améliorer » */}
-              <button
-                type="button"
+              <Button
+                type="button" variant="ghost" size="sm"
                 onClick={() => setShowAssistantBar(!showAssistantBar)}
-                className="flex items-center gap-1 font-bold text-primary hover:text-primary/80 text-xs bg-primary/10 rounded-full px-2 py-1 transition-colors shrink-0"
-                title="Fonctionnalités d'amélioration"
+                className="h-8 px-1 flex items-center gap-1 font-bold text-primary hover:text-primary/80 text-xs bg-primary/10 rounded-full px-2 py-1 transition-colors shrink-0"
+                aria-label="Améliorer" title="Fonctionnalités d'amélioration"
               >
                 <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                <span>Améliorer</span>
+                <span className="hidden min-[400px]:inline">Améliorer</span>
                 {showAssistantBar ? (
                   <ChevronUp className="h-4 w-4 text-primary stroke-[2.5]" />
                 ) : (
                   <ChevronDown className="h-4 w-4 text-primary stroke-[2.5]" />
                 )}
-              </button>
+              </Button>
 
               {/* 3. Bouton Enregistrer BERSA entièrement visible et sans débordement */}
-              <button
-                type="button"
+              <Button
+                type="button" variant="ghost" size="sm"
                 onClick={() => setShowSaveModal(true)}
-                className="flex items-center gap-1 font-semibold text-white text-xs bg-[#0a192f] hover:bg-[#0a192f]/90 rounded-full px-2.5 py-1.5 transition-colors shadow-sm shrink-0 whitespace-nowrap"
+                className="h-9 max-w-full flex items-center gap-1 font-semibold text-primary-foreground text-xs bg-primary hover:bg-primary/90 rounded-md px-2 py-1.5 shadow-sm shrink-0 whitespace-nowrap"
                 title="Enregistrer le document (Word, PDF, Texte)"
               >
-                <Save className="h-3.5 w-3.5 text-white" />
+                <Save className="h-4 w-4 text-primary-foreground" />
                 <span className="text-xs font-semibold">Enregistrer</span>
-              </button>
+              </Button>
             </div>
             </div>
 
@@ -1052,7 +1038,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             ["--writer-line" as string]: settings.lineSpacing || "1.15", 
             ["--writer-margin-scale" as string]: settings.margin === "Étroites" ? "0.5" : settings.margin === "Larges" ? "1.3" : "1", 
             ["--writer-page-color" as string]: settings.pageColor || "var(--paper)", 
-            ["--writer-zoom" as string]: String(displayZoomToScale(parseFloat(settings.zoom) || 100))
+            ["--writer-zoom" as string]: String(displayZoomToScale(parseFloat(settings.zoom) || 100, baseScale))
           } as React.CSSProperties}
           className={`bersa-writer-workspace home-paper-desk a4-desk margin-${settings.margin} orientation-${settings.orientation} format-${settings.format} zoom-${settings.zoom.replace("%", "")} cols-${settings.columns || 1}${settings.pageBorder ? " page-border" : ""}${settings.nightMode ? " writer-night" : ""}${settings.eyeCare ? " writer-eye-care" : ""}${settings.showComments === false ? " hide-comments" : ""}${settings.showRevisions === false ? " hide-revisions" : ""}${settings.showMarks ? " show-marks" : ""}`}
           onClick={e => {
@@ -1327,7 +1313,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         )}
        {/* Modale d'enregistrement avec proposition du dossier sur le téléphone */}
         {showSaveModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div role="dialog" aria-modal="true" aria-label="Enregistrer le document" className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4 backdrop-blur-xs">
             <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-4 shadow-2xl">
               <div className="mb-3 flex items-center justify-between border-b pb-2">
                 <h3 className="flex items-center gap-2 font-serif text-base font-bold text-primary">
@@ -1379,22 +1365,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   </div>
                 </div>
 
-                <div>
-                  <label className="mb-1 block font-semibold text-foreground">Dossier sur votre téléphone :</label>
-                  <select
-                    value={targetFolder}
-                    onChange={(e) => setTargetFolder(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-hidden"
-                  >
-                    <option value="Téléchargements (Downloads)">📁 Téléchargements (Downloads)</option>
-                    <option value="Documents">📁 Documents</option>
-                    <option value="Dossier BERSA">📁 Dossier BERSA</option>
-                    <option value="Mémoire interne">📁 Stockage interne</option>
-                  </select>
-                  <p className="mt-1 text-[10px] text-muted-foreground">
-                    Le fichier sera téléchargé directement pour être stocké dans ce dossier.
-                  </p>
-                </div>
+                <p role="status" className="text-sm text-muted-foreground">{preparingDocument ? "Préparation du document…" : preparedDocument?.name || ""}</p>
 
                 <div className="mt-4 flex gap-2 pt-1">
                   <Button
@@ -1409,11 +1380,9 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
                   <Button
                     type="button"
                     size="sm"
-                    onClick={async () => {
-                      await handleSaveDocument();
-                      setShowSaveModal(false);
-                    }}
-                    className="flex-1 h-8 rounded-lg bg-[#0a192f] text-white hover:bg-[#1e3a8a] text-xs font-semibold gap-1.5"
+                    disabled={preparingDocument || !preparedDocument}
+                    onClick={() => void handleSaveDocument()}
+                    className="min-w-0 flex-1 h-10 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold gap-1.5"
                   >
                     <Download className="h-3.5 w-3.5" />
                     Enregistrer

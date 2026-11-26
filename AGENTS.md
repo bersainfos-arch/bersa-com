@@ -39,3 +39,7 @@
 - Keep DocumentViewer isolated from HomeEditor: paginate typed blocks at fixed reference A4 size and apply browser-only viewport gestures, so reading zoom cannot change document layout or existing workspaces.
 - Scope reader viewport restrictions to its example route head; TanStack Start has no index.html and global zoom restrictions would affect unrelated pages.
 - Fit HomeEditor to its measured text width on opening and expose a reset command; keep saved margins intact and use orientation-aware geometry for pagination and margin overlays.
+- Calibrate displayed Writer zoom against each screen's fitted text width; keep notes in paper-local coordinates so zoom cannot reassign their pages.
+- Prepare export blobs before the final save tap and share device-save across Writer and CV; native pickers require user activation and unsupported browsers must download honestly.
+- Check CV subscription through an authenticated server function and apply the same per-device free-version check to every download path, including direct downloads.
+- Forward standalone-host /~oauth/initiate to the fixed published project broker; keep managed OAuth responsible for sessions and require external return addresses in the auth allowlist.

@@ -34,6 +34,7 @@ import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiWriterRouteImport } from './routes/api/writer'
 import { Route as EditeurIdRouteImport } from './routes/editeur.$id'
 import { Route as FactureIdRouteImport } from './routes/facture.$id'
+import { Route as Char126oauthInitiateRouteImport } from './routes/~oauth.initiate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -160,6 +161,11 @@ const FactureIdRoute = FactureIdRouteImport.update({
   path: '/facture/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char126oauthInitiateRoute = Char126oauthInitiateRouteImport.update({
+  id: '/~oauth/initiate',
+  path: '/~oauth/initiate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/api/writer': typeof ApiWriterRoute
   '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
+  '/~oauth/initiate': typeof Char126oauthInitiateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/api/writer': typeof ApiWriterRoute
   '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
+  '/~oauth/initiate': typeof Char126oauthInitiateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/api/writer': typeof ApiWriterRoute
   '/editeur/$id': typeof EditeurIdRoute
   '/facture/$id': typeof FactureIdRoute
+  '/~oauth/initiate': typeof Char126oauthInitiateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/api/writer'
     | '/editeur/$id'
     | '/facture/$id'
+    | '/~oauth/initiate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/api/writer'
     | '/editeur/$id'
     | '/facture/$id'
+    | '/~oauth/initiate'
   id:
     | '__root__'
     | '/'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/api/writer'
     | '/editeur/$id'
     | '/facture/$id'
+    | '/~oauth/initiate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -353,6 +365,7 @@ export interface RootRouteChildren {
   ApiWriterRoute: typeof ApiWriterRoute
   EditeurIdRoute: typeof EditeurIdRoute
   FactureIdRoute: typeof FactureIdRoute
+  Char126oauthInitiateRoute: typeof Char126oauthInitiateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -532,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FactureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/~oauth/initiate': {
+      id: '/~oauth/initiate'
+      path: '/~oauth/initiate'
+      fullPath: '/~oauth/initiate'
+      preLoaderRoute: typeof Char126oauthInitiateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -561,6 +581,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWriterRoute: ApiWriterRoute,
   EditeurIdRoute: EditeurIdRoute,
   FactureIdRoute: FactureIdRoute,
+  Char126oauthInitiateRoute: Char126oauthInitiateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

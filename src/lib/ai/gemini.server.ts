@@ -4,7 +4,6 @@ export type GeminiContent = { role: "user" | "model"; parts: GeminiPart[] };
 
 // Modèles officiels actifs sur Google Gemini v1beta
 const MODELS = [
-  "gemini-3.5-flash-lite",
   "gemini-flash-lite-latest",
   "gemini-flash-latest",
   "gemini-3-flash-preview",

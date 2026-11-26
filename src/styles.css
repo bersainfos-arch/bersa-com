@@ -1108,6 +1108,11 @@ img, video, canvas, iframe, table { max-width: 100%; }
 .home-editor .home-ai-sheet p[style*="line-height"] { line-height: revert-layer; }
 .writer-note-row { font-weight: normal; }
 .writer-internal-bottom { transition: none; }
+.writer-main-toolbar > div { max-width: 100%; }
+.home-editor .home-paper-desk { overflow-anchor: none; scroll-behavior: auto; }
+.writer-margin-layer, .writer-page-margins, .writer-internal-notes { transition: none; overflow-anchor: none; }
+.writer-internal-header:not(:placeholder-shown) { border-bottom-color: var(--paper-border) !important; opacity: 1; }
+.writer-footer-row:has(textarea:not(:placeholder-shown)) { border-top-color: var(--paper-border) !important; opacity: 1; }
 .cv-color-input { padding: 0; overflow: hidden; }
 .cv-color-input::-webkit-color-swatch-wrapper { padding: 0; }
 .cv-color-input::-webkit-color-swatch { border: 0; border-radius: 50%; }

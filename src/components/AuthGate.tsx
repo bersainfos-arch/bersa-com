@@ -251,20 +251,12 @@ function SignForm() {
     if (busy) return;
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-          queryParams: { prompt: "select_account" },
-        },
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
-      if (error) {
-        const result = await lovable.auth.signInWithOAuth("google", {
-          redirect_uri: window.location.origin,
-          extraParams: { prompt: "select_account" },
-        });
-        if (result.error) toast.error("Connexion Google indisponible. Veuillez réessayer.");
-      }
+      if (result.error) { toast.error("Connexion Google indisponible. Veuillez réessayer."); return; }
+      if (!result.redirected) window.location.assign("/");
     } catch {
       toast.error("Connexion Google indisponible. Veuillez réessayer.");
     } finally {

@@ -37,13 +37,17 @@ export function WriterPaper({ editor, settings, setSettings, footnotes, children
     sheet.dispatchEvent(new CustomEvent("writer-layout-change"));
     measure();
     return () => { resize.disconnect(); mutation.disconnect(); };
-  }, [editor, footnotes.length, settings.margin, settings.orientation, settings.format, settings.zoom]);
+  }, [editor, footnotes.length, settings.margin, settings.orientation, settings.format]);
 
   const pageOf = (number: number) => {
     const sheet = editor?.view.dom;
-    const ref = sheet?.querySelector(`[data-fn-num="${number}"]`);
+    const ref = sheet?.querySelector<HTMLElement>(`[data-fn-num="${number}"]`);
     if (!sheet || !ref) return 0;
-    return Math.min(layout.pages - 1, Math.max(0, Math.floor((ref.getBoundingClientRect().top - sheet.getBoundingClientRect().top) / ((layout.height + 16) * (sheet.getBoundingClientRect().width / sheet.offsetWidth || 1)))));
+    // Reference coordinates are local to the paper: zoom cannot move a note to another page.
+    let top = ref.offsetTop;
+    let parent = ref.offsetParent as HTMLElement | null;
+    while (parent && parent !== sheet && sheet.contains(parent)) { top += parent.offsetTop; parent = parent.offsetParent as HTMLElement | null; }
+    return Math.min(layout.pages - 1, Math.max(0, Math.floor(top / (layout.height + 16))));
   };
 
   useEffect(() => {

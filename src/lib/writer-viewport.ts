@@ -1,7 +1,7 @@
 /** Screen fit changes only presentation, never the saved page margins. */
 export const MOBILE_BASE_SCALE = 0.435;
 
-/** 57 % d'échelle réelle vaut 100 % affiché à l'écran. */
+/** The fitted text width is the 100% reference for this screen. */
 export function scaleToDisplayZoom(scale: number, baseScale = MOBILE_BASE_SCALE): number {
   return Math.round((scale / baseScale) * 100);
 }
@@ -25,11 +25,9 @@ export function writerTextFit(
   const padding = 794 * 0.1189 * multiplier;
   const availableWidth = Math.max(280, width - 16);
 
-  // 55 % à 57 % par défaut sur mobile, ajusté à la largeur sans déborder
-  const fit = availableWidth / pageWidth;
-  const scale = availableWidth < 640 ? Math.min(0.55, fit) : Math.min(1, fit);
+  const scale = Math.min(1, availableWidth / (pageWidth - padding * 2));
 
-  return { scale, scrollLeft: 0, pageWidth, padding };
+  return { scale, scrollLeft: Math.max(0, padding * scale - 8), pageWidth, padding };
 }
 
 /** Displayed line spacing is calibrated to the requested reading reference. */
