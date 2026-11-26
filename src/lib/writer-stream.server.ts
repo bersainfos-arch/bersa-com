@@ -84,7 +84,6 @@ export async function handleWriterStream(request: Request) {
     }
 
     const pure = data.action === "translate" || data.action === "correct";      
-    const qRes = await client.rpc("consume_ai_quota");
     if (qRes.error || !qRes.data) return new Response("Quota momentanément indisponible. Réessayez.", { status: 503 });
 
     const quota = qRes.data as { ok: boolean; used: number; limit: number };
