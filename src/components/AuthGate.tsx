@@ -259,7 +259,7 @@ function SignForm() {
   }
 
   // Managed Google flow also establishes the existing account session.
-    async function google() {
+      async function google() {
     if (busy) return;
     setBusy(true);
     try {
@@ -267,14 +267,17 @@ function SignForm() {
         redirect_uri: window.location.origin,
         extraParams: { prompt: "select_account" },
       });
-      if (result.error) { toast.error("Connexion Google indisponible. Veuillez réessayer."); return; }
+      if (result.error) {
+        toast.error("Connexion Google indisponible. Veuillez réessayer.");
+        return;
+      }
       if (!result.redirected) window.location.assign("/");
     } catch {
       toast.error("Connexion Google indisponible. Veuillez réessayer.");
     } finally {
       setBusy(false);
     }
-    }
+  }
 
   async function forgot() {
     const raw = window.prompt("Votre adresse e-mail pour réinitialiser votre mot de passe :")?.trim();
