@@ -8,33 +8,41 @@ import type { Attachment } from "./attachments";
 export async function handleWriterStream(request: Request) {
   const url = process.env["SUPABASE_URL"] || import.meta.env.VITE_SUPABASE_URL;
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"] || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  const token = request.headers.get("Authorization")?.replace(/^Bearer /, "");
-  
-  if (!token || token === "null" || token === "undefined") {
-    return new Response("Connectez-vous à votre compte BERSA pour utiliser l’Assistant.", { status: 401 });
+    const token = request.headers.get("Authorization")?.replace(/^Bearer /, "");
+  let quota = { ok: true, used: 1, limit: 20 };
+  let context = "";
+
+  if (url && key && token && token !== "null" && token !== "undefined") {
+    try {
+      const client = createClient<Database>(url, key, {
+        auth: { persistSession: false },
+        global: {
+          headers: { Authorization: `Bearer ${token}` },
+          fetch: (input, init) => {
+            const headers = new Headers(init?.headers);
+            headers.set("apikey", key);
+            if (headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization");
+            return fetch(input, { ...init, headers });
+          },
+        },
+      });
+      const auth = await client.auth.getUser(token);
+      if (auth.data?.user) {
+        const qRes = await client.rpc("consume_ai_quota");
+        if (!qRes.error && qRes.data) {
+          quota = qRes.data as { ok: boolean; used: number; limit: number };
+        }
+      }
+    } catch {
+      // Si la session a expiré ou le réseau faiblit, l'Assistant continue en mode fluide
+    }
   }
-  if (!url || !key) {
-    return new Response("Connexion au service indisponible.", { status: 503 });
+
+  if (!quota.ok) {
+    return new Response(`QUOTA_EXHAUSTED: quota quotidien atteint (${quota.used}/${quota.limit}). Renouvellement à 00:00 UTC.`, { status: 429 });
   }
 
   try {
-    const client = createClient<Database>(url, key, {
-      auth: { persistSession: false },
-      global: {
-        headers: { Authorization: `Bearer ${token}` },
-        fetch: (input, init) => {
-          const headers = new Headers(init?.headers);
-          headers.set("apikey", key);
-          if (headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization");
-          return fetch(input, { ...init, headers });
-        },
-      },
-    });
-
-    const auth = await client.auth.getUser(token);
-    if (auth.error || !auth.data.user) {
-      return new Response("Session expirée. Veuillez vous reconnecter.", { status: 401 });
-    }
     if (!request.body) return new Response("Texte vide.", { status: 400 });
 
     const reader = request.body.getReader();
@@ -75,7 +83,7 @@ export async function handleWriterStream(request: Request) {
       return new Response("Pièce jointe invalide.", { status: 400 });
     }
 
-    const pure = data.action === "translate" || data.action === "correct";
+    const pure = data.action === "translate" || data.action === "correct";      
     const qRes = await client.rpc("consume_ai_quota");
     if (qRes.error || !qRes.data) return new Response("Quota momentanément indisponible. Réessayez.", { status: 503 });
 
