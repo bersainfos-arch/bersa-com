@@ -577,13 +577,14 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     setShowResultCard(true);
     setLastPrompt(text);
     setPromptInput("");
-
-    try {
+      try {
       let { data } = await supabase.auth.getSession();
-      if (data.session?.expires_at && data.session.expires_at * 1000 < Date.now() + 60000) {
-        data = (await supabase.auth.refreshSession()).data;
+      let session = data.session;
+      if (!session || (session.expires_at && session.expires_at * 1000 < Date.now() + 300000)) {
+        const refreshed = await supabase.auth.refreshSession();
+        if (refreshed.data.session) session = refreshed.data.session;
       }
-      const token = data.session?.access_token;
+      let token = session?.access_token;
       if (!token) throw new Error("Connectez-vous à votre compte BERSA pour utiliser l’Assistant.");
 
       setHistory(prev => [
@@ -596,19 +597,35 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
         ...prev.slice(0, 9),
       ]);
 
-      const reqHeaders: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
+      const reqHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
 
-      const response = await fetch("/api/writer", {
+      let response = await fetch("/api/writer", {
         method: "POST",
         headers: reqHeaders,
         body: JSON.stringify({ action: chosen, text, attachments: files.filter(f => f.type !== "other") }),
       });
 
+      // Si le jeton avait expiré pendant l'attente, renouvellement immédiat et nouvel essai automatique
+      if (response.status === 401) {
+        const refreshed = await supabase.auth.refreshSession();
+        if (refreshed.data.session?.access_token) {
+          token = refreshed.data.session.access_token;
+          reqHeaders["Authorization"] = `Bearer ${token}`;
+          response = await fetch("/api/writer", {
+            method: "POST",
+            headers: reqHeaders,
+            body: JSON.stringify({ action: chosen, text, attachments: files.filter(f => f.type !== "other") }),
+          });
+        }
+      }
+
       if (!response.ok) {
         const errText = await response.text();
         throw new Error(errText);
-      }
+      }          
       if (!response.body) throw new Error("Réponse vide de l'Assistant.");
 
       let reply = "", failure = "";
