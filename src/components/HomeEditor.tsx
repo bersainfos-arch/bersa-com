@@ -323,25 +323,6 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
       return next * 100;
     };
 
-  // Maintien automatique de la session lors du retour sur l’application
-  useEffect(() => {
-    const keepSessionAlive = () => {
-      if (document.visibilityState === "visible") {
-        void supabase.auth.getSession().then(({ data }) => {
-          if (data.session?.expires_at && data.session.expires_at * 1000 < Date.now() + 300000) {
-            void supabase.auth.refreshSession();
-          }
-        });
-      }
-    };
-    window.addEventListener("focus", keepSessionAlive);
-    document.addEventListener("visibilitychange", keepSessionAlive);
-    return () => {
-      window.removeEventListener("focus", keepSessionAlive);
-      document.removeEventListener("visibilitychange", keepSessionAlive);
-    };
-  }, []);
-    
     const dist = (t: TouchList) => { const a = t.item(0), b = t.item(1); return a && b ? Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) : 0; };
     const onStart = (e: TouchEvent) => { 
       if (e.touches.length === 2) { 
@@ -381,6 +362,24 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
     desk.addEventListener("wheel", onWheel, { passive: false });
     return () => { desk.removeEventListener("touchstart", onStart); desk.removeEventListener("touchmove", onMove); desk.removeEventListener("touchend", onEnd); desk.removeEventListener("touchcancel", onEnd); desk.removeEventListener("wheel", onWheel); };
   }, [editor, deskEl]);
+  // Maintien automatique de la session lors du retour sur l’application
+  useEffect(() => {
+    const keepSessionAlive = () => {
+      if (document.visibilityState === "visible") {
+        void supabase.auth.getSession().then(({ data }) => {
+          if (data.session?.expires_at && data.session.expires_at * 1000 < Date.now() + 300000) {
+            void supabase.auth.refreshSession();
+          }
+        });
+      }
+    };
+    window.addEventListener("focus", keepSessionAlive);
+    document.addEventListener("visibilitychange", keepSessionAlive);
+    return () => {
+      window.removeEventListener("focus", keepSessionAlive);
+      document.removeEventListener("visibilitychange", keepSessionAlive);
+    };
+  }, []);
   const layoutOf = () => ({ headerText: settings.headerText, footerText: settings.footerText, pageNumbers: !!settings.pageNumbers, differentFirstPage: !!settings.differentFirstPage, margin: settings.margin, orientation: settings.orientation, pageNumberAlign: settings.pageNumberAlign, pageNumberFormat: settings.pageNumberFormat });
   const loadWithLayout = (raw: string) => {
     if (!editor) return;
