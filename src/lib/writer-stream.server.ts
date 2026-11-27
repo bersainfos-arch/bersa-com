@@ -6,36 +6,42 @@ import { ACTIONS } from "./writer.functions";
 import type { Attachment } from "./attachments";
 
 export async function handleWriterStream(request: Request) {
-  const url = process.env["SUPABASE_URL"] || import.meta.env.VITE_SUPABASE_URL;
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"] || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    const token = request.headers.get("Authorization")?.replace(/^Bearer /, "");
-  let quota = { ok: true, used: 1, limit: 20 };
-  let context = "";
+  const env = import.meta.env as Record<string, string | undefined>;
+  const url = process.env["SUPABASE_URL"] || env["VITE_SUPABASE_URL"];
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"] || env["VITE_SUPABASE_PUBLISHABLE_KEY"];
+  const raw = request.headers.get("Authorization")?.replace(/^Bearer /, "").trim();
+  const token = raw && raw !== "null" && raw !== "undefined" ? raw : "";
+  // The daily quota is enforced server-side; the browser refreshes its session before each request.
+  if (!token || !url || !key) {
+    return new Response("Session expirée. Veuillez vous reconnecter.", { status: 401 });
+  }
 
-  if (url && key && token && token !== "null" && token !== "undefined") {
-    try {
-      const client = createClient<Database>(url, key, {
-        auth: { persistSession: false },
-        global: {
-          headers: { Authorization: `Bearer ${token}` },
-          fetch: (input, init) => {
-            const headers = new Headers(init?.headers);
-            headers.set("apikey", key);
-            if (headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization");
-            return fetch(input, { ...init, headers });
-          },
-        },
-      });
-      const auth = await client.auth.getUser(token);
-      if (auth.data?.user) {
-        const qRes = await client.rpc("consume_ai_quota");
-        if (!qRes.error && qRes.data) {
-          quota = qRes.data as { ok: boolean; used: number; limit: number };
-        }
-      }
-    } catch {
-      // Si la session a expiré ou le réseau faiblit, l'Assistant continue en mode fluide
+  const client = createClient<Database>(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      headers: { Authorization: `Bearer ${token}` },
+      fetch: (input, init) => {
+        const headers = new Headers(init?.headers);
+        headers.set("apikey", key);
+        if (headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization");
+        return fetch(input, { ...init, headers });
+      },
+    },
+  });
+
+  let quota: { ok: boolean; used: number; limit: number };
+  try {
+    const auth = await client.auth.getUser(token);
+    if (auth.error || !auth.data?.user) {
+      return new Response("Session expirée. Veuillez vous reconnecter.", { status: 401 });
     }
+    const qRes = await client.rpc("consume_ai_quota");
+    if (qRes.error || !qRes.data) {
+      return new Response("Quota momentanément indisponible. Réessayez.", { status: 503 });
+    }
+    quota = qRes.data as { ok: boolean; used: number; limit: number };
+  } catch {
+    return new Response("Quota momentanément indisponible. Réessayez.", { status: 503 });
   }
 
   if (!quota.ok) {
@@ -84,13 +90,6 @@ export async function handleWriterStream(request: Request) {
     }
 
     const pure = data.action === "translate" || data.action === "correct";      
-    if (qRes.error || !qRes.data) return new Response("Quota momentanément indisponible. Réessayez.", { status: 503 });
-
-    const quota = qRes.data as { ok: boolean; used: number; limit: number };
-    if (!quota.ok) {
-      return new Response(`QUOTA_EXHAUSTED: quota quotidien atteint (${quota.used}/${quota.limit}). Renouvellement à 00:00 UTC.`, { status: 429 });
-    }
-
     const context = pure ? "" : await knowledgeContext(client, data.text);
     const content: GeminiPart[] = [
       {
@@ -153,5 +152,4 @@ export async function handleWriterStream(request: Request) {
       status: e instanceof GeminiError ? e.status : 400,
     });
   }
-                                          }
-     
+}
