@@ -93,4 +93,6 @@ export function toggleFavoriteCreation(id: string): boolean {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
   return item.isFavorite;
 }
+// Alias de compatibilité pour tous les formulaires
+export const saveUserCreation = saveCreation;
 
