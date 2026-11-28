@@ -51,14 +51,6 @@ function RedactionRouteComponent() {
   if (view === "editor") {
     return (
       <div className="relative">
-        <div className="fixed top-3 left-3 z-50">
-          <button
-            onClick={() => setView("hub")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white text-xs font-semibold backdrop-blur-md shadow-md border border-white/20 transition-all"
-          >
-            <span>❮ Centre de création</span>
-          </button>
-        </div>
         <HomeEditor />
       </div>
     );

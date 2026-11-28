@@ -58,9 +58,10 @@ import { readAttachment, type Attachment } from "@/lib/attachments";
 import { recordWav } from "@/lib/record-wav";
 import { Footnote, collectFootnotes, renumberFootnotes, updateFootnote, deleteFootnote, type FootnoteItem } from "@/lib/footnotes";
 import { createParser } from "eventsource-parser";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 const PageBreak = Node.create({ name: "pageBreak", group: "block", atom: true, parseHTML: () => [{ tag: "div.page-break" }], renderHTML: () => ["div", { class: "page-break" }] });
-const paragraphs = (text: string) => text.split(/\n/).map(line => ({ type: "paragraph", ...(line ? { content: [{ type: "text", text: line }] } : {}) }));
+const paragraphs = (text: string) => stripMarkdown(text).split(/\n/).map(line => ({ type: "paragraph", ...(line ? { content: [{ type: "text", text: line }] } : {}) }));
 
 export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
   const nav = useNavigate();
@@ -661,7 +662,7 @@ export function HomeEditor({ embedded = false }: { embedded?: boolean }) {
             if (item.type === "quota") setQuota({ used: item.used, limit: item.limit });
             if (item.type === "delta") {
               reply += item.text;
-              setGeneratedResponse(reply);
+              setGeneratedResponse(stripMarkdown(reply));
             }
             if (item.type === "error") failure = item.message;
           } catch {}
