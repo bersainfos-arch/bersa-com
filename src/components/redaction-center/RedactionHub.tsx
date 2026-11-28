@@ -9,18 +9,21 @@ import {
   BookMarked,
   FileSpreadsheet,
   ArrowRight,
-  Sparkles,
-  Layers,
+  ChevronLeft,
   ChevronRight,
+  Sparkles,
   Award,
-  Scroll,
   Mail,
-  Briefcase,
-  Building2,
-  Calendar,
+  Scale,
+  Receipt,
+  Tag,
+  Newspaper,
+  Image as ImageIcon,
+  BookCheck,
+  CalendarDays,
+  FileCheck2,
 } from "lucide-react";
-import { Link, useNavigate } from "@tanstack/react-router";
-
+import { useNavigate } from "@tanstack/react-router";
 import type {
   ModelItem,
   GenerationFormData,
@@ -34,50 +37,30 @@ interface RedactionHubProps {
   onOpenGraphicEditor?: (model: ModelItem) => void;
 }
 
-// Données des diaporamas visuels haute définition
-const CV_SLIDES = [
-  {
-    title: "CV Exécutif",
-    tag: "Profil Moderne",
-    gradient: "from-blue-900 via-indigo-900 to-slate-900",
-    accent: "#0B2863",
-    layout: "modern",
-  },
-  {
-    title: "CV Académique",
-    tag: "Recherche & Enseignement",
-    gradient: "from-slate-800 to-slate-900",
-    accent: "#1e293b",
-    layout: "academic",
-  },
-  {
-    title: "CV Créatif",
-    tag: "Design & Communication",
-    gradient: "from-blue-800 via-teal-900 to-slate-900",
-    accent: "#0d9488",
-    layout: "creative",
-  },
+// Sous-modèles d'invitations
+const INVITATION_MODELS = [
+  { id: "inv_mariage", title: "Mariage d'Or", type: "Mariage", date: "Célébration", bg: "from-amber-100 via-rose-50 to-amber-50", border: "border-amber-300" },
+  { id: "inv_anniv", title: "Anniversaire Gala", type: "Anniversaire", date: "Jubilé", bg: "from-indigo-950 via-slate-900 to-blue-950", border: "border-blue-400/30", dark: true },
+  { id: "inv_fete", title: "Fête & Réception", type: "Soirée privée", date: "Soirée", bg: "from-purple-950 via-slate-900 to-indigo-950", border: "border-purple-400/30", dark: true },
+  { id: "inv_pro", title: "Conférence Prestige", type: "Officielle", date: "Inauguration", bg: "from-slate-900 via-blue-950 to-slate-900", border: "border-amber-400/40", dark: true },
 ];
 
-const POSTER_SLIDES = [
-  {
-    title: "Conférence & Colloque",
-    tag: "Format Affiche Pro",
-    bg: "bg-gradient-to-br from-indigo-950 via-blue-900 to-slate-950",
-    label: "GRAND SÉMINAIRE BERSA",
-  },
-  {
-    title: "Atelier & Formation",
-    tag: "Flyer A5 Communication",
-    bg: "bg-gradient-to-br from-blue-950 via-slate-900 to-cyan-950",
-    label: "MASTERCLASS RÉDACTION",
-  },
-  {
-    title: "Annonce & Publication",
-    tag: "Visuel Réseaux & Affichage",
-    bg: "bg-gradient-to-br from-slate-950 via-indigo-950 to-blue-900",
-    label: "LANCEMENT OFFICIEL",
-  },
+// Sous-modèles d'affiches
+const POSTER_MODELS = [
+  { id: "post_conf", title: "Conférence & Colloque", theme: "GRAND FORUM BERSA", date: "28 NOVEMBRE", bg: "from-blue-950 via-indigo-900 to-slate-950", tag: "ACADÉMIQUE" },
+  { id: "post_form", title: "Formation & Masterclass", theme: "ATELIER PRATIQUE", date: "SESSION INTENSIVE", bg: "from-slate-950 via-blue-900 to-cyan-950", tag: "FORMATION" },
+  { id: "post_recrut", title: "Recrutement & Emploi", theme: "TALENTS D'AVENIR", date: "POSTULEZ MAINTENANT", bg: "from-emerald-950 via-slate-900 to-teal-950", tag: "CARRIÈRE" },
+  { id: "post_anniv", title: "Soirée d'Anniversaire", theme: "GRANDE CÉLÉBRATION", date: "ÉVÉNEMENT SPÉCIAL", bg: "from-amber-950 via-purple-950 to-slate-950", tag: "FESTIF" },
+];
+
+// Types de documents académiques détaillés
+const ACADEMIC_TYPES = [
+  { title: "Mémoire de fin d'études", desc: "Licence, Master & Ingéniorat", icon: GraduationCap, color: "bg-blue-600 text-white", border: "border-blue-200" },
+  { title: "Thèse de doctorat", desc: "Recherche doctorale approfondie", icon: Award, color: "bg-indigo-700 text-white", border: "border-indigo-200" },
+  { title: "Article scientifique", desc: "Format IMRAD pour revues indexées", icon: BookOpen, color: "bg-emerald-600 text-white", border: "border-emerald-200" },
+  { title: "Ebook / Livre", desc: "Mise en page éditoriale et chapitrage", icon: BookMarked, color: "bg-purple-600 text-white", border: "border-purple-200" },
+  { title: "Rapport académique", desc: "Projet tuteuré & stage", icon: FileSpreadsheet, color: "bg-sky-600 text-white", border: "border-sky-200" },
+  { title: "Projet de recherche", desc: "Problématique & méthodologie", icon: FileText, color: "bg-amber-600 text-white", border: "border-amber-200" },
 ];
 
 export const RedactionHub: React.FC<RedactionHubProps> = ({
@@ -87,27 +70,10 @@ export const RedactionHub: React.FC<RedactionHubProps> = ({
 }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [cvSlideIndex, setCvSlideIndex] = useState(0);
-  const [posterSlideIndex, setPosterSlideIndex] = useState(0);
   const [selectedModelForModal, setSelectedModelForModal] = useState<ModelItem | null>(null);
+  const [showAcademicPicker, setShowAcademicPicker] = useState(false);
 
-  // Rotation automatique douce des diaporamas (CV et Affiches)
-  useEffect(() => {
-    const cvTimer = setInterval(() => {
-      setCvSlideIndex((prev) => (prev + 1) % CV_SLIDES.length);
-    }, 3800);
-
-    const posterTimer = setInterval(() => {
-      setPosterSlideIndex((prev) => (prev + 1) % POSTER_SLIDES.length);
-    }, 4400);
-
-    return () => {
-      clearInterval(cvTimer);
-      clearInterval(posterTimer);
-    };
-  }, []);
-
-  // Filtrage interactif selon le moteur de recherche
+  // Filtrage dynamique
   const isSearching = searchQuery.trim().length > 0;
   const filteredModels = useMemo(() => {
     if (!isSearching) return ALL_MODELS;
@@ -121,55 +87,29 @@ export const RedactionHub: React.FC<RedactionHubProps> = ({
     );
   }, [searchQuery, isSearching]);
 
-  // Clic sur un type de rédaction académique
-  const handleOpenAcademicCategory = (docType: string) => {
-    const match = ALL_MODELS.find(
-      (m) =>
-        m.title.toLowerCase().includes(docType.toLowerCase()) ||
-        m.category === "academique"
-    );
+  const handleOpenModelById = (id: string, fallbackCategory?: string) => {
+    const match = ALL_MODELS.find((m) => m.id === id) ||
+      (fallbackCategory ? ALL_MODELS.find((m) => m.category === fallbackCategory) : null) ||
+      ALL_MODELS[0];
     if (match) setSelectedModelForModal(match);
-    else onOpenBlank();
-  };
-
-  // Clic sur un modèle d'affiche ou flyer
-  const handleOpenPoster = () => {
-    const posterModel = ALL_MODELS.find((m) => m.category === "affiches") || {
-      id: "affiche_conf",
-      title: "Affiche Officielle BERSA",
-      subtitle: "Format événementiel",
-      category: "affiches" as const,
-      description: "Affiche haute définition pour annonce et communication.",
-      defaultPrompt: "Créer une affiche professionnelle",
-      badge: "OFFICIEL",
-    };
-    if (onOpenGraphicEditor) onOpenGraphicEditor(posterModel);
-    else setSelectedModelForModal(posterModel);
-  };
-
-  // Clic sur invitation
-  const handleOpenInvitation = () => {
-    const inviteModel = ALL_MODELS.find((m) => m.category === "invitations") || {
-      id: "invitation_pro",
-      title: "Invitation Officielle",
-      subtitle: "Cérémonie & Événement",
-      category: "invitations" as const,
-      description: "Carton d'invitation avec dorures et typographie soignée.",
-      defaultPrompt: "Rédiger une invitation formelle",
-      badge: "PREMIUM",
-    };
-    if (onOpenGraphicEditor) onOpenGraphicEditor(inviteModel);
-    else setSelectedModelForModal(inviteModel);
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F8FA] text-slate-900 pb-20">
-      <div className="max-w-3xl mx-auto px-4 pt-4 sm:pt-6 space-y-5">
-        
-        {/* RANG 1 : Moteur de recherche supérieur */}
-        <div className="relative">
-          <div className="flex items-center bg-white rounded-full border border-slate-200/90 shadow-sm px-4 py-2.5 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-            <Search className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
+    <div className="min-h-screen bg-[#F6F8FA] text-slate-900 pb-24">
+      <div className="max-w-3xl mx-auto px-3.5 pt-3 sm:pt-5 space-y-3.5">
+
+        {/* RANG SUPÉRIEUR : Bouton retour ❮ + Moteur de recherche */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate({ to: "/" })}
+            aria-label="Retour à l'accueil"
+            className="w-10 h-10 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition-colors flex-shrink-0"
+          >
+            <ChevronLeft className="w-5 h-5 stroke-[2.5]" />
+          </button>
+
+          <div className="flex-1 flex items-center bg-white rounded-full border border-slate-200/90 shadow-sm px-3.5 py-2 focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+            <Search className="w-4 h-4 text-blue-600 mr-2.5 flex-shrink-0" />
             <input
               type="text"
               value={searchQuery}
@@ -180,7 +120,7 @@ export const RedactionHub: React.FC<RedactionHubProps> = ({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="text-xs text-slate-400 hover:text-slate-600 px-1.5"
+                className="text-xs text-slate-400 hover:text-slate-600 px-1"
               >
                 ✕
               </button>
@@ -188,356 +128,338 @@ export const RedactionHub: React.FC<RedactionHubProps> = ({
           </div>
         </div>
 
-        {/* RANG 2 : Deux panneaux principaux côte à côte */}
-        {!isSearching && (
-          <div className="grid grid-cols-2 gap-3.5">
-            {/* Panneau 1 : Page blanche avec bouton + */}
-            <div
-              onClick={onOpenBlank}
-              className="group bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <Plus className="w-5 h-5 stroke-[2.5]" />
+        {/* MODAL / VUE DÉTAILLÉE : Tous les types de rédaction */}
+        {showAcademicPicker && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto p-4 sm:p-5 shadow-2xl space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                    <PenSquare className="w-4 h-4" />
                   </div>
-                  <h2 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
-                    Créer un nouveau document
-                  </h2>
-                </div>
-
-                {/* Feuille A4 miniature réaliste avec ombre */}
-                <div className="w-full aspect-[4/3] bg-gradient-to-b from-white to-slate-50 border border-slate-200 rounded-md shadow-sm p-2 flex flex-col justify-between my-2 group-hover:shadow-md transition-shadow">
-                  <div className="space-y-1">
-                    <div className="h-1.5 w-1/3 bg-slate-200 rounded" />
-                    <div className="h-1 w-full bg-slate-100 rounded" />
-                    <div className="h-1 w-4/5 bg-slate-100 rounded" />
-                    <div className="h-1 w-2/3 bg-slate-100 rounded" />
-                  </div>
-                  <div className="flex justify-end">
-                    <span className="text-[9px] font-mono text-slate-300">A4</span>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Documents à rédiger</h3>
+                    <p className="text-[11px] text-slate-500">Sélectionnez le type pour ouvrir le formulaire</p>
                   </div>
                 </div>
+                <button
+                  onClick={() => setShowAcademicPicker(false)}
+                  className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center text-xs font-bold"
+                >
+                  ✕
+                </button>
               </div>
 
-              <p className="text-[11px] text-slate-500 leading-tight mt-1">
-                Commencez à partir d'une page blanche pour rédiger votre document
-              </p>
-            </div>
-
-            {/* Panneau 2 : Rédiger avec liste d'éléments */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-sm flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-2.5">
-                  <PenSquare className="w-4 h-4 text-blue-600" />
-                  <h2 className="text-xs sm:text-sm font-bold text-slate-900">Rédiger</h2>
-                </div>
-
-                <div className="space-y-1.5">
-                  {[
-                    { label: "Mémoire", icon: GraduationCap },
-                    { label: "Thèses", icon: BookMarked },
-                    { label: "Article", icon: FileText },
-                    { label: "Ebook / Livres", icon: BookOpen },
-                    { label: "Rapport académique", icon: FileSpreadsheet },
-                  ].map((item, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleOpenAcademicCategory(item.label)}
-                      className="w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                    >
-                      <item.icon className="w-3.5 h-3.5 text-blue-500/80 flex-shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {ACADEMIC_TYPES.map((t, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      setShowAcademicPicker(false);
+                      handleOpenModelById("memoire_fin_etudes", "personnalises");
+                    }}
+                    className={`flex items-start gap-3 p-3 rounded-xl border ${t.border} bg-white hover:bg-slate-50 transition-all text-left shadow-sm group`}
+                  >
+                    <div className={`w-9 h-9 rounded-lg ${t.color} flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
+                      <t.icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-bold text-slate-900 truncate">{t.title}</div>
+                      <div className="text-[10px] text-slate-500 leading-tight mt-0.5">{t.desc}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
-
-              <button
-                onClick={() => setSearchQuery("académique")}
-                className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                <span>Voir tous</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
             </div>
           </div>
         )}
 
-                {/* RANG 3 & 4 : Section Modèles suggérés en 2 colonnes */}
-        {!isSearching ? (
-          <div className="space-y-3.5 pt-1">
-            {/* Titre de section */}
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-base font-extrabold text-slate-900 tracking-tight">
-                Modèles suggérés
-              </h3>
-              <button
-                onClick={() => setSearchQuery("modèle")}
-                className="text-xs font-semibold text-blue-600 hover:text-blue-800"
-              >
-                Voir tout
-              </button>
+        {/* RANG 1 : Document blanc (Feuille A4 remplie) & Panneau Rédiger */}
+        {!isSearching && (
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Panneau 1 : Page A4 complète remplie */}
+            <div
+              onClick={onOpenBlank}
+              className="group bg-white rounded-xl border border-slate-200/90 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
+            >
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900 leading-tight truncate">
+                  Créer un nouveau document
+                </h2>
+              </div>
+
+              {/* Rendu réaliste d'une feuille A4 entièrement rédigée */}
+              <div className="w-full aspect-[4/3] bg-white border border-slate-300 rounded-md shadow-sm p-2 flex flex-col justify-between group-hover:shadow transition-shadow">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                    <div className="h-1.5 w-1/3 bg-blue-900 rounded" />
+                    <div className="h-1 w-8 bg-slate-300 rounded" />
+                  </div>
+                  <div className="h-2 w-3/4 bg-slate-800 rounded mt-1" />
+                  <div className="space-y-0.5 pt-0.5">
+                    <div className="h-1 w-full bg-slate-200 rounded" />
+                    <div className="h-1 w-full bg-slate-200 rounded" />
+                    <div className="h-1 w-5/6 bg-slate-200 rounded" />
+                  </div>
+                  <div className="space-y-0.5 pt-0.5">
+                    <div className="h-1 w-full bg-slate-200 rounded" />
+                    <div className="h-1 w-4/5 bg-slate-200 rounded" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-[8px] text-slate-400">
+                  <span>BERSA WRITER</span>
+                  <span>Page 1 / 1</span>
+                </div>
+              </div>
             </div>
 
-            {/* RANG 3 : CV en diaporama (gauche) & Invitation Adobe (droite) */}
-            <div className="grid grid-cols-2 gap-3.5">
-              {/* Panneau CV en diaporama */}
+            {/* Panneau 2 : Rédiger — ouvre les types de documents */}
+            <div
+              onClick={() => setShowAcademicPicker(true)}
+              className="group bg-white rounded-xl border border-slate-200/90 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <PenSquare className="w-4 h-4 text-blue-600" />
+                    <h2 className="text-xs sm:text-sm font-bold text-slate-900">Rédiger</h2>
+                  </div>
+                  <span className="text-[10px] text-blue-600 font-bold group-hover:underline">Ouvrir</span>
+                </div>
+
+                <div className="space-y-1">
+                  {ACADEMIC_TYPES.slice(0, 4).map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 px-1.5 py-1 rounded-md text-left text-[11px] font-medium text-slate-700 bg-slate-50/70"
+                    >
+                      <item.icon className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                      <span className="truncate">{item.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] font-semibold text-blue-600">
+                <span>Mémoire, Thèse, Article...</span>
+                <ArrowRight className="w-3 h-3" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION GALERIE DE MODÈLES AVEC DÉFILEMENT HORIZONTAL */}
+        {!isSearching && (
+          <div className="space-y-4 pt-1">
+
+            {/* RANG CV : Diaporama & Modèles réels */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">CV Professionnels</h3>
+                <button
+                  onClick={() => navigate({ to: "/cv-studio" })}
+                  className="text-[11px] font-semibold text-blue-600"
+                >
+                  Tous les CV
+                </button>
+              </div>
+
               <div
                 onClick={() => navigate({ to: "/cv-studio" })}
-                className="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
+                className="bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-sm hover:shadow-md cursor-pointer transition-all"
               >
-                {/* Aperçu diaporama CV */}
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-slate-200/60 bg-slate-900 p-3 text-white flex flex-col justify-between select-none">
-                  {/* Effet dégradé dynamique du slide actif */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${CV_SLIDES[cvSlideIndex]?.gradient} transition-all duration-700`} />
-                  
-                  {/* Miniature réaliste de CV */}
-                  <div className="relative z-10 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-[10px] font-bold">
+                <div className="w-full aspect-[21/9] sm:aspect-[3/1] rounded-lg overflow-hidden relative bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 p-3 text-white flex items-center justify-between shadow-inner">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full border-2 border-amber-300 bg-slate-800 flex items-center justify-center text-lg font-bold">
                       👤
                     </div>
                     <div>
-                      <div className="h-1.5 w-12 bg-white/90 rounded" />
-                      <div className="h-1 w-16 bg-white/50 rounded mt-0.5" />
+                      <div className="text-xs font-bold text-white tracking-wide">CURRICULUM VITAE MODERNE</div>
+                      <div className="text-[10px] text-amber-300">Expérience, Compétences & Formation</div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <span className="h-1 w-8 bg-blue-400 rounded-full" />
+                        <span className="h-1 w-12 bg-indigo-400 rounded-full" />
+                        <span className="h-1 w-6 bg-amber-400 rounded-full" />
+                      </div>
                     </div>
                   </div>
-
-                  {/* Lignes de compétences */}
-                  <div className="relative z-10 space-y-1 my-auto">
-                    <div className="h-1 w-full bg-white/30 rounded" />
-                    <div className="h-1 w-4/5 bg-white/20 rounded" />
-                    <div className="h-1 w-3/5 bg-white/20 rounded" />
+                  <div className="text-right">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-600 text-white">
+                      A4 RECOMMANDÉ
+                    </span>
                   </div>
-
-                  {/* Étiquette du modèle actif */}
-                  <div className="relative z-10 flex items-center justify-between text-[9px] font-semibold tracking-wide uppercase text-white/80">
-                    <span>{CV_SLIDES[cvSlideIndex]?.tag}</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  </div>
-                </div>
-
-                <div className="mt-2.5 px-0.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">CV</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Curriculum vitae</p>
-                </div>
-              </div>
-
-              {/* Panneau Invitation (Modèle propre style Adobe) */}
-              <div
-                onClick={handleOpenInvitation}
-                className="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
-              >
-                {/* Aperçu carton d'invitation raffiné */}
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-amber-200/60 bg-gradient-to-br from-[#FFFDF9] via-[#FAF6ED] to-[#F3ECE0] p-3 flex flex-col justify-between text-center select-none">
-                  {/* Motif doré raffiné */}
-                  <div className="border border-amber-700/20 rounded-lg p-2 h-full flex flex-col justify-between">
-                    <div className="text-[8px] tracking-widest text-amber-800 uppercase font-serif font-bold">
-                      INVITATION OFFICIELLE
-                    </div>
-                    <div className="my-auto font-serif italic text-[13px] text-slate-800 leading-tight">
-                      Cérémonie & Réception
-                    </div>
-                    <div className="text-[8px] text-amber-700/80 font-mono">
-                      ✦ BERSA PRESTIGE ✦
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-2.5 px-0.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">Invitation</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Invitation événement</p>
                 </div>
               </div>
             </div>
 
-            {/* RANG 4 : Affiche en photo diaporama (gauche) & Contrat / Documents (droite) */}
-            <div className="grid grid-cols-2 gap-3.5">
-              {/* Panneau Affiche en diaporama (Style Adobe Express) */}
-              <div
-                onClick={handleOpenPoster}
-                className="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
-              >
-                {/* Aperçu affiche dynamique */}
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-slate-800 p-3 text-white flex flex-col justify-between select-none">
-                  <div className={`absolute inset-0 ${POSTER_SLIDES[posterSlideIndex]?.bg} transition-all duration-700`} />
-                  
-                  <div className="relative z-10 flex items-center justify-between">
-                    <span className="text-[8px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded bg-blue-500/80 text-white">
-                      ADOBE STYLE
-                    </span>
-                    <Sparkles className="w-3 h-3 text-amber-300" />
-                  </div>
-
-                  <div className="relative z-10 my-auto text-center">
-                    <div className="text-[11px] font-extrabold uppercase tracking-tight text-white leading-tight">
-                      {POSTER_SLIDES[posterSlideIndex]?.label}
-                    </div>
-                    <div className="text-[8px] text-white/70 mt-0.5">
-                      {POSTER_SLIDES[posterSlideIndex]?.tag}
-                    </div>
-                  </div>
-
-                  <div className="relative z-10 flex justify-center gap-1">
-                    {POSTER_SLIDES.map((_, idx) => (
-                      <div
-                        key={idx}
-                        className={`h-1 rounded-full transition-all ${
-                          idx === posterSlideIndex ? "w-4 bg-white" : "w-1 bg-white/40"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-2.5 px-0.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">Affiche</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Communication visuelle</p>
-                </div>
+            {/* RANG INVITATIONS : Défilement horizontal */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">Invitations Événements</h3>
+                <span className="text-[10px] text-slate-400">Glisser ➔</span>
               </div>
 
-              {/* Panneau Contrat & Documents officiels */}
+              <div className="flex gap-2.5 overflow-x-auto pb-1.5 snap-x scrollbar-none">
+                {INVITATION_MODELS.map((inv) => (
+                  <div
+                    key={inv.id}
+                    onClick={() => handleOpenModelById(inv.id, "invitations")}
+                    className={`flex-shrink-0 w-44 sm:w-48 rounded-xl border ${inv.border} bg-gradient-to-br ${inv.bg} p-2.5 shadow-sm hover:shadow-md cursor-pointer snap-start flex flex-col justify-between aspect-[4/3] select-none`}
+                  >
+                    <div className="border border-amber-400/30 rounded-lg p-2 h-full flex flex-col justify-between text-center">
+                      <div className={`text-[8px] font-serif tracking-widest uppercase ${inv.dark ? "text-amber-300" : "text-amber-800"}`}>
+                        {inv.type}
+                      </div>
+                      <div className={`font-serif italic text-xs leading-tight ${inv.dark ? "text-white" : "text-slate-900"}`}>
+                        {inv.title}
+                      </div>
+                      <div className={`text-[7px] font-mono ${inv.dark ? "text-slate-300" : "text-slate-600"}`}>
+                        ✦ BERSA PRESTIGE ✦
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RANG AFFICHES : Défilement horizontal */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">Affiches & Communication</h3>
+                <span className="text-[10px] text-slate-400">Glisser ➔</span>
+              </div>
+
+              <div className="flex gap-2.5 overflow-x-auto pb-1.5 snap-x scrollbar-none">
+                {POSTER_MODELS.map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => {
+                      const model = ALL_MODELS.find((m) => m.category === "affiches") || ALL_MODELS[0];
+                      if (onOpenGraphicEditor && model) onOpenGraphicEditor(model);
+                      else if (model) setSelectedModelForModal(model);
+                    }}
+                    className={`flex-shrink-0 w-44 sm:w-48 rounded-xl border border-slate-800 bg-gradient-to-br ${post.bg} p-2.5 shadow-sm hover:shadow-md cursor-pointer snap-start flex flex-col justify-between aspect-[4/3] text-white select-none`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[7px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-blue-500">
+                        {post.tag}
+                      </span>
+                      <Sparkles className="w-3 h-3 text-amber-300" />
+                    </div>
+                    <div className="my-auto text-center">
+                      <div className="text-[10px] font-black uppercase tracking-tight leading-tight">
+                        {post.theme}
+                      </div>
+                      <div className="text-[8px] text-white/70 mt-0.5">{post.title}</div>
+                    </div>
+                    <div className="text-[7px] text-center text-amber-300 font-mono">
+                      {post.date}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RANG 4 : Contrat & Lettre */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {/* Contrat avec signature */}
               <div
-                onClick={() => {
-                  const match = ALL_MODELS.find((m) => m.category === "juridique") || ALL_MODELS[0];
-                  if (match) setSelectedModelForModal(match);
-                }}
-                className="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
+                onClick={() => handleOpenModelById("contrat_prestation", "juridique")}
+                className="group bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between transition-all"
               >
-                {/* Aperçu contrat avec cachet bleu officiel */}
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden relative shadow-sm border border-slate-200 bg-white p-3 flex flex-col justify-between select-none">
+                <div className="w-full aspect-[4/3] rounded-lg border border-slate-200 bg-slate-50 p-2 flex flex-col justify-between select-none">
                   <div className="space-y-1">
                     <div className="h-1.5 w-1/2 bg-slate-800 rounded" />
-                    <div className="h-1 w-full bg-slate-100 rounded" />
-                    <div className="h-1 w-5/6 bg-slate-100 rounded" />
-                    <div className="h-1 w-3/4 bg-slate-100 rounded" />
+                    <div className="h-1 w-full bg-slate-200 rounded" />
+                    <div className="h-1 w-5/6 bg-slate-200 rounded" />
                   </div>
-
-                  {/* Sceau et paraphe officiel */}
-                  <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200">
                     <div className="w-6 h-6 rounded-full border-2 border-blue-700 text-blue-700 flex items-center justify-center text-[7px] font-bold">
                       SEAL
                     </div>
-                    <div className="text-[8px] font-mono text-slate-400">Lu et approuvé</div>
+                    <div className="text-[7px] font-mono text-slate-500">✍ Signature</div>
                   </div>
                 </div>
-
-                <div className="mt-2.5 px-0.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">Contrat</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Contrat de prestation</p>
+                <div className="mt-1.5">
+                  <h4 className="text-xs font-bold text-slate-900">Contrat officiel</h4>
+                  <p className="text-[10px] text-slate-500 truncate">Prestation & Bail</p>
                 </div>
               </div>
-            </div>
 
-            {/* RANG 5 : Lettre officielle & Rapport d'activité */}
-            <div className="grid grid-cols-2 gap-3.5">
-              {/* Lettre */}
+              {/* Lettre officielle */}
               <div
-                onClick={() => {
-                  const match = ALL_MODELS.find((m) => m.category === "lettres") || ALL_MODELS[0];
-                  if (match) setSelectedModelForModal(match);
-                }}
-                className="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
+                onClick={() => handleOpenModelById("lettre_motivation", "administratif")}
+                className="group bg-white rounded-xl border border-slate-200/90 p-2.5 shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between transition-all"
               >
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden relative border border-slate-200 bg-[#FCFDFD] p-3 flex flex-col justify-between">
+                <div className="w-full aspect-[4/3] rounded-lg border border-slate-200 bg-white p-2 flex flex-col justify-between select-none">
                   <div className="space-y-1">
-                    <div className="h-1.5 w-1/3 bg-slate-700 rounded" />
+                    <div className="h-1.5 w-1/3 bg-blue-900 rounded" />
                     <div className="h-1 w-full bg-slate-100 rounded" />
                     <div className="h-1 w-4/5 bg-slate-100 rounded" />
                   </div>
                   <div className="flex justify-between items-center text-[8px] text-slate-400">
-                    <span>Objet : Requête</span>
-                    <Mail className="w-3 h-3 text-blue-500" />
+                    <span>Requête officielle</span>
+                    <Mail className="w-3 h-3 text-blue-600" />
                   </div>
                 </div>
-                <div className="mt-2.5 px-0.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">Lettre</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Lettre officielle</p>
+                <div className="mt-1.5">
+                  <h4 className="text-xs font-bold text-slate-900">Lettre formelle</h4>
+                  <p className="text-[10px] text-slate-500 truncate">Administrative</p>
                 </div>
+              </div>
+            </div>
+
+            {/* RANG 5 : Nouveaux Modèles (Certificat, Coupon, Syllabus, Facture, etc.) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">Autres Modèles & Documents</h3>
+                <span className="text-[10px] text-slate-400">Glisser ➔</span>
               </div>
 
-              {/* Rapport */}
-              <div
-                onClick={() => {
-                  const match = ALL_MODELS.find((m) => m.category === "professionnel") || ALL_MODELS[0];
-                  if (match) setSelectedModelForModal(match);
-                }}
-                className="group bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm hover:shadow-md hover:border-blue-500/50 cursor-pointer flex flex-col justify-between transition-all"
-              >
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden relative border border-slate-200 bg-white p-3 flex flex-col justify-between">
-                  <div className="space-y-1">
-                    <div className="h-1.5 w-2/5 bg-blue-900 rounded" />
-                    <div className="h-1 w-full bg-slate-100 rounded" />
-                    <div className="h-1 w-3/4 bg-slate-100 rounded" />
+              <div className="flex gap-2.5 overflow-x-auto pb-1.5 snap-x scrollbar-none">
+                {[
+                  { title: "Certificat & Diplôme", desc: "Sceau académique officiel", icon: FileCheck2, color: "bg-amber-600 text-white" },
+                  { title: "Coupon & Bon d'achat", desc: "Remise & Code promo", icon: Tag, color: "bg-rose-600 text-white" },
+                  { title: "Programme de cours", desc: "Syllabus universitaire", icon: CalendarDays, color: "bg-blue-600 text-white" },
+                  { title: "Facture & Devis", desc: "Gestion proforma A4", icon: Receipt, color: "bg-emerald-600 text-white" },
+                  { title: "Journal & Bulletin", desc: "Mise en page presse", icon: Newspaper, color: "bg-slate-700 text-white" },
+                  { title: "Album & Portfolio", desc: "Présentation visuelle", icon: ImageIcon, color: "bg-purple-600 text-white" },
+                  { title: "Fiche & Résumé", desc: "Synthèse de lecture", icon: BookCheck, color: "bg-teal-600 text-white" },
+                ].map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => handleOpenModelById("art_scientifique", "autres")}
+                    className="flex-shrink-0 w-36 sm:w-40 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm hover:shadow-md cursor-pointer snap-start flex flex-col justify-between aspect-[4/3] select-none"
+                  >
+                    <div className={`w-8 h-8 rounded-lg ${item.color} flex items-center justify-center shadow-sm`}>
+                      <item.icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 leading-tight">{item.title}</div>
+                      <div className="text-[9px] text-slate-500 truncate mt-0.5">{item.desc}</div>
+                    </div>
                   </div>
-                  <div className="flex items-end gap-1 h-5 pt-1">
-                    <div className="w-2 h-2 bg-blue-300 rounded-t" />
-                    <div className="w-2 h-4 bg-blue-500 rounded-t" />
-                    <div className="w-2 h-3 bg-blue-400 rounded-t" />
-                    <div className="w-2 h-5 bg-blue-800 rounded-t" />
-                  </div>
-                </div>
-                <div className="mt-2.5 px-0.5">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900">Rapport</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Rapport d'activité</p>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
-        ) : (
-          /* Résultats de recherche instantanés */
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Résultats de recherche ({filteredModels.length})
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {filteredModels.map((model) => (
-                <div
-                  key={model.id}
-                  onClick={() => {
-                    if (
-                      (model.category === "affiches" || model.category === "invitations") &&
-                      onOpenGraphicEditor
-                    ) {
-                      onOpenGraphicEditor(model);
-                    } else {
-                      setSelectedModelForModal(model);
-                    }
-                  }}
-                  className="bg-white rounded-xl border border-slate-200 p-3 hover:border-blue-500 hover:shadow-sm cursor-pointer flex flex-col justify-between"
-                >
-                  <div>
-                    <span className="text-[9px] uppercase font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                      {model.category}
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-900 mt-1.5 line-clamp-1">
-                      {model.title}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 line-clamp-2 mt-0.5">
-                      {model.description}
-                    </p>
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-blue-600 font-semibold">
-                    <span>Ouvrir</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </div>
-                </div>
-              ))}
-            </div>
+
           </div>
         )}
 
       </div>
 
-      {/* Modale assistée pour les documents textuels */}
+      {/* Modal de génération de document */}
       {selectedModelForModal && (
         <DocumentGenerationModal
           model={selectedModelForModal}
           isOpen={true}
           onClose={() => setSelectedModelForModal(null)}
-          onGenerate={(data) => {
+          onStartGeneration={(formData) => {
             setSelectedModelForModal(null);
-            onStartGeneration(data);
+            onStartGeneration(formData);
           }}
         />
       )}
